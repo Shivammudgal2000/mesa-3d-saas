@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mesa 3D | Kitchen Kanban Monitor Console</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        /* CSS Design Tokens matching the premium cyber-dark restaurant kitchen interface */
+        :root {
+            --bg-dark: #070A12;          /* Deep dark ambient backing canvas color */
+            --card-dark: #111622;        /* Solid container background color for tickets */
+            --primary: #C5A880;          /* Premium gold branding operational accent line */
+            --text-light: #F3F4F6;       /* Bright visibility text color variable */
+            --text-muted: #6B7280;       /* Darker subtext labels color token */
+            --border: #1E2533;           /* Rigid container separator framing dividers */
+            --lane-bg: #0D121F;          /* Distinct column lane background color profile */
+            --danger: #DC2626;           /* High visibility alert / emergency color token */
+            --success: #10B981;          /* Ready/Served confirmation indicator green */
+            --warning: #F59E0B;          /* High contrast amber-orange allergen flashing warning */
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background-color: var(--bg-dark); color: var(--text-light); display: flex; height: 100vh; overflow: hidden; }
+
+        /* 🛎️ SIDEBAR COMPONENT: Real-Time Non-Food Guest Quick Assistance Ticker Panel */
+        .assistance-sidebar { width: 320px; background: #0A0E1A; border-right: 1px solid var(--border); display: flex; flex-direction: column; height: 100vh; z-index: 90; }
+        .sidebar-header { background: #111622; padding: 1.2rem; border-bottom: 1px solid var(--border); }
+        .sidebar-header h3 { font-size: 1.05rem; color: var(--danger); font-weight: 700; display: flex; align-items: center; gap: 0.5rem; }
+        .assistance-stream-container { flex: 1; overflow-y: auto; padding: 1rem; display: flex; flex-direction: column; gap: 0.8rem; }
+        
+        /* Service Call Alert Card Layout Framework */
+        .assistance-alert-card { background: var(--card-dark); border: 1px solid var(--border); border-left: 4px solid var(--danger); border-radius: 4px; padding: 0.9rem; animation: slideIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .assistance-alert-card .meta-row { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); font-weight: 600; margin-bottom: 0.3rem; }
+        .assistance-alert-card .content-text { font-size: 0.85rem; color: #FFFFFF; font-weight: 700; }
+        .assistance-alert-card .note-text { font-size: 0.8rem; color: #FBBF24; background: rgba(251, 191, 36, 0.07); padding: 0.4rem; border-radius: 4px; border: 1px dashed rgba(251, 191, 36, 0.2); margin-top: 0.4rem; font-style: italic; }
+        .btn-dismiss-alert { background: #1F293D; border: none; color: var(--text-muted); font-size: 0.7rem; font-weight: 700; padding: 0.25rem 0.6rem; border-radius: 3px; cursor: pointer; margin-top: 0.6rem; float: right; transition: 0.2s; }
+        .btn-dismiss-alert:hover { background: var(--danger); color: white; }
+
+        /* Main Workspace Section Frame Structure */
+        .workspace-frame { flex: 1; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        
+        /* Top Navigation Header & Multi-Tenant Channels Filter Ribbon Layout */
+        .top-navbar { background: #111622; padding: 1rem 2rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .nav-branding h2 { font-size: 1.2rem; font-weight: 700; color: var(--primary); }
+        .nav-controls-ribbon { display: flex; gap: 0.6rem; }
+        .filter-view-pill { background: #1E2533; border: 1px solid var(--border); color: var(--text-muted); padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .filter-view-pill.active { background: var(--primary); color: var(--bg-dark); border-color: var(--primary); }
+
+        /* Unified 4-Column Kanban Pipeline Lane Track Grid layout */
+        .kanban-grid-canvas { flex: 1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; padding: 1.5rem; overflow: hidden; background: var(--bg-dark); }
+        .kanban-lane-column { background: var(--lane-bg); border: 1px solid var(--border); border-radius: 6px; display: flex; flex-direction: column; height: 100%; overflow: hidden; }
+        .lane-header { background: #111622; padding: 1rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .lane-header h4 { font-size: 0.9rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+        .lane-badge-counter { background: #1E2533; color: var(--text-light); font-size: 0.75rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 10px; }
+        .lane-scroll-body { flex: 1; overflow-y: auto; padding: 0.8rem; display: flex; flex-direction: column; gap: 0.8rem; }
+
+        /* Dynamic Visual Order Ticket Card Blueprint Component */
+        .order-ticket-card { background: var(--card-dark); border: 1px solid var(--border); border-radius: 6px; padding: 1rem; display: flex; flex-direction: column; gap: 0.6rem; box-shadow: 0 4px 10px rgba(0,0,0,0.4); animation: slideIn 0.25s linear; }
+        
+        /* ⚠️ ALLERGEN SYSTEM TRIGGER ACCENT MODIFIER FLASHER STYLE */
+        .order-ticket-card.allergen-flash-alert { border-color: var(--warning); border-width: 2px; animation: pulseGlow 2s infinite ease-in-out; }
+        .allergen-banner-stripe { background: rgba(245, 158, 11, 0.15); border: 1px solid var(--warning); color: var(--warning); font-size: 0.75rem; font-weight: 700; padding: 0.35rem; border-radius: 4px; text-align: center; display: none; }
+        .order-ticket-card.allergen-flash-alert .allergen-banner-stripe { display: block; }
+
+        /* Inside Card Elements Metadata Grid structures layout rules */
+        .ticket-header-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--border); padding-bottom: 0.4rem; }
+        .ticket-id-tag { font-size: 0.85rem; font-weight: 700; color: #FFFFFF; }
+        .ticket-location-tag { font-size: 0.75rem; font-weight: 700; background: #1E2533; color: var(--primary); padding: 0.15rem 0.5rem; border-radius: 3px; text-transform: uppercase; }
+        
+        /* Individual Purchased Food Items Arrays Listing Text Block rules */
+        .ticket-items-list { font-size: 0.85rem; color: #E5E7EB; font-weight: 600; padding: 0.2rem 0; line-height: 1.4; }
+        .ticket-single-item-line { display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.03); padding: 0.25rem 0; }
+        .ticket-single-item-line.is-veg-line { border-left: 2px solid var(--success); padding-left: 0.3rem; }
+        .ticket-single-item-line.is-nonveg-line { border-left: 2px solid var(--danger); padding-left: 0.3rem; }
+
+        /* Control Input Sub-Structures Dentro Del Ticket Layout */
+        .ticket-assignment-module { display: flex; flex-direction: column; gap: 0.4rem; background: #0E131F; padding: 0.6rem; border-radius: 4px; border: 1px solid var(--border); margin-top: 0.2rem; }
+        .ticket-assignment-module label { font-size: 0.65rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; letter-spacing: 0.5px; }
+        .ticket-select-dropdown, .ticket-time-slider { width: 100%; padding: 0.35rem; background: var(--bg-dark); border: 1px solid var(--border); color: white; font-size: 0.8rem; border-radius: 4px; font-weight: 600; }
+        
+        /* Execution Action Control Button configurations triggers */
+        .btn-lane-transition { width: 100%; background: var(--primary); color: var(--bg-dark); border: none; padding: 0.5rem; border-radius: 4px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: 0.2s; margin-top: 0.4rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .btn-lane-transition:hover { opacity: 0.9; }
+
+        /* Animation Keyframe Handlers Layouts */
+        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes pulseGlow { 0%, 100% { box-shadow: 0 4px 10px rgba(0,0,0,0.4); } 50% { box-shadow: 0 0 15px rgba(245, 158, 11, 0.3); } }
+    </style>
+</head>
+<body>
+
+    <aside class="assistance-sidebar">
+        <div class="sidebar-header">
+            <h3><span>🛎️</span> Live Assistance Pages</h3>
+        </div>
+        <div class="assistance-stream-container" id="assistanceStreamBox">
+            <p style="color: var(--text-muted); font-size: 0.8rem; text-align: center; padding: 1rem; width: 100%;" id="emptySidebarLabel">No active assistance dispatches running across terminals.</p>
+        </div>
+    </aside>
+
+    <section class="workspace-frame">
+        
+        <div class="top-navbar">
+            <div class="nav-branding">
+                <h2 id="kitchenWorkspaceTitle">Mesa 3D | Production Kitchen Board</h2>
+            </div>
+            <div class="nav-controls-ribbon">
+                <div class="filter-view-pill active" onclick="toggleKitchenViewMode('all', this)">All Channels</div>
+                <div class="filter-view-pill" onclick="toggleKitchenViewMode('TABLE', this)">Dine-In Tables</div>
+                <div class="filter-view-pill" onclick="toggleKitchenViewMode('ROOM', this)">Suite Room Service</div>
+            </div>
+        </div>
+
+        <main class="kanban-grid-canvas">
+            
+            <div class="kanban-lane-column" id="lane-new-box">
+                <div class="lane-header">
+                    <h4>New Inbound</h4>
+                    <div class="lane-badge-counter" id="badge-new-counter">0</div>
+                </div>
+                <div class="lane-scroll-body" id="lane-new-body"></div>
+            </div>
+
+            <div class="kanban-lane-column" id="lane-cooking-box">
+                <div class="lane-header">
+                    <h4>Cooking Lines</h4>
+                    <div class="lane-badge-counter" id="badge-cooking-counter">0</div>
+                </div>
+                <div class="lane-scroll-body" id="lane-cooking-body"></div>
+            </div>
+
+            <div class="kanban-lane-column" id="lane-ready-box">
+                <div class="lane-header">
+                    <h4>Ready for Pickup</h4>
+                    <div class="lane-badge-counter" id="badge-ready-counter">0</div>
+                </div>
+                <div class="lane-scroll-body" id="lane-ready-body"></div>
+            </div>
+
+            <div class="kanban-lane-column" id="lane-served-box">
+                <div class="lane-header">
+                    <h4>Served History</h4>
+                    <div class="lane-badge-counter" id="badge-served-counter">0</div>
+                </div>
+                <div class="lane-scroll-body" id="lane-served-body"></div>
+            </div>
+
+        </main>
+    </section>
+
+    <script>
+        // --- MULTI-TENANT CONFIGURATION CONTEXT IDENTITY RESOLVER ---
+        const urlParams = new URLSearchParams(window.location.search);
+        const tenantId = urlParams.get('restaurant_id') || localStorage.getItem('mesa3d_tenant_id') || '1';
+
+        // Local runtime state containers memory allocation caches arrays
+        let coreActiveOrdersLog = []; // System tracking data cache matching active database rows
+        let liveEnrolledChefsList = []; // Profiles list containing credentials and database photo URLs pathways
+        let currentKitchenFilterLayoutMode = "all"; // Tracking token sorting Tables vs Rooms context lines
+
+        // Open bidirectional real-time pipeline routes back to server channels
+        const socket = io();
+        socket.emit('join_workspace', { restaurantId: tenantId }); // Lock connection tunnel safely into isolated room channel
+
+        // Operational Core System Boot Launcher Module: Syncs active rosters fields and pulls live listings data
+        async function bootstrapKitchenConsole() {
+            try {
+                // Task 1: Download registered team staff metrics models row sets from server databases
+                const chefsRes = await fetch('/api/chefs?restaurant_id=' + tenantId);
+                liveEnrolledChefsList = await chefsRes.json();
+
+                // Task 2: Fire standard HTTP fetch routines to retrieve baseline context items if required
+                // (Note: Socket streams handle ongoing state synchronization calculations dynamically)
+                refreshActiveDisplayLanes();
+            } catch (err) {
+                console.error("Failed to bootstrap live operational components context parameters inside kitchen layout:", err);
+            }
+        }
+
+        // Channel Segregator Toggle Engine Task: Shifts visual layout view sorting boundaries effortlessly
+        function toggleKitchenViewMode(modeStringKey, elementAnchor) {
+            currentKitchenFilterLayoutMode = modeStringKey;
+            document.querySelectorAll('.filter-view-pill').forEach(pill => pill.classList.remove('active'));
+            elementAnchor.classList.add('active');
+            refreshActiveDisplayLanes(); // Trigger lanes layout structural rebuild cycle instantly
+        }
+
+        // Kanban Layout Constructor Module: Iterates active caches data, loops criteria conditions, and builds physical interface elements templates dynamically
+        function refreshActiveDisplayLanes() {
+            // Allocate clear target anchors hooks points to capture custom lane HTML content streams
+            const laneBodies = {
+                'New': document.getElementById('lane-new-body'),
+                'Cooking': document.getElementById('lane-cooking-body'),
+                'Ready': document.getElementById('lane-ready-body'),
+                'Served': document.getElementById('lane-served-body')
+            };
+
+            const laneCounters = {
+                'New': document.getElementById('badge-new-counter'),
+                'Cooking': document.getElementById('badge-cooking-counter'),
+                'Ready': document.getElementById('badge-ready-counter'),
+                'Served': document.getElementById('badge-served-counter')
+            };
+
+            // Wipe out preceding layout elements frames across all grid spaces tracking points before execution routines
+            Object.values(laneBodies).forEach(bodyNode => { bodyNode.innerHTML = ''; });
+            
+            // Re-allocate localized numerical tracker indexes maps to calculate running card counts
+            let laneRunningTotals = { 'New': 0, 'Cooking': 0, 'Ready': 0, 'Served': 0 };
+
+            // Sort active records caches and process individual programmatic HTML card elements injections
+            coreActiveOrdersLog.forEach(order => {
+                // Apply channel segregation constraints filtering out unmatched operational environments coordinates variables
+                if(currentKitchenFilterLayoutMode !== 'all' && order.location_context !== currentKitchenFilterLayoutMode) return;
+
+                const currentTargetStatusLaneKey = order.status || 'New';
+                if(!laneBodies[currentTargetStatusLaneKey]) return; // Intercept unhandled pipeline lane strings out of bounds
+
+                laneRunningTotals[currentTargetStatusLaneKey]++; // Append calculations value metrics index units count
+
+                // Parse items collections arrays variables to extract internal strings layout maps labels
+                let parsedItemsListArray = [];
+                try {
+                    parsedItemsListArray = typeof order.items === 'string' ? JSON.parse(order.items) : order.items;
+                } catch(e) { parsedItemsListArray = []; }
+
+                // Compile items listing layout text nodes strings
+                let itemsListLinesHTML = '';
+                let allergenDetectedAlertFlag = false; // Internal tracking flag monitoring safety violations indices
+                let detectedAllergensTextList = []; // Local accumulator logging matching toxic properties items
+
+                if(Array.isArray(parsedItemsListArray)) {
+                    parsedItemsListArray.forEach(item => {
+                        // Isolate raw properties matches by inspecting corresponding name strings structures from dataset rows rules
+                        // (Note: This matches text signatures matching simulated compliance mock arrays variables written on customer client panels scripts layers)
+                        let isVegLineStyle = item.name.toLowerCase().includes('paneer') || item.name.toLowerCase().includes('tikka') || item.name.toLowerCase().includes('veg');
+                        let lineCSSClassificationSelector = isVegLineStyle ? 'is-veg-line' : 'is-nonveg-line';
+
+                        // Simulate allergen detection mappings triggers matching text models properties layers configuration bounds rules
+                        let localItemAllergensList = [];
+                        if(item.name.toLowerCase().includes('paneer') || item.name.toLowerCase().includes('tikka')) localItemAllergensList.push('dairy');
+                        if(item.name.toLowerCase().includes('cake') || item.name.toLowerCase().includes('bread') || item.name.toLowerCase().includes('roti')) localItemAllergensList.push('gluten');
+                        if(item.name.toLowerCase().includes('nut') || item.name.toLowerCase().includes('kaju') || item.name.toLowerCase().includes('gravy')) localItemAllergensList.push('nuts');
+
+                        // Cross-reference item properties against any active global location markers passed inside the location data strings mapping layers
+                        // (Note: To test compliance tracking pipelines without changing server variables, we inspect the localized identifier payload signatures string loops)
+                        let matchingSafetyTriggerWords = ['dairy', 'nuts', 'gluten', 'shellfish'];
+                        matchingSafetyTriggerWords.forEach(wordKey => {
+                            if(order.location_identifier.toLowerCase().includes(wordKey) && localItemAllergensList.includes(wordKey)) {
+                                allergenDetectedAlertFlag = true;
+                                if(!detectedAllergensTextList.includes(wordKey.toUpperCase())) {
+                                    detectedAllergensTextList.push(wordKey.toUpperCase());
+                                }
+                            }
+                        });
+
+                        itemsListLinesHTML += `<div class="ticket-single-item-line ${lineCSSClassificationSelector}"><span>${item.name}</span><strong>x1</strong></div>`;
+                    });
+                }
+
+                // Append custom styling attributes flashers anchors configurations if allergy warnings are triggered active
+                let ticketAllergenModifierCSSClass = allergenDetectedAlertFlag ? 'allergen-flash-alert' : '';
+                let allergenLabelStripeText = `⚠️ DANGER DETECTED: MATCHES CONFLICTING ALLERGENS [${detectedAllergensTextList.join(', ')}]`;
+
+                // Compile contextual operational action configuration controls elements sections based on lane indices positions parameters
+                let functionalControlsModuleHTML = '';
+                if(currentTargetStatusLaneKey === 'New') {
+                    // Inject real-time interactive Chef drop-down roster elements and dynamic preparation slider tools bars structures components
+                    let chefOptionsMarkupHTML = liveEnrolledChefsList.map(chef => `<option value="${chef.id}">${chef.name}</option>`).join('');
+                    if(!chefOptionsMarkupHTML) chefOptionsMarkupHTML = '<option value="">No Active Enrolled Chefs Found</option>';
+
+                    functionalControlsModuleHTML = `
+                        <div class="ticket-assignment-module">
+                            <label>Assign Culinary Craftsman</label>
+                            <select class="ticket-select-dropdown" id="chef-select-${order.id}">
+                                ${chefOptionsMarkupHTML}
+                            </select>
+                            
+                            <label style="margin-top:0.3rem;">Prep Windows Duration target</label>
+                            <select class="ticket-select-dropdown" id="time-select-${order.id}">
+                                <option value="10">10 Minutes (Fast Line)</option>
+                                <option value="15" selected>15 Minutes (Standard)</option>
+                                <option value="25">25 Minutes (Complex / Rush)</option>
+                            </select>
+                        </div>
+                        <button class="btn-lane-transition" onclick="triggerOrderPipelineShifting(${order.id}, 'Cooking')">Fire Kitchen Line 🍳</button>
+                    `;
+                } else if(currentTargetStatusLaneKey === 'Cooking') {
+                    functionalControlsModuleHTML = `
+                        <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:0.2rem; font-weight:600;">Assigned Chef ID: #${order.assigned_chef_id || 1}</div>
+                        <button class="btn-lane-transition" style="background: #D97706; color:white;" onclick="triggerOrderPipelineShifting(${order.id}, 'Ready')">Mark Ready For Pickup 🛎️</button>
+                    `;
+                } else if(currentTargetStatusLaneKey === 'Ready') {
+                    functionalControlsModuleHTML = `
+                        <button class="btn-lane-transition" style="background: var(--success); color:var(--bg-dark);" onclick="triggerOrderPipelineShifting(${order.id}, 'Served')">Close Out / Served ✅</button>
+                    `;
+                } else {
+                    functionalControlsModuleHTML = `<div style="font-size:0.75rem; color:var(--success); font-weight:700; text-align:center; padding:0.2rem 0;">🎉 Ticket Successfully Fulfilled</div>`;
+                }
+
+                // Splice variables values cleanly and output physical ticket structure into viewport scroll area boxes panels
+                laneBodies[currentTargetStatusLaneKey].innerHTML += `
+                    <div class="order-ticket-card ${ticketAllergenModifierCSSClass}" id="order-card-${order.id}">
+                        <div class="allergen-banner-stripe">${allergenLabelStripeText}</div>
+                        <div class="ticket-header-row">
+                            <span class="ticket-id-tag">Ticket #${order.id}</span>
+                            <span class="ticket-location-tag">${order.location_identifier}</span>
+                        </div>
+                        <div class="ticket-items-list">
+                            ${itemsListLinesHTML}
+                        </div>
+                        ${functionalControlsModuleHTML}
+                    </div>
+                `;
+            });
+
+            // Re-write total numbers labels values markers inside numerical tracking header counter widgets indices
+            Object.keys(laneCounters).forEach(key => {
+                laneCounters[key].innerText = laneRunningTotals[key];
+            });
+        }
+
+        // Pipeline Mutation Controller Task: Extracts inputs arguments data metrics, packages objects and fires parameters over network lines loops maps instantly
+        function triggerOrderPipelineShifting(orderId, targetStatusLaneStringKey) {
+            let selectedChefIndexValue = null;
+            let chosenAllocatedMinutesDuration = 15;
+
+            // Extract dynamic configuration details directly from component DOM widgets anchors context layers if moving from New Queue lines
+            if(targetStatusLaneStringKey === 'Cooking') {
+                const chefSelectWidget = document.getElementById(`chef-select-${orderId}`);
+                const timeSelectWidget = document.getElementById(`time-select-${orderId}`);
+                
+                if(chefSelectWidget) selectedChefIndexValue = parseInt(chefSelectWidget.value);
+                if(timeSelectWidget) chosenAllocatedMinutesDuration = parseInt(timeSelectWidget.value);
+            }
+
+            // Fire structural database modifications commands directly across Socket network wrappers pipelines back to server routers channels
+            socket.emit('update_order_status', {
+                restaurant_id: parseInt(tenantId),
+                order_id: parseInt(orderId),
+                status: targetStatusLaneStringKey,
+                chef_id: selectedChefIndexValue,
+                prep_time: chosenAllocatedMinutesDuration
+            });
+        }
+
+        // --- REAL-TIME WEBSOCKET TELEMETRY CHANNELS NETWORK TRAFFIC HANDLERS LOGIC LAYER ---
+
+        // Socket Listener A: Intercepts newly minted checkouts originating from mobile devices menus terminals screens parameters elements
+        socket.on('new_order_alert', (orderPayload) => {
+            // Deduplicate incoming stream elements objects arrays models cache blocks tracking points indices
+            const duplicateCheckIndexKey = coreActiveOrdersLog.findIndex(o => o.id === orderPayload.id);
+            if(duplicateCheckIndexKey === -1) {
+                coreActiveOrdersLog.push(orderPayload); // Save entity row reference parameters data models permanently inside application cache variables
+                refreshActiveDisplayLanes(); // Redraw physical layout canvas columns lanes elements views charts instantly
+                
+                // Play a brief internal browser synthesizer click chime audio notice to punch through loud workspace background noise bounds metrics
+                try {
+                    let audioContextInstance = new (window.AudioContext || window.webkitAudioContext)();
+                    let oscillatorNodeAnchor = audioContextInstance.createOscillator();
+                    oscillatorNodeAnchor.type = 'sine';
+                    oscillatorNodeAnchor.frequency.setValueAtTime(880, audioContextInstance.currentTime); // Crisp dual tone bell register frequency value
+                    oscillatorNodeAnchor.connect(audioContextInstance.destination);
+                    oscillatorNodeAnchor.start();
+                    oscillatorNodeAnchor.stop(audioContextInstance.currentTime + 0.15); // Halt chime output swiftly
+                } catch(audioError) {}
+            }
+        });
+
+        // Socket Listener B: Listens for systemic progression lane status updates changes across multi-device administrative platforms screens layout nodes maps
+        socket.on('order_pipeline_update', (updatedOrderRecord) => {
+            const indexLocatorKey = coreActiveOrdersLog.findIndex(o => o.id === updatedOrderRecord.id);
+            if(indexLocatorKey !== -1) {
+                coreActiveOrdersLog[indexLocatorKey] = updatedOrderRecord; // Overwrite memory cache tracking state model properties fields parameters lines values rows
+            } else {
+                coreActiveOrdersLog.push(updatedOrderRecord);
+            }
+            refreshActiveDisplayLanes(); // Re-index displayed grid layout columns systems charts views instantly
+        });
+
+        // Socket Listener C: Intercepts low-latency general floor pages requests and appends rows entries straight down left sidebar stream box ticker
+        socket.on('waiter_alert', (alertPayload) => {
+            const sidebarContainerBoxNode = document.getElementById('assistanceStreamBox');
+            const emptyLabelWidgetNode = document.getElementById('emptySidebarLabel');
+            
+            if(emptyLabelWidgetNode) emptyLabelWidgetNode.remove(); // Eliminate empty placeholder warning notification layout elements blocks components text on initial push events data
+
+            // Isolate custom text instructions strings notes blocks mapping patterns if present inside location identifiers payload signatures arrays lists parameters fields
+            let contextualNoteMarkupHTML = '';
+            let rawIdentifierString = alertPayload.location_identifier;
+            
+            if(rawIdentifierString.includes('[') && rawIdentifierString.includes(']')) {
+                // Perform precise regex extraction or string slicing loops to isolate user text input statements values blocks fields
+                let extractedTextContentNote = rawIdentifierString.substring(rawIdentifierString.indexOf('[') + 1, rawIdentifierString.lastIndexOf(']'));
+                rawIdentifierString = rawIdentifierString.substring(0, rawIdentifierString.indexOf('[')).trim();
+                
+                if(extractedTextContentNote) {
+                    contextualNoteMarkupHTML = `<div class="note-text">💬 Note: "${extractedTextContentNote}"</div>`;
+                }
+            }
+
+            // Create unique element identification tag tracking timestamps reference index values parameters boundaries
+            const dynamicUniqueCardElementIdToken = `alert-card-${new Date().getTime()}`;
+
+            // Prepend new operational warning card at the top absolute peak index position of the vertical notifications channel log columns
+            sidebarContainerBoxNode.innerHTML = `
+                <div class="assistance-alert-card" id="${dynamicUniqueCardElementIdToken}">
+                    <div class="meta-row">
+                        <span>CONTEXT: ${alertPayload.location_context}</span>
+                        <span>${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'})}</span>
+                    </div>
+                    <div class="content-text">🛎️ Assist Call Node: ${rawIdentifierString}</div>
+                    ${contextualNoteMarkupHTML}
+                    <button class="btn-dismiss-alert" onclick="document.getElementById('${dynamicUniqueCardElementIdToken}').remove()">Acknowledge & Clear</button>
+                    <div style="clear:both;"></div>
+                </div>
+            ` + sidebarContainerBoxNode.innerHTML;
+
+            // Fire an elevated, continuous high urgency warning buzzer chime pattern sequence to break past standard loud food prep environments
+            try {
+                let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                let osc = audioCtx.createOscillator();
+                osc.type = 'sawtooth'; // Highly penetrating auditory waveform signature profile
+                osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5 high pitch siren tone structure mapping metrics variables values
+                osc.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.35); // Sustain sound for clear accountability identification trace
+            } catch(e) {}
+        });
+
+        // Auto-Execute baseline contextual setup functions on initial thread rendering events
+        window.onload = bootstrapKitchenConsole;
+    </script>
+</body>
+</html>

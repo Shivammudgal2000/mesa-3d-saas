@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hospitality WebGL Immersive Menu</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="/socket.io/socket.io.js"></script>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <script type="importmap">
+    { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/" } }
+    </script>
+    <style>
+        :root { --bg: #0B0F19; --card: #161B26; --primary: #C5A880; --text: #F3F4F6; --muted: #9CA3AF; --border: #1E2533; --success: #10B981; --danger: #DC2626; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background: var(--bg); color: var(--text); padding-bottom: 120px; overflow-x: hidden; }
+        
+        /* 🕹️ ANTI-HANG PERSISTENT BACKGROUND GL CONTEXT FRAME LAYER */
+        #masterThreeCanvas { position: fixed; top:0; left:0; width:100vw; height:100vh; pointer-events:none; z-index:1; }
+        .content-layer-wrapper { position: relative; z-index: 2; }
+        
+        header { background: var(--card); padding: 1.5rem; text-align: center; border-bottom: 1px solid var(--border); }
+        .location-badge { display: inline-block; background: #1E2533; color: var(--primary); padding: 0.3rem 1rem; border-radius: 20px; font-size: 0.75rem; font-weight: 700; margin-top: 0.5rem; }
+        
+        .menu-container { padding: 1.5rem 5%; display: flex; flex-direction: column; gap: 1.2rem; }
+        .dish-card { background: rgba(22,27,38,0.85); backdrop-filter: blur(5px); border: 1px solid var(--border); border-radius: 8px; padding: 1.2rem; display: flex; flex-direction: column; gap: 0.8rem; }
+        
+        /* 🕹️ SCISSOR CANVAS MAPPING PLACEHOLDER VIEWPORT CORNER */
+        .threed-viewport-placeholder { width: 100%; height: 240px; background: rgba(0,0,0,0.4); border-radius: 6px; border: 1px solid #1E2533; position: relative; }
+        
+        .btn-add-tray { background: transparent; border: 1px solid var(--primary); color: var(--primary); padding: 0.5rem 1rem; font-weight: 700; border-radius: 4px; cursor: pointer; }
+        .action-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--card); border-top: 1px solid var(--border); padding: 1rem 5%; z-index: 100; }
+        .btn-checkout { width: 100%; background: var(--primary); color: var(--bg); border: none; padding: 0.9rem; font-weight: 700; border-radius: 6px; font-size: 1rem; cursor: pointer; }
+        .btn-bell { position: fixed; bottom: 140px; right: 20px; width: 55px; height: 55px; background: var(--danger); border: none; border-radius: 50%; color: white; font-size: 1.5rem; cursor: pointer; z-index: 199; }
+    </style>
+</head>
+<body>
+
+    <!-- CENTRAL HARDWARE PROCESSING UNIT RENDERING MATRIX RENDER FRAME TRACE -->
+    <canvas id="masterThreeCanvas"></canvas>
+
+    <div class="content-layer-wrapper">
+        <header>
+            <h1 id="restaurantName">Mesa 3D White-Label Terminal</h1>
+            <div class="location-badge" id="locationDisplay">Resolving Spatial Coordinates Node...</div>
+        </header>
+
+        <main class="menu-container" id="masterMenuGrid"></main>
+
+        <button class="btn-bell" onclick="dispatchWaiterPagingSignalAlert()">🛎️</button>
+
+        <footer class="action-bar">
+            <button class="btn-checkout" id="cartSummaryBtn" onclick="submitActiveOrder()">Send Order Tray (0 Items Selected)</button>
+        </footer>
+    </div>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const tenantId = urlParams.get('restaurant_id') || '1';
+        const tableNum = urlParams.get('table'); const roomNum = urlParams.get('room');
+        let mode = urlParams.get('mode') || 'RESTAURANT';
+
+        let locContext = roomNum ? 'ROOM' : 'TABLE';
+        let locIdent = roomNum ? `Room ${roomNum}` : (tableNum ? `Table ${tableNum}` : 'General Space');
+
+        let rawDishes = []; let cart = [];
+        let renderer, mainCamera; let scenesMap = new Map();
+        const gltfLoader = new GLTFLoader(); const socket = io();
+
+        async function initTerminalEngine() {
+            // Apply responsive white-label text mutations instantly before asset assembly threads fire
+            document.getElementById('locationDisplay').innerText = `${locContext} PORTAL: ${locIdent}`;
+            if(mode === 'HOTEL') { document.getElementById('restaurantName').innerText = "Luxury Room Service Concierge"; }
+            
+            socket.emit('join_workspace', { restaurantId: tenantId });
+            initSharedWebGLContext();
+
+            const res = await fetch('/api/dishes?restaurant_id=' + tenantId);
+            rawDishes = await res.json();
+            
+            compileDOMCatalogGrid(); executeMasterRenderTickLoop();
+        }
+
+        function initSharedWebGLContext() {
+            const canvas = document.getElementById('masterThreeCanvas');
+            renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: "high-performance" });
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.setScissorTest(true); // Unlock clipping context operations matrix constraints flags
+
+            mainCamera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+            mainCamera.position.set(0, 1.2, 2.5);
+        }
+
+        function compileDOMCatalogGrid() {
+            const grid = document.getElementById('masterMenuGrid'); grid.innerHTML = '';
+            if(!rawDishes.length) { grid.innerHTML = '<p style="text-align:center; color:var(--muted);">No volumetric assets published for this venue node.</p>'; return; }
+
+            rawDishes.forEach(dish => {
+                let boxId = `viewport-placeholder-${dish.id}`;
+                grid.innerHTML += `
+                    <div class="dish-card">
+                        <div style="display:flex; justify-content:between; align-items:center; width:100%;">
+                            <div style="flex:1;">
+                                <h3 style="font-size:1.1rem;">${dish.name}</h3>
+                                <p style="color:var(--primary); font-weight:600; margin-top:0.2rem;">₹${dish.price.toFixed(2)}</p>
+                            </div>
+                            <button class="btn-add-tray" id="add-btn-${dish.id}" onclick="window.addItemToTray('${dish.name.replace(/'/g, "\\'")}',${dish.price},${dish.id})">Add +</button>
+                        </div>
+                        <div class="threed-viewport-placeholder" id="${boxId}"></div>
+                    </div>
+                `;
+
+                scenesMap.set(boxId, { path: dish.image_url, compiledScene: null, rotY: 0, isDragging: false, prevX: 0 });
+                setTimeout(() => bindPlaceholderGestures(boxId), 50);
+            });
+        }
+
+        function bindPlaceholderGestures(id) {
+            const el = document.getElementById(id); if(!el) return;
+            const state = scenesMap.get(id);
+            el.addEventListener('mousedown', (e) => { state.isDragging = true; state.prevX = e.clientX; });
+            window.addEventListener('mousemove', (e) => { if(state.isDragging) { let delta = e.clientX - state.prevX; state.rotY += delta * 0.007; state.prevX = e.clientX; } });
+            window.addEventListener('mouseup', () => state.isDragging = false);
+        }
+
+        function executeMasterRenderTickLoop() {
+            requestAnimationFrame(executeMasterRenderTickLoop);
+            const w = window.innerWidth; const h = window.innerHeight;
+            if(renderer.domElement.width !== w || renderer.domElement.height !== h) renderer.setSize(w, h, false);
+
+            renderer.setClearColor(0x000000, 0); renderer.setScissor(0,0,w,h); renderer.setViewport(0,0,w,h); renderer.clear();
+
+            scenesMap.forEach((state, id) => {
+                const node = document.getElementById(id); if(!node) return;
+                const box = node.getBoundingClientRect();
+                if(box.bottom < 0 || box.top > h || box.right < 0 || box.left > w) return; // Cull drawing operations completely if cards scroll off screen viewport
+
+                if(!state.compiledScene) { lazyLoadGeometryStream(id, state); return; }
+
+                const glBottomY = h - box.bottom; const elWidth = box.right - box.left; const elHeight = box.bottom - box.top;
+                renderer.setScissor(box.left, glBottomY, elWidth, elHeight); renderer.setViewport(box.left, glBottomY, elWidth, elHeight);
+
+                mainCamera.aspect = elWidth / elHeight; mainCamera.updateProjectionMatrix();
+                state.compiledScene.rotation.y = state.rotY;
+                if(!state.isDragging) state.rotY += 0.005; // Maintain idle animation loops sweeps trace
+
+                renderer.render(state.compiledScene, mainCamera);
+            });
+        }
+
+        function lazyLoadGeometryStream(id, state) {
+            const sc = new THREE.Scene();
+            sc.add(new THREE.AmbientLight('#ffffff', 1.5));
+            const dl = new THREE.DirectionalLight('#ffffff', 1.5); dl.position.set(2,4,2); sc.add(dl);
+            
+            gltfLoader.load(state.path, (gltf) => {
+                const mesh = gltf.scene; const b = new THREE.Box3().setFromObject(mesh); const c = b.getCenter(new THREE.Vector3());
+                mesh.position.x -= c.x; mesh.position.y -= c.y; mesh.position.z -= c.z;
+                sc.add(mesh); state.compiledScene = sc;
+            }, undefined, () => {
+                const errorMesh = new THREE.Mesh(new THREE.ConeGeometry(0.5, 0.9, 4), new THREE.MeshBasicMaterial({ color: '#C5A880', wireframe: true }));
+                sc.add(errorMesh); state.compiledScene = sc;
+            });
+        }
+
+        // Bridge functional interface window hooks natively across execution modules namespaces
+        window.addItemToTray = (name, price, id) => {
+            cart.push({ name, price });
+            document.getElementById('cartSummaryBtn').innerText = `Send Order Tray (${cart.length} Checked Items) ➔`;
+            let cnt = cart.filter(x => x.name === name).length;
+            document.getElementById(`add-btn-${id}`).innerText = `Add (${cnt}) +`;
+        };
+
+        window.dispatchWaiterPagingSignalAlert = () => {
+            socket.emit('call_waiter', { restaurant_id: tenantId, location_context: locContext, location_identifier: `${locIdent} [Requested Staff Pager Assistance]` });
+            alert("🛎️ Assistance Signal Sent! Staff notified immediately.");
+        };
+
+        window.submitActiveOrder = () => {
+            if(!cart.length) return alert("Select items into tray first.");
+            let total = cart.reduce((a,b) => a + b.price, 0);
+            socket.emit('place_order', { restaurant_id: tenantId, location_context: locContext, location_identifier: locIdent, items: cart, total_price: total });
+            cart = []; document.getElementById('cartSummaryBtn').innerText = 'Send Order Tray (0 Items Selected)';
+            alert("🚀 Order Dispatched Cleanly! Transmitted directly onto kitchen operations monitor lines tracks.");
+            compileDOMCatalogGrid();
+        };
+
+        socket.on('demo_expired', (data) => { alert(data.message); window.location.href = '/'; });
+
+        window.onload = initTerminalEngine;
+    </script>
+</body>
+</html>

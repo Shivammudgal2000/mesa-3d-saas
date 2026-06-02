@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mesa 3D | Interactive WebGL Hospitality SaaS Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #060913; --card: #0F1424; --primary: #C5A880; --text: #F3F4F6; --muted: #9CA3AF; --border: #1E293B; --purple: #8B5CF6; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+        
+        nav { display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 8%; background: rgba(15,20,36,0.8); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); }
+        .logo { font-size: 1.3rem; font-weight: 700; color: var(--primary); letter-spacing: 1px; }
+        
+        .hero-banner { text-align: center; padding: 4rem 10% 2rem 10%; }
+        .hero-banner h1 { font-size: 2.5rem; margin-bottom: 1rem; }
+        .hero-banner h1 span { color: var(--primary); }
+        
+        .trigger-bar-wrapper { display: flex; justify-content: center; gap: 1.5rem; margin-bottom: 3rem; }
+        .btn-trigger { padding: 1rem 2.5rem; font-size: 1rem; font-weight: 700; border-radius: 6px; cursor: pointer; border: 1px solid var(--border); text-transform: uppercase; transition: 0.2s; }
+        .btn-trigger.login-style { background: var(--card); color: var(--primary); }
+        .btn-trigger.signup-style { background: var(--primary); color: var(--bg); border-color: var(--primary); }
+        .btn-trigger:hover { transform: translateY(-2px); }
+
+        /* Fullscreen Modal Form Overlays System layout elements */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(6,9,19,0.96); backdrop-filter: blur(12px); justify-content: center; align-items: center; z-index: 1000; padding: 1rem; }
+        .modal-overlay.active { display: flex; }
+        .modal-container { background: var(--card); border: 1px solid var(--border); border-radius: 12px; width: 100%; max-width: 460px; padding: 2.5rem 2rem; position: relative; text-align: center; max-height: 95vh; overflow-y: auto; }
+        .close-btn { position: absolute; top: 15px; right: 20px; font-size: 1.3rem; color: var(--muted); cursor: pointer; }
+
+        /* Unified Authentication Tab Sub-Toggles design components classes */
+        .tab-header-row { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 1.5rem; }
+        .auth-tab { flex: 1; padding: 0.75rem; color: var(--muted); cursor: pointer; font-weight: 600; font-size: 0.9rem; }
+        .auth-tab.active { color: var(--primary); border-bottom: 2px solid var(--primary); }
+        
+        .auth-form-view { display: none; flex-direction: column; gap: 1rem; text-align: left; }
+        .auth-form-view.active { display: flex; }
+
+        .input-block { display: flex; flex-direction: column; gap: 0.3rem; }
+        .input-block label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: var(--primary); letter-spacing: 0.5px; }
+        .input-block input, .input-block select { width: 100%; padding: 0.75rem; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: white; font-size: 0.9rem; outline: none; }
+        .input-block input:focus { border-color: var(--primary); }
+
+        .submit-btn { width: 100%; background: var(--primary); color: var(--bg); border: none; padding: 0.9rem; font-weight: 700; border-radius: 6px; text-transform: uppercase; cursor: pointer; font-size: 0.9rem; margin-top: 0.5rem; }
+        .demo-bypass-link { margin-top: 1.2rem; display: inline-block; color: var(--purple); font-weight: 700; font-size: 0.85rem; cursor: pointer; text-decoration: underline; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        /* Multi-Stage Signup Verification Cards Blocks */
+        .stage-box-view { display: none; flex-direction: column; gap: 1.2rem; text-align: left; }
+        .stage-box-view.active { display: flex; }
+        
+        /* Native Hardware Selfie Stream Overlay Canvas */
+        #cameraViewport { width: 100%; height: 220px; background: #000; border-radius: 6px; border: 1px dashed var(--primary); display: none; transform: scaleX(-1); object-fit: cover; }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="logo">MESA 3D DIGITAL SYSTEMS</div>
+    </nav>
+
+    <section class="hero-banner">
+        <h1>Curate Volumetric <span>Interactive 3D Menus</span> Directly Inside Browsers</h1>
+        <p style="color:var(--muted); max-width:600px; margin: 0 auto 2rem auto; font-size:1.1rem;">White-label multi-tenant SaaS for restaurants, hotels, and luxury cafe counters nodes ecosystems layout management.</p>
+    </section>
+
+    <!-- ENTRY WAY NAVIGATION ACTIONS BAR TRIGGER ITEMS -->
+    <div class="trigger-bar-wrapper">
+        <button class="btn-trigger login-style" onclick="toggleAuthModal('login', true)">Log In to Workspace</button>
+        <button class="btn-trigger signup-style" onclick="toggleAuthModal('signup', true)">Register Account</button>
+    </div>
+
+    <!-- =================================================================================
+                        AUTHENTICATION CONTEXT MODAL MASTER BOX
+    ================================================================================= -->
+    <div class="modal-overlay" id="authMasterModalWindow">
+        <div class="modal-container">
+            <div class="close-btn" onclick="toggleAuthModal('', false)">✕</div>
+
+            <!-- VIEW 1: UNIFIED AUTHENTICATION LOGIN SHELL CORE -->
+            <div id="wrapper-login-core" style="display: none;">
+                <div class="tab-header-row">
+                    <div class="auth-tab active" id="tabBtn-user" onclick="switchLoginSubTab('user')">Mesa User Admin</div>
+                    <div class="auth-tab" id="tabBtn-kitchen" onclick="switchLoginSubTab('kitchen')">Line Kitchen Crew</div>
+                </div>
+
+                <!-- SUB-VIEW A: ADMINISTRATOR SIGN-IN CORE CONTEXT -->
+                <form id="form-login-user" class="auth-form-view active" onsubmit="executeAdminLoginHandshake(event)">
+                    <div class="input-block">
+                        <label>Login Reference ID / Email</label>
+                        <input type="text" id="loginAdminUserKey" required placeholder="admin@property.com or Tenant ID">
+                    </div>
+                    <div class="input-block">
+                        <label>Security Password</label>
+                        <input type="password" id="loginAdminPasswordKey" required placeholder="••••••••">
+                    </div>
+                    <button type="submit" class="submit-btn">Authorize Admin Node</button>
+                </form>
+
+                <!-- SUB-VIEW B: KITCHEN PASSCODE STAFF SUB-TAB TERMINAL -->
+                <form id="form-login-kitchen" class="auth-form-view" onsubmit="executeKitchenStaffLoginHandshake(event)">
+                    <div class="input-block">
+                        <label>Restaurant Workspace Code ID</label>
+                        <input type="number" id="loginKitchenStaffId" required placeholder="e.g., 1 or 999">
+                    </div>
+                    <div class="input-block">
+                        <label>Kitchen Security PIN Access</label>
+                        <input type="password" id="loginKitchenPIN" required placeholder="Default: 1234">
+                    </div>
+                    <button type="submit" class="submit-btn" style="background:var(--purple); color:white;">Boot Cooking Grid Monitor</button>
+                </form>
+
+                <!-- THE UNIVERSAL BYPASS LINK: Grants immediate route entries to sandbox node -->
+                <div class="demo-bypass-link" onclick="executeDemoAccountBypassAccess()">⚡ Try Live Demo Account Workspace (30 Min Reset)</div>
+            </div>
+
+            <!-- VIEW 2: MULTI-STAGE SECURE KYC ACCOUNT SIGNUP SEQUENCE -->
+            <div id="wrapper-signup-core" style="display: none;">
+                <h3 style="margin-bottom:0.5rem; text-align:left; color:white;" id="signupProgressTitle">Step 1: Operator Identity Profile</h3>
+                <p style="font-size:0.8rem; color:var(--muted); text-align:left; margin-bottom:1.5rem;" id="signupProgressSub">Establish owner contact vectors parameters before compliance check.</p>
+
+                <!-- STAGE 1: BASIC OPERATOR INITIAL REGISTRATION CARD -->
+                <div id="signup-stage-1" class="stage-box-view active">
+                    <div class="input-block"><label>Full Name</label><input type="text" id="suOwnerName" required placeholder="Shivam Mudgal"></div>
+                    <div class="input-block"><label>Personal Contact Email</label><input type="email" id="suOwnerEmail" required placeholder="shivam@example.com"></div>
+                    <div class="input-block"><label>Mobile Phone Number</label><input type="tel" id="suOwnerMobile" required placeholder="+91 XXXXX XXXXX"></div>
+                    <div class="input-block"><label>Account Access Password</label><input type="password" id="suOwnerPass" required placeholder="Create secure key"></div>
+                    <button type="button" class="submit-btn" onclick="transitionSignupToStageTwo()">Next: Verification OTP ➔</button>
+                </div>
+
+                <!-- STAGE 2: THE TWO-FACTOR SECURITY DUAL OTP CHALLENGE SHIELD -->
+                <div id="signup-stage-2" class="stage-box-view">
+                    <div class="input-block">
+                        <label>Enter 6-Digit Email Verification OTP</label>
+                        <input type="text" id="otpEmail" maxlength="6" style="letter-spacing:6px; font-size:1.4rem; text-align:center;" placeholder="123456">
+                    </div>
+                    <div class="input-block">
+                        <label>Enter 6-Digit Mobile Text OTP</label>
+                        <input type="text" id="otpMobile" maxlength="6" style="letter-spacing:6px; font-size:1.4rem; text-align:center;" placeholder="654321">
+                    </div>
+                    <button type="button" class="submit-btn" onclick="transitionSignupToStageThree()">Validate OTP Handshake ➔</button>
+                </div>
+
+                <!-- STAGE 3: CORPORATE PROPERTIES INFORMATION AND Aadhaar CARD KYC CAPTURE -->
+                <div id="signup-stage-3" class="stage-box-view">
+                    <div class="input-block"><label>Official Property Venue Name</label><input type="text" id="suPropName" placeholder="Grand Amity Luxury Resort"></div>
+                    <div class="input-block"><label>Physical Property Physical Address</label><input type="text" id="suPropAddress" placeholder="Gwalior, MP, India"></div>
+                    <div class="input-block"><label>Government Aadhaar Identity Card Number</label><input type="text" id="suAadhaar" maxlength="12" placeholder="0000 0000 0000"></div>
+                    
+                    <!-- Hardware Stream integration element wrappers -->
+                    <div class="input-block">
+                        <label>Biometric Validation: Capture Live Facial Selfie</label>
+                        <video id="cameraViewport" autoplay playsinline></video>
+                        <button type="button" class="submit-btn" id="cameraToggleBtn" style="background:#1E293B; color:var(--primary);" onclick="activateNativeHardwareCameraDevice()">Initialize Selfie Lens</button>
+                    </div>
+                    <button type="button" class="submit-btn" style="background:var(--success); color:var(--bg);" onclick="commitFullCorporateKYCSignupPipeline()">Finalize Aadhaar OTP & Deploy Node ➔</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        let streamThreadInstance = null; // Instantiated reference handle holding dynamic camera thread blocks
+        let base64CapturedSelfiePayload = "data:image/png;base64,mockDefaultPayloadString";
+
+        function toggleAuthModal(mode, visible) {
+            const overlay = document.getElementById('authMasterModalWindow');
+            document.getElementById('wrapper-login-core').style.display = 'none';
+            document.getElementById('wrapper-signup-core').style.display = 'none';
+            
+            if(!visible) {
+                overlay.classList.remove('active');
+                deactivateNativeHardwareCameraDevice();
+                return;
+            }
+
+            overlay.classList.add('active');
+            if(mode === 'login') { document.getElementById('wrapper-login-core').style.display = 'block'; }
+            if(mode === 'signup') { resetToSignupStageOne(); document.getElementById('wrapper-signup-core').style.display = 'block'; }
+        }
+
+        function switchLoginSubTab(tabKey) {
+            document.getElementById('tabBtn-user').classList.toggle('active', tabKey === 'user');
+            document.getElementById('tabBtn-kitchen').classList.toggle('active', tabKey === 'kitchen');
+            document.getElementById('form-login-user').classList.toggle('active', tabKey === 'user');
+            document.getElementById('form-login-kitchen').classList.toggle('active', tabKey === 'kitchen');
+        }
+
+        async function executeAdminLoginHandshake(e) {
+            e.preventDefault();
+            const res = await fetch('/api/auth/login-admin', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ login_id: document.getElementById('loginAdminUserKey').value, password: document.getElementById('loginAdminPasswordKey').value })
+            });
+            const data = await res.json();
+            if(data.success) {
+                localStorage.setItem('mesa3d_tenant_id', data.tenant_id);
+                localStorage.setItem('mesa3d_tenant_name', data.venue_name);
+                window.location.href = `/admin/admin.html?restaurant_id=${data.tenant_id}`;
+            } else { alert("Authentication Error: " + data.error); }
+        }
+
+        async function executeKitchenStaffLoginHandshake(e) {
+            e.preventDefault();
+            const res = await fetch('/api/auth/login-kitchen', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ staff_id: document.getElementById('loginKitchenStaffId').value, kitchen_passcode: document.getElementById('loginKitchenPIN').value })
+            });
+            const data = await res.json();
+            if(data.success) {
+                localStorage.setItem('mesa3d_tenant_id', data.tenant_id);
+                localStorage.setItem('mesa3d_tenant_name', data.venue_name);
+                window.location.href = `/admin/admin.html?restaurant_id=${data.tenant_id}&view=kitchen`;
+            } else { alert("Kitchen Access Prohibited: " + data.error); }
+        }
+
+        function executeDemoAccountBypassAccess() {
+            localStorage.setItem('mesa3d_tenant_id', '999');
+            localStorage.setItem('mesa3d_tenant_name', 'Mesa Sandbox Diner (Tour Mod)');
+            // Alert user of sandbox constraints explicitly before transition completes
+            alert("Entering Global Demo Sandbox! You have 30 minutes of unrestricted editing before the environment wipes.");
+            window.location.href = '/admin/admin.html?restaurant_id=999';
+        }
+
+        // --- STAGE ROUTER TRANSITION BLOCKS ---
+        function resetToSignupStageOne() {
+            document.querySelectorAll('.stage-box-view').forEach(v => v.classList.remove('active'));
+            document.getElementById('signup-stage-1').classList.add('active');
+            updateSignupHeaderLabels("Step 1: Operator Identity Profile", "Establish owner contact vectors parameters before compliance check.");
+        }
+
+        function transitionSignupToStageTwo() {
+            if(!document.getElementById('suOwnerEmail').value.includes('@')) return alert("Input a valid corporate email node.");
+            document.querySelectorAll('.stage-box-view').forEach(v => v.classList.remove('active'));
+            document.getElementById('signup-stage-2').classList.add('active');
+            updateSignupHeaderLabels("Step 2: Two-Factor Security Check", "Two simulated verification OTP codes have been broadcast over carriers lines.");
+        }
+
+        function transitionSignupToStageThree() {
+            if(document.getElementById('otpEmail').value !== '123456' || document.getElementById('otpMobile').value !== '654321') {
+                return alert("Security Sweep Failure: Invalid OTP parameters. Use Demo Keys: [Email: 123456] & [Mobile: 654321]");
+            }
+            document.querySelectorAll('.stage-box-view').forEach(v => v.classList.remove('active'));
+            document.getElementById('signup-stage-3').classList.add('active');
+            updateSignupHeaderLabels("Step 3: Corporate Registration & Aadhaar KYC", "Upload property metadata profiles and capture biometric identity verification checks.");
+        }
+
+        function updateSignupHeaderLabels(t, s) {
+            document.getElementById('signupProgressTitle').innerText = t;
+            document.getElementById('signupProgressSub').innerText = s;
+        }
+
+        // --- HARDWARE API DRIVER: BIOMETRIC SELFIE CAMERA CONTROL CAPTURE ---
+        async function activateNativeHardwareCameraDevice() {
+            const vid = document.getElementById('cameraViewport');
+            const btn = document.getElementById('cameraToggleBtn');
+            try {
+                streamThreadInstance = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: 400, height: 300 } });
+                vid.srcObject = streamThreadInstance;
+                vid.style.display = 'block';
+                btn.innerText = "📸 Snapshot Facemask Frame";
+                btn.onclick = snapshotSelfieFrameData;
+            } catch(e) { alert("Camera Device Initialization Failure or Access Privilege Denied."); }
+        }
+
+        function snapshotSelfieFrameData() {
+            const vid = document.getElementById('cameraViewport');
+            const c = document.createElement('canvas');
+            c.width = 400; c.height = 300;
+            const ctx = c.getContext('2d');
+            ctx.translate(400, 0); ctx.scale(-1, 1); // Maintain standard true mirror alignment dimensions matrix rows
+            ctx.drawImage(vid, 0, 0, 400, 300);
+            
+            base64CapturedSelfiePayload = c.toDataURL('image/png');
+            deactivateNativeHardwareCameraDevice();
+            vid.style.display = 'none';
+            
+            const btn = document.getElementById('cameraToggleBtn');
+            btn.innerText = "✅ Biometric Photo Frame Captured Successfully";
+            btn.style.color = "var(--success)";
+            btn.onclick = null;
+        }
+
+        function deactivateNativeHardwareCameraDevice() {
+            if(streamThreadInstance) {
+                streamThreadInstance.getTracks().forEach(track => track.stop());
+                streamThreadInstance = null;
+            }
+        }
+
+        async function commitFullCorporateKYCSignupPipeline() {
+            if(document.getElementById('suAadhaar').value.length !== 12) return alert("KYC Verification Halted: Aadhaar card string sequence must evaluate to exactly 12 integers length.");
+            
+            let mockAadhaarOTPChallengeInput = prompt("Enter the 6-digit verification security OTP sent to your Aadhaar-linked phone number:", "123456");
+            if(mockAadhaarOTPChallengeInput !== "123456") return alert("KYC Audit Failure: Mismatched government ledger authentication signatures.");
+
+            const fullRegistrationPayload = {
+                name: document.getElementById('suOwnerName').value, email: document.getElementById('suOwnerEmail').value,
+                mobile_number: document.getElementById('suOwnerMobile').value, password: document.getElementById('suOwnerPass').value,
+                property_name: document.getElementById('suPropName').value, property_address: document.getElementById('suPropAddress').value,
+                property_owner: document.getElementById('suOwnerName').value, property_mail_id: document.getElementById('suOwnerEmail').value,
+                property_phone_number: document.getElementById('suOwnerMobile').value, aadhaar_card: document.getElementById('suAadhaar').value,
+                live_selfie_url: base64CapturedSelfiePayload
+            };
+
+            const res = await fetch('/api/auth/signup-corporate', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(fullRegistrationPayload)
+            });
+            const data = await res.json();
+            if(data.success) {
+                alert(`🎉 CONGRATULATIONS! Your establishment node has deployed successfully. Your newly assigned account SaaS Workspace Tenant ID code is: #${data.assigned_tenant_id}. Use this ID inside the Admin Login panel to manage your platform!`);
+                toggleAuthModal('', false);
+            } else { alert("Registration Processing Halt: " + data.error); }
+        }
+    </script>
+</body>
+</html>
