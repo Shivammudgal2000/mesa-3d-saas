@@ -27,6 +27,16 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Clean URL helper for Admin Dashboard
+app.get('/admin', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+});
+
+// Clean URL helper for Customer Menu
+app.get('/customer', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'customer.html'));
+});
+
 // Configure binary multi-part storage targets for 3D meshes and profile image avatars
 const storageDiskConfiguration = multer.diskStorage({
     destination: (req, file, cb) => {
