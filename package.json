@@ -10,13 +10,12 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
- "dependencies": {
+  "dependencies": {
     "express": "^5.2.1",
     "multer": "^2.1.1",
     "qrcode": "^1.5.4",
     "socket.io": "^4.8.3",
     "sqlite": "^5.1.1",
     "sqlite3": "5.1.7"
-  }
   }
 }
