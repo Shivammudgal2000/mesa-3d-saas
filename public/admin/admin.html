@@ -3,352 +3,231 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mesa 3D | Workspace Management Engine Panel</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
-    <script src="/socket.io/socket.io.js"></script>
-    <link rel="manifest" href="/manifest.json">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Mesa 3D Enterprise - Admin Deck</title>
     <style>
-        :root { --bg: #090D16; --card: #121824; --primary: #C5A880; --text: #F3F4F6; --muted: #9CA3AF; --border: #1E293B; --danger: #EF4444; --success: #10B981; --blue: #3B82F6; --purple: #8B5CF6; }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
-        body { background: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
+        /* Modern dark theme workspace styling layout structure */
+        body { margin: 0; background: #0a0a0a; color: #eaeaea; font-family: system-ui, sans-serif; padding: 20px; }
+        h1, h2, h3 { color: #fff; border-bottom: 1px solid #1f1f1f; padding-bottom: 8px; }
+        .grid-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 25px; margin-top: 20px; }
+        .panel-card { background: #121212; border: 1px solid #222; border-radius: 12px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
         
-        aside { width: 260px; background: #0E131F; border-right: 1px solid var(--border); padding: 2rem 1.5rem; display: flex; flex-direction: column; gap: 2rem; }
-        .logo { font-size: 1.2rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; }
-        .nav-links { display: flex; flex-direction: column; gap: 0.5rem; list-style: none; }
-        .nav-links li { padding: 0.8rem 1rem; border-radius: 4px; color: var(--muted); font-weight: 600; font-size: 0.9rem; cursor: pointer; border: 1px solid transparent; }
-        .nav-links li.active, .nav-links li:hover { background: var(--card); color: var(--primary); border-color: var(--border); }
+        /* Interactive Input Form Control elements layout definitions */
+        .form-group { margin-bottom: 15px; display: flex; flex-direction: column; gap: 6px; }
+        label { font-size: 13px; color: #aaa; font-weight: 500; }
+        input[type="text"], input[type="number"], textarea { background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 10px; border-radius: 6px; font-size: 14px; }
+        input[type="text"]:focus, input[type="number"]:focus { border-color: #0070f3; outline: none; }
+        input[type="file"] { color: #ccc; font-size: 13px; margin-top: 4px; }
         
-        main { flex: 1; display: flex; flex-direction: column; overflow-y: auto; }
-        .top-nav { background: #0E131F; padding: 1.2rem 2.5rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-        .content-area { padding: 2.5rem; flex: 1; }
+        /* System operation buttons interaction mappings */
+        button { background: #0070f3; color: white; border: none; padding: 10px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+        button:hover { background: #0051a8; }
+        .btn-offer { background: #e74c3c; font-size: 12px; padding: 6px 12px; margin-top: 8px; }
+        .btn-offer:hover { background: #c0392b; }
         
-        .panel-section { display: none; }
-        .panel-section.active { display: block; }
-        
-        .analytics-row { display: flex; gap: 1.5rem; margin-bottom: 2.5rem; flex-wrap: wrap; }
-        .kpi-card { background: var(--card); border: 1px solid var(--border); padding: 1.5rem; border-radius: 6px; flex: 1; min-width: 200px; }
-        .kpi-card h4 { font-size: 0.8rem; text-transform: uppercase; color: var(--muted); }
-        .kpi-card .value { font-size: 1.8rem; font-weight: 700; color: white; margin-top: 0.4rem; }
-        
-        .popularity-box { background: linear-gradient(135deg, #131A26 0%, #0E1420 100%); border: 1px solid var(--border); padding: 2rem; border-radius: 8px; margin-bottom: 2.5rem; }
-        .metric-row { display: flex; align-items: center; justify-content: space-between; font-size: 0.9rem; padding: 0.5rem 0; border-bottom: 1px dashed rgba(255,255,255,0.05); }
-        
-        .floor-inventory-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1.2rem; margin-top: 1.5rem; }
-        .floor-tile-card { background: var(--card); border: 1px solid var(--border); padding: 1.5rem; border-radius: 8px; text-align: center; border-top: 4px solid var(--muted); position: relative; }
-        .floor-tile-card.status-alert { border-top-color: var(--danger); animation: pulseGlow 1.5s infinite; }
-        .btn-qr-download { width: 100%; background: #1E2533; border: 1px solid var(--border); color: var(--primary); padding: 0.5rem; font-size: 0.75rem; font-weight: 700; border-radius: 4px; cursor: pointer; margin-top: 1rem; }
-
-        .admin-kitchen-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.2rem; margin-bottom: 2.5rem; }
-        .admin-kitchen-card { background: var(--card); border: 1px solid var(--border); padding: 1.2rem; border-radius: 6px; border-top: 4px solid var(--primary); display: flex; flex-direction: column; gap: 0.6rem; }
-        .btn-override { flex: 1; background: #1E2533; border: 1px solid var(--border); color: white; padding: 0.4rem; font-size: 0.7rem; font-weight: 700; cursor: pointer; text-transform: uppercase; border-radius: 4px; }
-        .btn-override:hover { background: var(--blue); }
-
-        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.2rem; background: var(--card); padding: 2rem; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 2.5rem; }
-        .input-block { display: flex; flex-direction: column; gap: 0.4rem; }
-        .input-block label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: var(--muted); }
-        .input-block input, .input-block select { width: 100%; padding: 0.7rem; background: var(--bg); border: 1px solid var(--border); color: white; border-radius: 4px; }
-        .btn-action { background: var(--primary); color: var(--bg); border: none; padding: 0.75rem 1.8rem; font-weight: 700; border-radius: 4px; cursor: pointer; grid-column: 1 / -1; justify-self: end; text-transform: uppercase; }
-        
-        table { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; margin-top: 1rem; }
-        th, td { padding: 1rem; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
-        th { background: #0E131F; color: var(--muted); font-size: 0.75rem; text-transform: uppercase; }
-        
-        .btn-inline-delete { background: rgba(239,68,68,0.15); border: 1px solid var(--danger); color: var(--danger); padding: 0.35rem 0.7rem; font-size: 0.75rem; font-weight: 700; border-radius: 4px; cursor: pointer; }
-        .btn-inline-highlight { background: rgba(139,92,246,0.15); border: 1px solid var(--purple); color: var(--purple); padding: 0.35rem 0.7rem; font-size: 0.75rem; font-weight: 700; border-radius: 4px; cursor: pointer; margin-right: 0.3rem; }
-        .btn-inline-highlight.featured-true { background: var(--success); border-color: var(--success); color: var(--bg); }
-        
-        @keyframes pulseGlow { 0% { box-shadow:0 0 0 0 rgba(239,68,68,0.4); } 70% { box-shadow:0 0 0 10px rgba(239,68,68,0); } 100% { box-shadow:0 0 0 0 rgba(239,68,68,0); } }
+        /* Dynamic item container list styles */
+        .item-list { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; max-height: 300px; overflow-y: auto; }
+        .list-row { background: #181818; padding: 12px; border-radius: 6px; border-left: 4px solid #0070f3; display: flex; justify-content: space-between; align-items: center; }
+        .waiter-alert-card { background: #2c1a04; border-left-color: #ff9f43; padding: 12px; border-radius: 6px; margin-bottom: 8px; }
     </style>
+    <script src="/socket.io/socket.io.js"></script>
 </head>
 <body>
 
-    <aside id="sidebarFramePanel">
-        <div class="logo">Mesa 3D Control</div>
-        <ul class="nav-links">
-            <li class="active" id="nav-dashboard" onclick="switchSection('dashboard')">📊 Live Monitor Board</li>
-            <li id="nav-floor" onclick="switchSection('floor')">🪑 Floor & QR Manager</li>
-            <li id="nav-menu" onclick="switchSection('menu')">🍔 Menu Catalog</li>
-            <li id="nav-chefs" onclick="switchSection('chefs')">👨‍🍳 Crew Registry</li>
-        </ul>
-    </aside>
+    <h1>👨‍🍳 Mesa 3D Management Console</h1>
+    <p style="color: #888; margin-top: -10px;">Live Server Operations Sandbox Mode Environment</p>
 
-    <main>
-        <div class="top-nav">
-            <h2 id="activePanelTitle">LIVE PRODUCTION INSIGHTS</h2>
-            <div id="venueDisplayTag" style="font-weight:600; color:var(--primary);">Connecting Space Node Network...</div>
+    <div class="grid-container">
+
+        <div class="panel-card">
+            <h2>📦 Dish Publisher Engine</h2>
+            <form action="/api/menu" method="POST" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label>Dish Name / Title</label>
+                    <input type="text" name="name" placeholder="e.g. Smoked Salmon Platter" required />
+                </div>
+                <div class="form-group">
+                    <label>Base Price (INR)</label>
+                    <input type="number" name="price" placeholder="e.g. 450" required />
+                </div>
+                <div class="form-group">
+                    <label>Allergy Indicators (Comma Separated)</label>
+                    <input type="text" name="allergies" placeholder="e.g. Dairy, Nuts, Gluten" />
+                </div>
+                <div class="form-group">
+                    <label>Interactive 3D Asset (.glb file target)</label>
+                    <input type="file" name="glb_model" accept=".glb" required />
+                </div>
+                <button type="submit">Deploy Asset to Menu</button>
+            </form>
+
+            <h3 style="margin-top: 25px;">Current Menu Stack</h3>
+            <div class="item-list" id="adminMenuContainer">
+                </div>
         </div>
 
-        <div class="content-area">
-
-            <!-- SECTION 1: SYSTEM MONITOR TRACK TICKETS BOARD -->
-            <div id="section-dashboard" class="panel-section active">
-                <div class="analytics-row" id="kpiCountersSectionWrapper">
-                    <div class="kpi-card"><h4>Monitored Tickets Queue</h4><div class="value" id="kpi-orders-count">0</div></div>
-                    <div class="kpi-card"><h4>Gross SaaS Balance</h4><div class="value" style="color:var(--success);" id="kpi-revenue">₹0.00</div></div>
-                    <div class="kpi-card"><h4 id="lblKpiSpaces">Active Linked Tables</h4><div class="value" id="kpi-active-spaces">0</div></div>
+        <div class="panel-card">
+            <h2>👨‍🍳 Executive Culinary Deck</h2>
+            <form action="/api/chefs" method="POST" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label>Chef Name</label>
+                    <input type="text" name="name" placeholder="e.g. Chef Vikram Anand" required />
                 </div>
-
-                <div class="popularity-box" id="chartAnalyticsWrapperBox">
-                    <h3 style="font-size:1rem; color:var(--primary); margin-bottom:1rem;">📈 Top Volumetric Models Order Ranks (Product Intelligence)</h3>
-                    <div id="popularityMetricsBox"></div>
+                <div class="form-group">
+                    <label>Culinary Core Specialty</label>
+                    <input type="text" name="specialty" placeholder="e.g. Pastry Master / Molecular Gastronomy" required />
                 </div>
-
-                <h3 style="margin-bottom:1rem;">🍳 Live Kitchen Preparation Tracks Monitor</h3>
-                <div class="admin-kitchen-grid" id="adminKitchenBoardGrid"></div>
-
-                <h3>Active Floor Transaction Ledger Log</h3>
-                <table>
-                    <thead>
-                        <tr><th>Order ID</th><th>Context</th><th id="thLocationHeader">Location Coordinate Node</th><th>Total Billing</th><th>Pipeline State</th></tr>
-                    </thead>
-                    <tbody id="ledgerTableBody"></tbody>
-                </table>
-            </div>
-
-            <!-- SECTION 2: THE 🪑 FLOOR SPACE LAYOUT MANAGER AND QR CODE STICKERS EMITTER -->
-            <div id="section-floor" class="panel-section">
-                <h3>Configure Physical Establishment Asset Specifications</h3>
-                <div class="form-grid">
-                    <div class="input-block">
-                        <label>Business Mode Template Profile</label>
-                        <select id="venueModeSelect" onchange="applyWhiteLabelTranslationMappings(this.value)">
-                            <option value="RESTAURANT">🍔 Standard Dining Diner / Cafe</option>
-                            <option value="HOTEL">🏨 Hotel Suite Room Service Mode</option>
-                        </select>
-                    </div>
-                    <div class="input-block"><label id="lblInputTables">Total Dining Tables Count</label><input type="number" id="inputTotalTables" value="12" min="1"></div>
-                    <div class="input-block"><label id="lblInputRooms">Total VIP Rooms / Suites</label><input type="number" id="inputTotalRooms" value="3" min="0"></div>
-                    <button class="btn-action" onclick="commitSpaceInventorySettingsManual()">Initialize Floor Assets Models</button>
+                <div class="form-group">
+                    <label>Profile Portrait Image</label>
+                    <input type="file" name="chef_image" accept="image/*" required />
                 </div>
+                <button type="submit" style="background: #27ae60;">Register Chef Profile</button>
+            </form>
 
-                <h3 id="lblVisualLayoutHeading">Live Floor Visual Management Matrix (Scan Point Node Links)</h3>
-                <div class="floor-inventory-grid" id="floorLayoutVisualMatrixGrid"></div>
-            </div>
-
-            <!-- SECTION 3: CATALOG INGESTION & SHOWCASE CONTROLLERS -->
-            <div id="section-menu" class="panel-section">
-                <h3>Publish New Volumetric 3D Menu Selection</h3>
-                <form class="form-grid" id="menuForm">
-                    <div class="input-block"><label>Dish / Product Title Name</label><input type="text" id="menuName" required></div>
-                    <div class="input-block"><label>Price Model (INR)</label><input type="number" step="0.01" id="menuPrice" required></div>
-                    <div class="input-block"><label>Initial Discount Offer %</label><input type="number" id="menuOfferPercent" value="0"></div>
-                    <div class="input-block">
-                        <label>Dietary Indicator Category</label>
-                        <select id="menuDietType"><option value="veg">🟢 Veg</option><option value="non-veg">🔴 Non-Veg</option></select>
-                    </div>
-                    <div class="input-block"><label>Fallback Mock 3D File Target Path</label><input type="text" id="mock3DPath" value="/uploads/models3d/default-cube.gltf" readonly></div>
-                    <button type="button" class="btn-action" onclick="addDishCardManual()">Publish Product Selection</button>
-                </form>
-                <table>
-                    <thead><tr><th>ID</th><th>Title</th><th>Pricing Matrix</th><th>Promo Reduction</th><th style="text-align:right;">Operations</th></tr></thead>
-                    <tbody id="menuTableBody"></tbody>
-                </table>
-            </div>
-
-            <!-- SECTION 4: ROSTER MANAGEMENT -->
-            <div id="section-chefs" class="panel-section">
-                <h3>Enroll Personnel Profile Entity</h3>
-                <form class="form-grid" id="chefForm" onsubmit="addChefProfile(event)">
-                    <div class="input-block"><label>Full Name</label><input type="text" id="chefName" required></div>
-                    <div class="input-block"><label>Core Competency Specialty</label><input type="text" id="chefSpecialty" required></div>
-                    <div class="input-block"><label>Experience Profile Details</label><input type="text" id="chefExp" required></div>
-                    <button type="submit" class="btn-action">Enroll Personnel</button>
-                </form>
-                <table>
-                    <thead><tr><th>ID</th><th>Name Member</th><th>Specialty Focus</th><th>Experience</th><th style="text-align:right;">Operations</th></tr></thead>
-                    <tbody id="chefsTableBody"></tbody>
-                </table>
-            </div>
-
+            <h3 style="margin-top: 25px;">On-Duty Kitchen Staff</h3>
+            <div class="item-list" id="adminChefsContainer">
+                </div>
         </div>
-    </main>
+
+        <div class="panel-card" style="border-color: #ff9f43;">
+            <h2 style="color: #ff9f43;">🛎️ Live Table Service Stream</h2>
+            <p style="font-size: 12px; color: #666; margin-top: -10px;">Listens to instant smartphone bell triggers over WebSockets</p>
+            <div id="liveWaiterAlertsLog" style="max-height: 500px; overflow-y: auto;">
+                <p style="color: #444; text-align: center; margin-top: 40px;">Awaiting service signals from dining hall network...</p>
+            </div>
+        </div>
+
+    </div>
 
     <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const tenantId = urlParams.get('restaurant_id') || localStorage.getItem('mesa3d_tenant_id') || '1';
-        const viewOverrideToken = urlParams.get('view'); 
-        
-        document.getElementById('venueDisplayTag').innerText = localStorage.getItem('mesa3d_tenant_name') || 'Mesa Node';
-
+        // Connect automatically to current window origin hosting domain architecture boundaries
         const socket = io();
-        socket.emit('join_workspace', { restaurantId: tenantId });
 
-        let ordersLog = []; let totalRevenue = 0; let globalVenueClassificationMode = "RESTAURANT";
-        let maxTables = 12; let maxRooms = 3; let alertSpacesMap = new Map();
+        // Fetch local relational database tables and draw components onto dashboard viewports
+        async function loadDashboardData() {
+            try {
+                // 1. DYNAMICALLY LOAD AND EXTRACT CURRENT DISH ENTRIES
+                const menuRes = await fetch('/api/menu');
+                const menuItems = await menuRes.json();
+                const menuContainer = document.getElementById('adminMenuContainer');
+                menuContainer.innerHTML = ''; // Wipe pre-existing cache strings
 
-        function switchSection(key) {
-            document.querySelectorAll('.nav-links li').forEach(li => li.classList.remove('active'));
-            document.querySelectorAll('.panel-section').forEach(sec => sec.classList.remove('active'));
-            document.getElementById('section-' + key).classList.add('active');
-            
-            const li = document.getElementById('nav-' + key);
-            if (li) li.classList.add('active');
-            
-            if(key === 'dashboard') syncPopularityAnalytics();
-            if(key === 'floor') compileFloorTileGridVisualLayout();
-        }
+                menuItems.forEach(item => {
+                    const row = document.createElement('div');
+                    row.className = 'list-row';
+                    
+                    // Read allergy array parameters. Fallback safely if value registers blank
+                    const allergiesParsed = item.allergies ? `(${item.allergies})` : '(No Allergy Flags Set)';
+                    
+                    row.innerHTML = `
+                        <div>
+                            <strong>${item.name}</strong> <span style="font-size:11px; color:#aaa;">${allergiesParsed}</span><br>
+                            <span style="color:#2ecc71;">Base: ₹${item.price}</span> 
+                            ${item.is_offer ? `<span style="color:#e74c3c; font-size:12px; margin-left:8px;">Promo: ₹${item.offer_price}</span>` : ''}
+                        </div>
+                        <div>
+                            <button class="btn-offer" onclick="promptPublishOffer(${item.id}, ${item.price})">Publish Offer</button>
+                        </div>
+                    `;
+                    menuContainer.appendChild(row);
+                });
 
-        function applyWhiteLabelTranslationMappings(mode) {
-            globalVenueClassificationMode = mode;
-            const isHotel = mode === 'HOTEL';
-            
-            document.getElementById('lblKpiSpaces').innerText = isHotel ? "Monitored Suites" : "Linked Tables";
-            document.getElementById('thLocationHeader').innerText = isHotel ? "Suite Room Identity Vector" : "Location Coordinate Node";
-            document.getElementById('lblInputTables').innerText = isHotel ? "Standard Living Rooms Count" : "Total Dining Tables Count";
-            document.getElementById('lblInputRooms').innerText = isHotel ? "VIP Executive Suites Count" : "Total VIP Rooms / Suites";
-            document.getElementById('lblVisualLayoutHeading').innerText = isHotel ? "Live Hotel Space Inventory Grid (App Launcher QR Generation Matrix)" : "Live Floor Visual Management Matrix (Scan Point Node Links)";
-            
-            compileFloorTileGridVisualLayout();
-        }
+                // 2. DYNAMICALLY LOAD AND EXTRACT ACTIVE REGISTRATION CHEF ENTRIES
+                const chefRes = await fetch('/api/chefs');
+                const chefItems = await chefRes.json();
+                const chefsContainer = document.getElementById('adminChefsContainer');
+                chefsContainer.innerHTML = '';
 
-        function commitSpaceInventorySettingsManual() {
-            maxTables = parseInt(document.getElementById('inputTotalTables').value) || 0;
-            maxRooms = parseInt(document.getElementById('inputTotalRooms').value) || 0;
-            compileFloorTileGridVisualLayout();
-        }
+                if(chefItems.length === 0) {
+                    chefsContainer.innerHTML = `<p style="color:#444; font-size:13px; text-align:center;">No staff members logged on current system engine.</p>`;
+                }
 
-        function compileFloorTileGridVisualLayout() {
-            const grid = document.getElementById('floorLayoutVisualMatrixGrid');
-            grid.innerHTML = '';
-            let prefixT = globalVenueClassificationMode === 'HOTEL' ? 'Room' : 'Table';
-            let prefixR = globalVenueClassificationMode === 'HOTEL' ? 'VIP Suite' : 'VIP Room';
+                chefItems.forEach(chef => {
+                    const row = document.createElement('div');
+                    row.className = 'list-row';
+                    row.style.borderLeftColor = '#27ae60';
+                    row.innerHTML = `
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <img src="${chef.image}" style="width:35px; height:35px; border-radius:50%; object-fit:cover; background:#222;" onerror="this.src='/uploads/default-chef.png'"/>
+                            <div>
+                                <strong>${chef.name}</strong><br>
+                                <span style="font-size:12px; color:#999;">${chef.specialty}</span>
+                            </div>
+                        </div>
+                    `;
+                    chefsContainer.appendChild(row);
+                });
 
-            for (let i = 1; i <= maxTables; i++) {
-                let idText = `${prefixT} ${i}`;
-                let alertCSS = alertSpacesMap.has(idText) ? 'status-alert' : '';
-                let btnLabel = alertSpacesMap.has(idText) ? '⚠️ Clear Alert' : '📥 Download QR';
-                let dest = `${window.location.origin}/customer/index.html?restaurant_id=${tenantId}&table=${i}&mode=${globalVenueClassificationMode}`;
-                
-                grid.innerHTML += `<div class="floor-tile-card ${alertCSS}"><h5>#${i}</h5><p>${prefixT}</p><button class="btn-qr-download" onclick="triggerQRDownloadPipeline('${dest}','${idText}')">${btnLabel}</button></div>`;
+            } catch (err) {
+                console.error("Critical rendering pipeline interrupt:", err);
             }
-            for (let j = 1; j <= maxRooms; j++) {
-                let idText = `${prefixR} ${j}`;
-                let alertCSS = alertSpacesMap.has(idText) ? 'status-alert' : '';
-                let btnLabel = alertSpacesMap.has(idText) ? '⚠️ Clear Alert' : '📥 Download QR';
-                let dest = `${window.location.origin}/customer/index.html?restaurant_id=${tenantId}&room=${j}&mode=${globalVenueClassificationMode}`;
-                
-                grid.innerHTML += `<div class="floor-tile-card ${alertCSS}" style="border-color:var(--purple);"><h5>VIP #${j}</h5><p>${prefixR}</p><button class="btn-qr-download" onclick="triggerQRDownloadPipeline('${dest}','${idText}')">${btnLabel}</button></div>`;
+        }
+
+        // TRIGGER DISCOUNT PROMO DIALOGUE: Packages details and dispatches configurations up backend
+        function promptPublishOffer(dishId, currentPrice) {
+            const offerPriceInput = prompt(`This item standard base is ₹${currentPrice}. Input promotional discount tag price target:`);
+            
+            // Validate inputs before continuing execution loops
+            if (offerPriceInput === null || offerPriceInput.trim() === "") return;
+            const targetPromoRate = parseFloat(offerPriceInput);
+            
+            if (isNaN(targetPromoRate) || targetPromoRate >= currentPrice || targetPromoRate <= 0) {
+                alert("Operation Aborted. Input a realistic, reduced numeric value configuration.");
+                return;
             }
-            document.getElementById('kpi-active-spaces').innerText = (maxTables + maxRooms);
+
+            // Post configuration arguments payload straight up production API endpoint routes
+            fetch('/api/menu/offer', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    id: dishId,
+                    offer_price: targetPromoRate,
+                    is_offer: 1
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    alert("Promotional campaign rate broadcasted live across consumer devices!");
+                    loadDashboardData(); // Force system update
+                }
+            })
+            .catch(err => alert("Error dispatching promo configuration payload structure."));
         }
 
-        function triggerQRDownloadPipeline(url, label) {
-            if(alertSpacesMap.has(label)) { alertSpacesMap.delete(label); compileFloorTileGridVisualLayout(); return; }
-            window.open(`/api/inventory/qr?url=${encodeURIComponent(url)}&label=${encodeURIComponent(label)}`, '_blank');
-        }
+        // WEBSOCKET BROADCAST LISTENER: Appends realtime incoming smartphone bell requests into tracking viewport logs
+        socket.on('notify-admin-waiter', (data) => {
+            const logBox = document.getElementById('liveWaiterAlertsLog');
+            
+            // Wipe initial text layer on incoming first signal trigger
+            if(logBox.innerText.includes("Awaiting service signals")) {
+                logBox.innerHTML = '';
+            }
 
-        async function syncPopularityAnalytics() {
-            const res = await fetch(`/api/analytics/popular?restaurant_id=${tenantId}`);
-            const data = await res.json();
-            const box = document.getElementById('popularityMetricsBox');
-            box.innerHTML = data.length ? '' : '<p style="color:var(--muted); font-size:0.8rem;">Awaiting statistics aggregation data rows.</p>';
-            data.forEach((d, i) => {
-                box.innerHTML += `<div class="metric-row"><span><strong>#${i+1}</strong> ${d.name}</span><span style="color:var(--primary); font-weight:700;">${d.count} Orders</span></div>`;
-            });
-        }
+            const alertCard = document.createElement('div');
+            alertCard.className = 'waiter-alert-card';
+            
+            const optionalNoteBlock = data.note ? `<div style="margin-top:6px; font-size:12px; background:#1e1202; padding:6px; border-radius:4px; border:1px dashed #7f8c8d; color:#ddd;">📝 <strong>User Note:</strong> "${data.note}"</div>` : '';
 
-        async function syncAdminData() {
-            const dishRes = await fetch('/api/dishes?restaurant_id=' + tenantId);
-            const dishes = await dishRes.json();
-            const body = document.getElementById('menuTableBody');
-            body.innerHTML = '';
-            dishes.forEach(d => {
-                let isFeatured = d.is_promo === 1;
-                body.innerHTML += `<tr><td>#${d.id}</td><td><strong>${d.name}</strong></td><td>Regulatory Pricing</td><td>${d.specialties}% Off</td><td style="text-align:right;"><button class="btn-inline-highlight ${isFeatured?'featured-true':''}" onclick="toggleHighlight(${d.id},${d.is_promo})">${isFeatured?'Featured':'Feature'}</button><button class="btn-inline-delete" onclick="deleteDish(${d.id})">Purge</button></td></tr>`;
-            });
-
-            const chefRes = await fetch('/api/chefs?restaurant_id=' + tenantId);
-            const chefs = await chefRes.json();
-            const cBody = document.getElementById('chefsTableBody');
-            cBody.innerHTML = '';
-            chefs.forEach(c => {
-                cBody.innerHTML += `<tr><td>#${c.id}</td><td><strong>${c.name}</strong></td><td>${c.specialties}</td><td>${c.experience}</td><td style="text-align:right;"><button class="btn-inline-delete" onclick="deleteChef(${c.id})">Purge</button></td></tr>`;
-            });
-            syncPopularityAnalytics(); compileFloorTileGridVisualLayout();
-        }
-
-        async function toggleHighlight(id, cur) {
-            let target = cur === 1 ? 0 : 1;
-            await fetch(`/api/dishes/toggle-highlight?id=${id}&is_promo=${target}&restaurant_id=${tenantId}`, { method: 'POST' });
-            await syncAdminData();
-        }
-
-        async function deleteDish(id) {
-            await fetch(`/api/dishes/delete?id=${id}&restaurant_id=${tenantId}`, { method: 'POST' });
-            await syncAdminData();
-        }
-
-        async function deleteChef(id) {
-            await fetch(`/api/chefs/delete?id=${id}&restaurant_id=${tenantId}`, { method: 'POST' });
-            await syncAdminData();
-        }
-
-        async function addDishCardManual() {
-            const name = document.getElementById('menuName').value;
-            const price = document.getElementById('menuPrice').value;
-            const pct = document.getElementById('menuOfferPercent').value;
-            const diet = document.getElementById('menuDietType').value;
-            await fetch('/api/dishes/add', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ restaurant_id: tenantId, name, price, dietary_type: diet, allergens: 'none', offer_percentage: pct })
-            });
-            document.getElementById('menuForm').reset(); await syncAdminData();
-        }
-
-        async function addChefProfile(e) {
-            e.preventDefault();
-            const name = document.getElementById('chefName').value;
-            const spec = document.getElementById('chefSpecialty').value;
-            const exp = document.getElementById('chefExp').value;
-            await fetch('/api/chefs/add', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ restaurant_id: tenantId, name, specialties: spec, experience: exp })
-            });
-            document.getElementById('chefForm').reset(); await syncAdminData();
-        }
-
-        function adminOverridePipeline(id, state) {
-            socket.emit('update_order_status', { restaurant_id: tenantId, order_id: id, status: state, chef_id: 1, prep_time: 10 });
-        }
-
-        // =================================================================================
-        //                 REALTIME WEBSOCKET DATA STREAM LISTENERS
-        // =================================================================================
-        socket.on('new_order_alert', (o) => { if(!ordersLog.some(x=>x.id===o.id)){ ordersLog.unshift(o); totalRevenue+=o.total_price; renderLedger(); } });
-        socket.on('order_pipeline_update', (o) => { let idx=ordersLog.findIndex(x=>x.id===o.id); if(idx!==-1) ordersLog[idx].status=o.status; else ordersLog.push(o); renderLedger(); });
-        socket.on('waiter_alert', (a) => { let key = a.location_identifier.split(' [')[0]; alertSpacesMap.set(key, true); compileFloorTileGridVisualLayout(); });
-        
-        // ⏱️ SANDBOX ACCOUNT EXPIRATION HANDLER LISTENER DISPATCH HOOK
-        socket.on('demo_expired', (data) => {
-            alert(data.message); localStorage.clear(); window.location.href = '/';
+            alertCard.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:15px; font-weight:bold; color:#ff9f43;">📍 ${data.table}</span>
+                    <span style="font-size:11px; color:#7f8c8d;">${data.timestamp}</span>
+                </div>
+                <div style="margin-top:4px; font-size:14px;">⚡ Requested Action item: <strong>${data.request}</strong></div>
+                ${optionalNoteBlock}
+            `;
+            
+            // Prepend logs to maintain newest tracking information directly at user's eye-line entry bounds
+            logBox.insertBefore(alertCard, logBox.firstChild);
         });
 
-        function renderLedger() {
-            document.getElementById('kpi-orders-count').innerText = ordersLog.length;
-            document.getElementById('kpi-revenue').innerText = "₹" + totalRevenue.toFixed(2);
-            const tbody = document.getElementById('ledgerTableBody'); tbody.innerHTML = '';
-            ordersLog.forEach(o => {
-                tbody.innerHTML += `<tr><td>#${o.id}</td><td>${o.location_context}</td><td><strong>${o.location_identifier}</strong></td><td>₹${o.total_price.toFixed(2)}</td><td><span style="color:var(--primary); font-weight:700;">${o.status}</span></td></tr>`;
-            });
-            const kGrid = document.getElementById('adminKitchenBoardGrid'); kGrid.innerHTML = '';
-            let cookingSlips = ordersLog.filter(o => o.status !== 'Served');
-            cookingSlips.forEach(o => {
-                kGrid.innerHTML += `<div class="admin-kitchen-card"><strong>Ticket #${o.id} [${o.location_identifier}]</strong><div style="display:flex; gap:0.4rem; margin-top:0.5rem;"><button class="btn-override" onclick="adminOverridePipeline(${o.id},'Cooking')">🔥 Cook</button><button class="btn-override" onclick="adminOverridePipeline(${o.id},'Served')">✅ Serve</button></div></div>`;
-            });
-        }
+        // Setup pipeline refreshing logic hooks ensuring layouts remain uniform across modifications
+        socket.on('menu-updated', loadDashboardData);
+        socket.on('chefs-updated', loadDashboardData);
 
-        window.onload = () => {
-            // Apply standalone View Locking constraints if Kitchen Login path triggers URL overrides
-            if (viewOverrideToken === 'kitchen') {
-                document.getElementById('sidebarFramePanel').style.display = 'none'; // Lock navigation entirely
-                document.getElementById('chartAnalyticsWrapperBox').style.display = 'none'; 
-                document.getElementById('kpiCountersSectionWrapper').style.display = 'none'; 
-                document.getElementById('activePanelTitle').innerText = "STANDALONE KITCHEN PRODUCTION BOARD MONITOR";
-            }
-            syncAdminData();
-        };
+        // Run data fetching loop on dashboard mount initialization processes
+        window.addEventListener('DOMContentLoaded', loadDashboardData);
     </script>
 </body>
 </html>
