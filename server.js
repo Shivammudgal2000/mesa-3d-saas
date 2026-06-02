@@ -29,12 +29,12 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Clean URL helper for Admin Dashboard
 app.get('/admin', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+    res.sendFile(path.join(__dirname, 'public', 'admin', 'admin.html'));
 });
 
 // Clean URL helper for Customer Menu
 app.get('/customer', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'customer.html'));
+    res.sendFile(path.join(__dirname, 'public', 'customer', 'index.html'));
 });
 
 // Configure binary multi-part storage targets for 3D meshes and profile image avatars
