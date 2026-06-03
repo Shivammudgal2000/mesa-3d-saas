@@ -1,131 +1,1208 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Interactive Customer Menu</title>
-    <style>
-        body { margin: 0; background: #050505; color: #fff; font-family: system-ui, sans-serif; padding-bottom: 70px; }
-        .menu-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; padding: 20px; }
-        .dish-card { background: #111; border: 1px solid #222; border-radius: 16px; padding: 15px; text-align: center; position: relative; overflow: hidden; }
-        .allergy-tag { display: inline-block; background: #e67e22; color: #fff; font-size: 11px; padding: 2px 8px; border-radius: 20px; margin: 4px; }
-        .price-text { font-size: 18px; font-weight: bold; color: #2ecc71; }
-        .strike-price { text-decoration: line-through; color: #777; font-size: 14px; margin-right: 8px; }
-        .offer-badge { position: absolute; top: 10px; left: 10px; background: #e74c3c; padding: 4px 10px; border-radius: 8px; font-size: 12px; font-weight: bold; }
-        
-        /* Floating Button Layout styling */
-        #bellButton { position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; background: #ff9f43; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; cursor: pointer; box-shadow: 0 4px 15px rgba(255,159,67,0.4); border: none; z-index: 999; transition: transform 0.2s; }
-        #bellButton:active { transform: scale(0.9); }
-        .modal-btn { width: 100%; padding: 10px; background: #222; border: 1px solid #333; color: white; border-radius: 8px; text-align: left; cursor: pointer; font-size: 14px; }
-        .modal-btn:hover { background: #333; }
-    </style>
+    <title>Hospitality WebGL Interactive Terminal</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap"
+        rel="stylesheet">
+
     <script src="/socket.io/socket.io.js"></script>
+
+    <link rel="manifest" href="/manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+
+    <style>
+        /* CSS Design Tokens governing themes, layouts, and system color profiles */
+        :root {
+            --bg-dark: #0B0F19;
+            /* Deep spatial background layer */
+            --card-dark: #161B26;
+            /* Contained modular components background tint */
+            --primary: #C5A880;
+            /* Signature luxury gold focus branding tone */
+            --text-light: #F3F4F6;
+            /* High readability clean white typography text */
+            --text-muted: #9CA3AF;
+            /* Subtle subtext descriptive metadata color */
+            --border: #1E2533;
+            /* Rigid structural boundaries dividers grids */
+            --danger: #DC2626;
+            /* High urgency action buttons and warning alerts */
+            --success: #10B981;
+            /* Positive indicators and dietary veg identifiers */
+            --egg-color: #FBBF24;
+            /* Knotted yellow focus marker for egg items */
+            --purple-accent: #8B5CF6;
+            /* Highlights showcase structural badge focus accent */
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            padding-bottom: 180px;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* 🕹️ PERSISTENT BACKGROUND CANVAS: Crucial fix for hanging. One single WebGL canvas handles the whole app */
+        #masterThreeCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Content layer forced above the single background 3D canvas thread */
+        .content-layer-wrapper {
+            position: relative;
+            z-index: 2;
+            pointer-events: auto;
+        }
+
+        /* Fixed Header Infrastructure layout specifications */
+        header {
+            background: var(--card-dark);
+            padding: 1.2rem 1.5rem;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        header h1 {
+            font-size: 1.25rem;
+            color: var(--primary);
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        header p {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 0.2rem;
+        }
+
+        .location-badge {
+            display: inline-block;
+            background: #1E2533;
+            color: var(--primary);
+            padding: 0.25rem 0.9rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-top: 0.6rem;
+            border: 1px solid #2A354A;
+        }
+
+        /* Structural layers for safety notification parameters strip */
+        .allergen-prompt-bar {
+            background: #121824;
+            border-bottom: 1px solid var(--border);
+            padding: 0.8rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.8rem;
+        }
+
+        .allergen-select-btn {
+            background: transparent;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            padding: 0.25rem 0.6rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        /* Horizontally scrolling categorization slider engine layouts elements */
+        .category-strip {
+            display: flex;
+            gap: 0.6rem;
+            overflow-x: auto;
+            padding: 1rem 5%;
+            scrollbar-width: none;
+        }
+
+        .category-strip::-webkit-scrollbar {
+            display: none;
+        }
+
+        .category-pill {
+            background: var(--card-dark);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 0.5rem 1.2rem;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+
+        .category-pill.active {
+            background: var(--primary);
+            color: var(--bg-dark);
+            border-color: var(--primary);
+        }
+
+        /* Interactive Promotional Showcase Carousel Frame elements */
+        .promo-carousel {
+            padding: 0 5% 1rem 5%;
+            display: none;
+        }
+
+        .promo-carousel.has-items {
+            display: block;
+        }
+
+        .promo-card {
+            background: linear-gradient(135deg, #1A2333 0%, #111722 100%);
+            border: 1px dashed var(--primary);
+            padding: 1.2rem;
+            border-radius: 8px;
+            position: relative;
+        }
+
+        .promo-tag {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: var(--purple-accent);
+            color: white;
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 0.15rem 0.5rem;
+            border-radius: 3px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Dynamic Catalog Grid components cards framework layouts configuration */
+        .menu-container {
+            padding: 0 5%;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .dish-card {
+            background: rgba(22, 27, 38, 0.85);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+
+        .dish-card.allergen-warning {
+            border-color: #B45309;
+            background: rgba(180, 83, 9, 0.03);
+        }
+
+        .dish-main-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Dietary dot indicators style maps tokens classes */
+        .diet-indicator {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 14px;
+            height: 14px;
+            border: 1px solid currentColor;
+            padding: 2px;
+            margin-right: 0.4rem;
+            border-radius: 2px;
+            font-size: 6px;
+            vertical-align: middle;
+        }
+
+        .diet-indicator::before {
+            content: '●';
+        }
+
+        .diet-indicator.veg {
+            color: var(--success);
+        }
+
+        .diet-indicator.non-veg {
+            color: var(--danger);
+        }
+
+        .diet-indicator.egg {
+            color: var(--egg-color);
+        }
+
+        .dish-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        .dish-price {
+            color: var(--primary);
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-top: 0.2rem;
+        }
+
+        /* 🕹️ SCISSOR CANVAS PLACEHOLDER: Lightweight empty box. The background canvas draws inside here when visible */
+        .threed-viewport-placeholder {
+            width: 100%;
+            height: 260px;
+            background: rgba(6, 9, 18, 0.5);
+            border-radius: 6px;
+            border: 1px solid #1E2533;
+            position: relative;
+            overflow: hidden;
+            outline: none;
+        }
+
+        .threed-badge {
+            position: absolute;
+            bottom: 8px;
+            left: 8px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            font-size: 0.65rem;
+            color: var(--primary);
+            padding: 0.2rem 0.5rem;
+            border-radius: 20px;
+            font-weight: 700;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        /* Safety pill identifiers configurations grids labels */
+        .allergen-alert-strip {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            margin-top: 0.2rem;
+        }
+
+        .allergen-pill-badge {
+            background: #1C2333;
+            color: var(--text-muted);
+            font-size: 0.65rem;
+            font-weight: 600;
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+            border: 1px solid #2B354D;
+        }
+
+        .danger-allergen-banner {
+            color: #F59E0B;
+            font-size: 0.7rem;
+            font-weight: 700;
+            margin-top: 0.3rem;
+            display: none;
+        }
+
+        .dish-card.allergen-warning .danger-allergen-banner {
+            display: block;
+        }
+
+        .btn-add-tray {
+            background: transparent;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            padding: 0.5rem 1.2rem;
+            font-weight: 700;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            z-index: 10;
+            position: relative;
+        }
+
+        /* Countdown and order progress tracking element interfaces */
+        .status-banner {
+            display: none;
+            background: #111622;
+            border-bottom: 2px solid var(--primary);
+            padding: 1.2rem;
+            text-align: center;
+        }
+
+        .status-banner.active {
+            display: block;
+        }
+
+        .countdown {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 0.2rem 0;
+        }
+
+        /* Realtime assigned culinary chef info profiles card modules layout */
+        .chef-card {
+            display: none;
+            background: var(--card-dark);
+            border: 1px solid #222938;
+            padding: 1.2rem;
+            margin: 1rem 5% 0 5%;
+            border-radius: 8px;
+            align-items: center;
+            gap: 1.2rem;
+        }
+
+        .chef-card.active {
+            display: flex;
+        }
+
+        .chef-avatar {
+            width: 65px;
+            height: 65px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--primary);
+        }
+
+        /* Fullscreen multi-layered absolute modal overlays layers canvases handles */
+        .overlay-canvas {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(11, 15, 25, 0.95);
+            backdrop-filter: blur(10px);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 1.5rem;
+        }
+
+        .overlay-canvas.active {
+            display: flex;
+        }
+
+        .modal-container-box {
+            background: var(--card-dark);
+            border: 1px solid #222938;
+            width: 100%;
+            max-width: 420px;
+            padding: 2rem;
+            border-radius: 12px;
+            position: relative;
+            text-align: center;
+        }
+
+        .modal-close-cross {
+            position: absolute;
+            top: 15px;
+            right: 18px;
+            font-size: 1.3rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-weight: 700;
+        }
+
+        .quick-grid-menu {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.8rem;
+            margin: 1.2rem 0;
+        }
+
+        .quick-node-card {
+            background: #1C2333;
+            border: 1px solid #2C374E;
+            padding: 1rem 0.5rem;
+            border-radius: 6px;
+            text-align: center;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+            justify-content: center;
+            align-items: center;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        .quick-node-card.selected {
+            border-color: var(--success);
+            background: rgba(16, 185, 129, 0.08);
+            color: var(--success);
+        }
+
+        .allergy-grid-selection {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.6rem;
+            margin: 1.2rem 0;
+            text-align: left;
+        }
+
+        .allergy-label-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+            color: var(--text-light);
+            cursor: pointer;
+        }
+
+        textarea {
+            width: 100%;
+            background: var(--bg-dark);
+            border: 1px solid #2C374E;
+            border-radius: 6px;
+            color: white;
+            padding: 0.8rem;
+            font-size: 0.9rem;
+            resize: none;
+        }
+
+        /* Persistent Bottom Action Frame Bar rules components elements */
+        .action-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: var(--card-dark);
+            border-top: 1px solid var(--border);
+            padding: 1rem 5%;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+            z-index: 200;
+        }
+
+        .btn-checkout {
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+            background: var(--primary);
+            color: var(--bg-dark);
+            border: none;
+            padding: 0.9rem 2rem;
+            font-weight: 700;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        /* Floating interaction components triggers buttons tokens rules */
+        .floating-bell-btn {
+            position: fixed;
+            bottom: 190px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background: var(--danger);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 1.6rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 299;
+        }
+
+        .bell-badge {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 11px;
+            height: 11px;
+            background: #FBBF24;
+            border-radius: 50%;
+        }
+
+        .rating-stars {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin: 0.5rem 0 1.2rem 0;
+        }
+
+        .star {
+            font-size: 1.8rem;
+            color: #333F56;
+            cursor: pointer;
+        }
+
+        .star.selected {
+            color: #FFD700;
+        }
+    </style>
 </head>
+
 <body>
 
-    <h2 style="text-align: center; margin-top: 20px; color: #fff;">✨ Interactive 3D Experience</h2>
-    
-    <div class="menu-container" id="menuDisplayGrid"></div>
+    <canvas id="masterThreeCanvas"></canvas>
 
-    <button id="bellButton">🛎️</button>
+    <div class="content-layer-wrapper">
 
-    <div id="waiterModal" style="display: none; position: fixed; bottom: 90px; right: 20px; background: #111; border: 1px solid #333; padding: 16px; border-radius: 14px; z-index: 1000; width: 280px; box-shadow: 0px 10px 30px rgba(0,0,0,0.7);">
-        <h4 style="margin: 0 0 12px 0; border-bottom: 1px solid #222; padding-bottom: 6px; color: #ff9f43;">🛎️ Request Table Service</h4>
-        <div style="display: flex; flex-direction: column; gap: 8px;">
-            <button class="modal-btn" onclick="fireWaiterAlert('Water Bottle')">💧 Request Water Bottle</button>
-            <button class="modal-btn" onclick="fireWaiterAlert('Extra Napkins')">🧻 Request Extra Napkins</button>
-            <button class="modal-btn" onclick="fireWaiterAlert('Cutlery Set')">🍴 Request Cutlery Set</button>
-            <button class="modal-btn" onclick="fireWaiterAlert('Bring Total Bill')">💵 Request Current Bill</button>
+        <header>
+            <h1 id="restaurantName">Mesa 3D Hardware WebGL Terminal</h1>
+            <p id="systemHeader">Dynamic Digital Dining Terminal</p>
+            <div class="location-badge" id="locationDisplay">Resolving Spatial Coordinates Node...</div>
+        </header>
+
+        <div class="status-banner" id="trackerBanner">
+            <p id="trackerStatus" style="font-weight: 600; font-size: 0.95rem; color: var(--primary);">Your order
+                transaction is queued...</p>
+            <div class="countdown" id="countdownClock">15:00</div>
         </div>
-        <textarea id="customWaiterText" placeholder="Write any specific instruction or notes here..." style="width: 100%; height: 60px; margin-top: 12px; background: #1a1a1a; border: 1px solid #333; color: white; border-radius: 6px; padding: 8px; box-sizing: border-box; resize: none; font-family: inherit;"></textarea>
-        <button onclick="fireCustomAlert()" style="width: 100%; margin-top: 8px; background: #ff9f43; color: #000; border: none; padding: 8px; border-radius: 6px; font-weight: bold; cursor: pointer;">Send Custom Instruction</button>
+
+        <div class="chef-card" id="activeChefDisplay">
+            <img src="" class="chef-avatar" id="chefPhoto" alt="Master Avatar">
+            <div class="chef-details">
+                <h4 id="chefName">Line Chef Assigned</h4>
+                <p id="chefSpecialty" style="color: var(--primary);">Master Craftsman Focus</p>
+                <p id="chefBio">Custom preparing your meal choices with precision care.</p>
+            </div>
+        </div>
+
+        <div class="allergen-prompt-bar" id="safetyStrip">
+            <div style="display: flex; align-items: center; gap: 0.4rem;">
+                <span>🛡️</span>
+                <span style="color: var(--text-muted);" id="allergenStatusLabel">No safety allergy filters applied to
+                    menu layout.</span>
+            </div>
+            <button class="allergen-select-btn" onclick="toggleAllergenSetupModal(true)">Set Filter</button>
+        </div>
+
+        <div class="category-strip" id="categoryBar">
+            <div class="category-pill active" onclick="filterMenuCategory('all', this)">All Items</div>
+            <div class="category-pill" onclick="filterMenuCategory('veg', this)">🟢 Veg Only</div>
+            <div class="category-pill" onclick="filterMenuCategory('promo', this)">✨ Highlights Choice</div>
+        </div>
+
+        <div class="promo-carousel" id="highlightsSliderContainer"></div>
+
+        <main class="menu-container" id="masterMenuGrid">
+            <p style="color:var(--text-muted); text-align: center; padding: 2rem;">Connecting to 3D rendering
+                pipeline...</p>
+        </main>
+
+        <button class="floating-bell-btn" onclick="toggleAssistantDrawer(true)">🛎️<div class="bell-badge"></div>
+        </button>
+
+        <footer class="action-bar">
+            <textarea id="globalKitchenInstructionsNote" rows="2"
+                placeholder="🍳 Add general kitchen instructions for this order..."></textarea>
+            <button class="btn-checkout" onclick="submitActiveOrder()" id="cartSummaryBtn">Send Order (0 Items
+                Selected)</button>
+        </footer>
+
     </div>
 
-    <script>
-        // Connect directly to the production engine automatically mapping current hostname limits
+    <div class="overlay-canvas" id="assistantDrawerNode">
+        <div class="modal-container-box">
+            <div class="modal-close-cross" onclick="toggleAssistantDrawer(false)">✕</div>
+            <h3 id="assistantTitleLabel">🛎️ Staff Call Center</h3>
+            <div class="quick-grid-menu">
+                <div class="quick-node-card" id="opt-waiter"
+                    onclick="toggleQuickNeedListItem('opt-waiter', 'General Assistance')"><span
+                        id="icon-waiter">🙋‍♂️</span><span id="label-waiter">Call Staff</span></div>
+                <div class="quick-node-card" id="opt-water"
+                    onclick="toggleQuickNeedListItem('opt-water', 'Cold Water Bottle')"><span>🧊</span><span>Water
+                        Bottle</span></div>
+                <div class="quick-node-card" id="opt-cutlery"
+                    onclick="toggleQuickNeedListItem('opt-cutlery', 'Extra Cutlery')"><span>🍴</span><span>Need
+                        Cutlery</span></div>
+                <div class="quick-node-card" id="opt-bill"
+                    onclick="toggleQuickNeedListItem('opt-bill', 'Printed Bill')"><span>💳</span><span>Bring Bill</span>
+                </div>
+            </div>
+            <textarea id="assistantRequestNotes" rows="3"
+                placeholder="Add custom instruction note for runner..."></textarea>
+            <button class="btn-checkout" style="background: var(--danger); color: white;"
+                onclick="dispatchQuickAssistanceRequest()">Broadcast Checked Paging Alerts</button>
+        </div>
+    </div>
+
+    <div class="overlay-canvas" id="allergenProfilerNode">
+        <div class="modal-container-box">
+            <div class="modal-close-cross" onclick="toggleAllergenSetupModal(false)">✕</div>
+            <h3>🛡️ Dietary Allergen Shield</h3>
+            <div class="allergy-grid-selection">
+                <label class="allergy-label-item"><input type="checkbox" value="nuts" class="allergen-chk">🥜 Peanut /
+                    Tree Nuts</label>
+                <label class="allergy-label-item"><input type="checkbox" value="dairy" class="allergen-chk">🥛 Dairy /
+                    Lactose Alerts</label>
+                <label class="allergy-label-item"><input type="checkbox" value="gluten" class="allergen-chk">🌾 Wheat /
+                    Gluten Content</label>
+                <label class="allergy-label-item"><input type="checkbox" value="shellfish" class="allergen-chk">🦀
+                    Seafood / Shellfish Vectors</label>
+            </div>
+            <button class="btn-checkout" onclick="applyAllergenSafetyProfilesFilters()">Save Profile
+                Configuration</button>
+        </div>
+    </div>
+
+    <div class="overlay-canvas" id="feedbackNode">
+        <div class="modal-container-box">
+            <h3>Order Served Successfully!</h3>
+            <p style="font-size:0.8rem; color:var(--text-muted); margin-top:0.4rem;">Please rate your experience:</p>
+            <div class="rating-stars" id="foodStars">
+                <span class="star" onclick="setRating('food', 1)">★</span><span class="star"
+                    onclick="setRating('food', 2)">★</span><span class="star"
+                    onclick="setRating('food', 3)">★</span><span class="star"
+                    onclick="setRating('food', 4)">★</span><span class="star" onclick="setRating('food', 5)">★</span>
+            </div>
+            <div class="rating-stars" id="serviceStars">
+                <span class="star" onclick="setRating('service', 1)">★</span><span class="star"
+                    onclick="setRating('service', 2)">★</span><span class="star"
+                    onclick="setRating('service', 3)">★</span><span class="star"
+                    onclick="setRating('service', 4)">★</span><span class="star"
+                    onclick="setRating('service', 5)">★</span>
+            </div>
+            <textarea id="feedbackComments" rows="3" placeholder="Any comments for administration?"></textarea>
+            <button class="btn-checkout" onclick="dispatchFeedbackMatrix()">Submit Core Review Package</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+        // Bind core lifecycle execution functions globally to bridge HTML click listener hooks seamlessly across execution namespaces
+        window.filterMenuCategory = filterMenuCategory;
+        window.toggleAllergenSetupModal = toggleAllergenSetupModal;
+        window.applyAllergenSafetyProfilesFilters = applyAllergenSafetyProfilesFilters;
+        window.addToCartTray = addToCartTray;
+        window.toggleAssistantDrawer = toggleAssistantDrawer;
+        window.toggleQuickNeedListItem = toggleQuickNeedListItem;
+        window.dispatchQuickAssistanceRequest = dispatchQuickAssistanceRequest;
+        window.submitActiveOrder = submitActiveOrder;
+        window.setRating = setRating;
+        window.dispatchFeedbackMatrix = dispatchFeedbackMatrix;
+
+        // Parse url parameters to isolate restaurant workspace context identities
+        const urlParams = new URLSearchParams(window.location.search);
+        const tenantId = urlParams.get('restaurant_id') || '1';
+        const tableNum = urlParams.get('table');
+        const roomNum = urlParams.get('room');
+
+        // 🏢 ADVANCED PARAMETER: Auto White-Label Translation Mapping Engine
+        let venueClassificationMode = roomNum ? 'HOTEL' : (urlParams.get('mode') || 'RESTAURANT');
+        let locationContext = roomNum ? 'ROOM' : 'TABLE';
+        let locationIdentifier = roomNum ? ('Room ' + roomNum) : (tableNum ? ('Table ' + tableNum) : 'General Space');
+
+        // System baseline state runtime vectors allocation containers
+        let rawDatabaseDishesCache = [];
+        let selectedAllergenTriggers = [];
+        let cart = [];
+        let currentActiveOrderId = null;
+        let countdownInterval = null;
+        let ratings = { food: 0, service: 0 };
+        let assignedChefId = null;
+        let currentActiveFilterMode = "all";
+        let selectedMultiBellOptionsCache = {};
+
+        // 🕹️ SINGLE SCISSOR CORE ARCHITECTURE STATE ENGINE DEFINITIONS
+        let mainRenderer, mainScene, mainCamera, gltfLoader;
+        let activeVirtualScenesMap = new Map();
+
+        // Instantiate primary server handshake communication channel thread
         const socket = io();
 
-        // ELEMENT SELECTORS
-        const bellButtonElement = document.getElementById('bellButton');
-        const waiterModalContainer = document.getElementById('waiterModal');
-        const menuDisplayGrid = document.getElementById('menuDisplayGrid');
+        // 🛠️ ADDED MISSING FUNCTIONS: Restores button click event listeners mechanics
+        function filterMenuCategory(category, element) {
+            currentActiveFilterMode = category;
+            document.querySelectorAll('.category-pill').forEach(pill => pill.classList.remove('active'));
+            element.classList.add('active');
+            renderMenuDisplayGrid();
+        }
 
-        // Toggle UI Modal Visibilities when tapping the interaction bell
-        bellButtonElement.addEventListener('click', () => {
-            waiterModalContainer.style.display = waiterModalContainer.style.display === 'none' ? 'block' : 'none';
-        });
-
-        // Fetch running menus and mount elements directly onto the display DOM grid
-        async function loadActiveRestaurantMenu() {
+        // Core platform bootstrap routine setup engine execution channel
+        async function initializeApp() {
             try {
-                const response = await fetch('/api/menu');
-                const dishes = await response.json();
-                menuDisplayGrid.innerHTML = ''; // Wipe pre-existing placeholder contexts
+                applyWhiteLabelBrandLabels();
+                socket.emit('join_workspace', { restaurantId: tenantId });
+                initMasterSharedWebGLContext();
 
-                if(dishes.length === 0) {
-                    menuDisplayGrid.innerHTML = `<p style="text-align:center; width:100%; color:#555;">No dishes currently published on the menu engine.</p>`;
-                    return;
-                }
+                // 🛠️ BACKEND API DIRECT ROUTE FIX: Points directly to /api/menu
+                const dishRes = await fetch('/api/dishes?restaurant_id=' + tenantId);
+                const rawData = await dishRes.json();
 
-                dishes.forEach(dish => {
-                    const card = document.createElement('div');
-                    card.className = 'dish-card';
+                // Find this block inside initializeApp() in public/customer/index.html:
+                rawDatabaseDishesCache = rawData.map((dish, index) => {
+                    // 🟩 1. Read your true database discount tracking string column ('specialties')
+                    let discountRate = parseInt(dish.specialties) || 0;
+                    let isPromoItem = dish.is_promo === 1 ? 1 : 0;
 
-                    // Generate dynamic HTML segments if a active publisher offer rate reduction rule exists
-                    const priceDisplay = dish.is_offer 
-                        ? `<span class="strike-price">₹${dish.price}</span><span class="price-text">₹${dish.offer_price}</span>`
-                        : `<span class="price-text">₹${dish.price}</span>`;
-                    
-                    const promotionBadge = dish.is_offer ? `<div class="offer-badge">SPECIAL OFFER</div>` : '';
+                    let assignedAllergensList = dish.allergens && dish.allergens !== 'none' ? dish.allergens.split(',') : [];
+                    let displayPrice = dish.price;
+                    let strikeThroughPriceHTML = "";
 
-                    // Split comma-separated allergy strings into individual visual inline elements
-                    let allergyBadges = '';
-                    if (dish.allergies) {
-                        allergyBadges = dish.allergies.split(',')
-                            .map(item => `<span class="allergy-tag">⚠️ ${item.trim()}</span>`).join('');
+                    // Calculate promotion tags if a discount exists
+                    if (discountRate > 0) {
+                        displayPrice = dish.price * (1 - (discountRate / 100));
+                        strikeThroughPriceHTML = `<span style="text-decoration: line-through; color: var(--text-muted); font-size: 0.8rem; margin-left: 0.4rem;">₹${dish.price.toFixed(2)}</span>`;
                     }
 
-                    card.innerHTML = `
-                        ${promotionBadge}
-                        <div style="height: 150px; background: #1a1a1a; border-radius: 12px; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; color: #444;">
-                           📦 3D Model Attached
-                        </div>
-                        <h3 style="margin: 10px 0 5px 0;">${dish.name}</h3>
-                        <div style="margin-bottom: 10px;">${allergyBadges}</div>
-                        <div style="margin-top: 10px;">${priceDisplay}</div>
-                        <button style="margin-top: 12px; width: 100%; padding: 8px; background:#fff; color:#000; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">View 3D Canvas</button>
-                    `;
-                    menuDisplayGrid.appendChild(card);
+                    return {
+                        id: dish.id,
+                        name: dish.name,
+                        price: displayPrice,
+                        original_price_label: strikeThroughPriceHTML,
+                        is_promo: isPromoItem,
+                        dietary_classification: dish.dietary_type || 'veg',
+                        allergens_array: assignedAllergensList,
+                        // 🟩 2. Point this to 'image_url' where your server writes the 3D file path!
+                        graphic_3d_asset: dish.image_url || ''
+                    };
                 });
-            } catch (err) {
-                console.error("Failed parsing relational menu tables:", err);
+
+                renderPromotionalShowcaseCarousel();
+                renderMenuDisplayGrid();
+
+                // Fire the master unified single loop rendering tick execution frame trace animation thread
+                executeMasterRenderTickLoop();
+
+            } catch (err) { console.error("Critical Bootstrap Exception:", err); }
+        }
+
+        // Helper Method: Intercepts configuration and translates structural interface names dynamically
+        function applyWhiteLabelBrandLabels() {
+            document.getElementById('locationDisplay').innerText = locationContext + " PORTAL: " + locationIdentifier;
+
+            if (venueClassificationMode === 'HOTEL') {
+                document.getElementById('restaurantName').innerText = "Premium Luxury Hotel Room Service";
+                document.getElementById('systemHeader').innerText = "In-Room Volumetric Interactive Concierge";
+                document.getElementById('globalKitchenInstructionsNote').placeholder = "🏨 Add room service delivery or kitchen notes here...";
+                document.getElementById('assistantTitleLabel').innerText = "🛎️ Hospitality Service Hub";
+                document.getElementById('label-waiter').innerText = "Housekeeping";
+                document.getElementById('icon-waiter').innerText = "🧹";
+                if (document.getElementById('opt-waiter')) window.toggleQuickNeedListItem('opt-waiter', 'Room Housekeeping Request');
+            } else if (venueClassificationMode === 'CAFE') {
+                document.getElementById('restaurantName').innerText = "Bistro & Espresso Cafe Bar Terminal";
+                document.getElementById('systemHeader').innerText = "Digital Lounge Smart Counter Directory";
+                document.getElementById('label-waiter').innerText = "Call Barista";
+                document.getElementById('icon-waiter').innerText = "☕";
             }
         }
 
-        // Fire standardized requests down the real-time WebSocket pipe pipelines
-        function fireWaiterAlert(actionType) {
-            socket.emit('call-waiter', { table: "Table 1", request: actionType, note: "" });
-            alert(`Your request for "${actionType}" has been broadcast to the admin deck.`);
-            waiterModalContainer.style.display = 'none';
+        // Compile and render the hand-picked Admin Showcase Highlights Carousel banner panels cards elements
+        function renderPromotionalShowcaseCarousel() {
+            const showcaseSliderFrame = document.getElementById('highlightsSliderContainer');
+            let targetHighlightsList = rawDatabaseDishesCache.filter(dish => dish.is_promo === 1);
+
+            if (!targetHighlightsList.length) {
+                showcaseSliderFrame.classList.remove('has-items');
+                showcaseSliderFrame.innerHTML = '';
+                return;
+            }
+
+            showcaseSliderFrame.classList.add('has-items');
+            showcaseSliderFrame.innerHTML = '';
+            targetHighlightsList.forEach(dish => {
+                showcaseSliderFrame.innerHTML += `
+                    <div class="promo-card" style="margin-bottom:0.6rem;">
+                        <div class="promo-tag">✨ Recommended Selection</div>
+                        <h3 style="font-size: 1.1rem; color: white; font-weight:700;">${dish.name}</h3>
+                        <p style="color: var(--primary); font-weight: 600; margin-top:0.2rem; font-size:0.9rem;">Interact with the full volumetric 3D file on the menu catalog grid below!</p>
+                    </div>
+                `;
+            });
         }
 
-        // Catch custom textual inputs and send them securely over WebSockets
-        function fireCustomAlert() {
-            const textContent = document.getElementById('customWaiterText').value.trim();
-            if(!textContent) return alert("Please type your note detail first.");
-            
-            socket.emit('call-waiter', { table: "Table 1", request: "Custom Assistance", note: textContent });
-            alert(`Your instruction context has been securely relayed.`);
-            document.getElementById('customWaiterText').value = '';
-            waiterModalContainer.style.display = 'none';
+        // Dynamic template rendering map constructor grid mapping framework handler rows elements
+        function renderMenuDisplayGrid() {
+            const grid = document.getElementById('masterMenuGrid');
+            grid.innerHTML = '';
+
+            // 🟩 THE FIX: Clear old 3D memory objects cache allocations before drawing new ones!
+            activeVirtualScenesMap.clear();
+
+            let outputTargetList = rawDatabaseDishesCache.filter(dish => {
+                if (currentActiveFilterMode === 'all') return true;
+                if (currentActiveFilterMode === 'veg') return dish.dietary_classification === 'veg';
+                if (currentActiveFilterMode === 'promo') return dish.is_promo === 1;
+                return true;
+            });
+
+            if (!outputTargetList.length) {
+                grid.innerHTML = '<p style="color:var(--text-muted); text-align:center; padding:2rem; width:100%;">No assets match your active catalog layout category filter states.</p>';
+                return;
+            }
+
+            outputTargetList.forEach(dish => {
+                let containsTriggeredAllergen = dish.allergens_array.some(key => selectedAllergenTriggers.includes(key.toLowerCase().trim()));
+                let criticalCardWarningCSSClass = containsTriggeredAllergen ? 'allergen-warning' : '';
+                let technicalAllergenBadgesHTML = dish.allergens_array.map(alg => `<span class="allergen-pill-badge">Contains ${alg.toUpperCase().trim()}</span>`).join('');
+                let classificationCSSSelector = dish.dietary_classification;
+
+                let currentAddedQuantityCount = cart.filter(item => item.name === dish.name).length;
+                let addBtnLabelStringText = currentAddedQuantityCount > 0 ? `Add (${currentAddedQuantityCount}) +` : 'Add +';
+                let canvasContainerId = `threed-placeholder-${dish.id}`;
+
+                grid.innerHTML += `
+                    <div class="dish-card ${criticalCardWarningCSSClass}">
+                        <div class="dish-main-row">
+                            <div>
+                                <div class="diet-indicator ${classificationCSSSelector}"></div>
+                                <h3 class="dish-title">${dish.name}</h3>
+                                <p class="dish-price">₹${dish.price} ${dish.original_price_label || ''}</p>
+                                <div class="allergen-alert-strip">${technicalAllergenBadgesHTML}</div>
+                                <p class="danger-allergen-banner">⚠️ Warning: Matches Active Allergy Configuration Profile!</p>
+                            </div>
+                            <button class="btn-add-tray" id="add-btn-${dish.id}" onclick="addToCartTray('${dish.name.replace(/'/g, "\\'")}', ${dish.price}, ${dish.id})">${addBtnLabelStringText}</button>
+                        </div>
+                        
+                        <div class="threed-viewport-placeholder" id="${canvasContainerId}" data-model-path="${dish.graphic_3d_asset}">
+                            <div class="threed-badge">🕹️ Click & Drag to Rotate 3D Spatial File</div>
+                        </div>
+                    </div>
+                `;
+
+                activeVirtualScenesMap.set(canvasContainerId, {
+                    modelPath: dish.graphic_3d_asset,
+                    threeMeshScene: null,
+                    rotationY: 0,
+                    rotationX: 0,
+                    isDragging: false,
+                    previousMouseX: 0,
+                    previousMouseY: 0
+                });
+
+                setTimeout(() => {
+                    bindPlaceholderInteractionListeners(canvasContainerId);
+                }, 50);
+            });
         }
 
-        // Real-Time Listener hooks ensuring pricing context remains uniform across configurations
-        socket.on('menu-updated', loadActiveRestaurantMenu);
-        socket.on('offers-updated', loadActiveRestaurantMenu);
+        // =================================================================================
+        //     🕹️ HIGH-PERFORMANCE HARMONIZED SINGLE-CANVAS SCISSOR RENDERING PIPELINE CORE
+        // =================================================================================
+        function initMasterSharedWebGLContext() {
+            const canvasElementNode = document.getElementById('masterThreeCanvas');
+            mainRenderer = new THREE.WebGLRenderer({ canvas: canvasElementNode, antialias: true, alpha: true, powerPreference: "high-performance" });
+            mainRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            mainRenderer.shadowMap.enabled = true;
+            mainRenderer.setScissorTest(true);
 
-        // Run initial loading parsing sequences on window startup
-        window.addEventListener('DOMContentLoaded', loadActiveRestaurantMenu);
+            mainCamera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 100);
+            mainCamera.position.set(0, 1.2, 3.0);
+            gltfLoader = new GLTFLoader();
+        }
+
+        function bindPlaceholderInteractionListeners(containerId) {
+            const el = document.getElementById(containerId);
+            if (!el) return;
+
+            const trackingState = activeVirtualScenesMap.get(containerId);
+
+            el.addEventListener('mousedown', (e) => {
+                trackingState.isDragging = true;
+                trackingState.previousMouseX = e.clientX;
+                trackingState.previousMouseY = e.clientY;
+            });
+
+            el.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 1) {
+                    trackingState.isDragging = true;
+                    trackingState.previousMouseX = e.touches[0].clientX;
+                    trackingState.previousMouseY = e.touches[0].clientY;
+                }
+            }, { passive: true });
+
+            window.addEventListener('mousemove', (e) => {
+                if (!trackingState.isDragging) return;
+                const deltaX = e.clientX - trackingState.previousMouseX;
+                const deltaY = e.clientY - trackingState.previousMouseY;
+
+                trackingState.rotationY += deltaX * 0.007;
+                trackingState.rotationX += deltaY * 0.007;
+
+                trackingState.previousMouseX = e.clientX;
+                trackingState.previousMouseY = e.clientY;
+            });
+
+            window.addEventListener('touchmove', (e) => {
+                if (!trackingState.isDragging || e.touches.length !== 1) return;
+                const deltaX = e.touches[0].clientX - trackingState.previousMouseX;
+                const deltaY = e.touches[0].clientY - trackingState.previousMouseY;
+
+                trackingState.rotationY += deltaX * 0.009;
+                trackingState.rotationX += deltaY * 0.009;
+
+                trackingState.previousMouseX = e.touches[0].clientX;
+                trackingState.previousMouseY = e.touches[0].clientY;
+            }, { passive: true });
+
+            window.addEventListener('mouseup', () => { trackingState.isDragging = false; });
+            window.addEventListener('touchend', () => { trackingState.isDragging = false; });
+        }
+
+        function executeMasterRenderTickLoop() {
+            requestAnimationFrame(executeMasterRenderTickLoop);
+
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            if (mainRenderer.domElement.width !== width || mainRenderer.domElement.height !== height) {
+                mainRenderer.setSize(width, height, false);
+            }
+
+            mainRenderer.setClearColor(0x000000, 0);
+            mainRenderer.setScissor(0, 0, width, height);
+            mainRenderer.setViewport(0, 0, width, height);
+            mainRenderer.clear();
+
+            activeVirtualScenesMap.forEach((sceneState, containerId) => {
+                const elementNodeBox = document.getElementById(containerId);
+                if (!elementNodeBox) return;
+
+                const rectBounds = elementNodeBox.getBoundingClientRect();
+                if (rectBounds.bottom < 0 || rectBounds.top > height || rectBounds.right < 0 || rectBounds.left > width) {
+                    return;
+                }
+
+                if (!sceneState.threeMeshScene) {
+                    if (sceneState.modelPath && sceneState.modelPath !== '') {
+                        lazyLoadAsset3DGeometryMesh(containerId, sceneState);
+                    }
+                    return;
+                }
+
+                const webglBottomY = height - rectBounds.bottom;
+                const elementWidthX = rectBounds.right - rectBounds.left;
+                const elementHeightY = rectBounds.bottom - rectBounds.top;
+
+                mainRenderer.setScissor(rectBounds.left, webglBottomY, elementWidthX, elementHeightY);
+                mainRenderer.setViewport(rectBounds.left, webglBottomY, elementWidthX, elementHeightY);
+
+                mainCamera.aspect = elementWidthX / elementHeightY;
+                mainCamera.updateProjectionMatrix();
+
+                if (sceneState.threeMeshScene) {
+                    sceneState.threeMeshScene.rotation.y = sceneState.rotationY;
+                    sceneState.threeMeshScene.rotation.x = sceneState.rotationX;
+
+                    if (!sceneState.isDragging) {
+                        sceneState.rotationY += 0.004;
+                    }
+                }
+
+                mainRenderer.render(sceneState.threeMeshScene, mainCamera);
+            });
+        }
+
+        function lazyLoadAsset3DGeometryMesh(containerId, stateObjectRef) {
+            const isolatedScene = new THREE.Scene();
+            isolatedScene.background = null;
+
+            const ambLight = new THREE.AmbientLight('#ffffff', 1.4);
+            isolatedScene.add(ambLight);
+
+            const dirLight = new THREE.DirectionalLight('#ffffff', 1.6);
+            dirLight.position.set(4, 6, 4);
+            isolatedScene.add(dirLight);
+
+            gltfLoader.load(
+                stateObjectRef.modelPath,
+                (gltf) => {
+                    const modelRootMesh = gltf.scene;
+                    const bBox = new THREE.Box3().setFromObject(modelRootMesh);
+                    const center = bBox.getCenter(new THREE.Vector3());
+
+                    modelRootMesh.position.x += (0) - center.x;
+                    modelRootMesh.position.y += (0) - center.y;
+                    modelRootMesh.position.z += (0) - center.z;
+
+                    isolatedScene.add(modelRootMesh);
+                    stateObjectRef.threeMeshScene = isolatedScene;
+                },
+                undefined,
+                (err) => {
+                    const errorGeometry = new THREE.ConeGeometry(0.6, 1.0, 4);
+                    const errorMaterial = new THREE.MeshBasicMaterial({ color: '#C5A880', wireframe: true });
+                    const errorMesh = new THREE.Mesh(errorGeometry, errorMaterial);
+                    isolatedScene.add(errorMesh);
+                    stateObjectRef.threeMeshScene = isolatedScene;
+                }
+            );
+        }
+
+        // =================================================================================
+        //                 SYSTEM INTERFACES MANAGEMENT IMPLEMENTATION LOOPS
+        // =================================================================================
+        function toggleAllergenSetupModal(visible) {
+            const targetModalNode = document.getElementById('allergenProfilerNode');
+            if (visible) {
+                targetModalNode.classList.add('active');
+                document.querySelectorAll('.allergen-chk').forEach(chk => {
+                    chk.checked = selectedAllergenTriggers.includes(chk.value);
+                });
+            } else { targetModalNode.classList.remove('active'); }
+        }
+
+        function applyAllergenSafetyProfilesFilters() {
+            let newlyCompiledAllergensRestrictionsList = [];
+            document.querySelectorAll('.allergen-chk').forEach(chk => {
+                if (chk.checked) newlyCompiledAllergensRestrictionsList.push(chk.value.toLowerCase().trim());
+            });
+            selectedAllergenTriggers = newlyCompiledAllergensRestrictionsList;
+            toggleAllergenSetupModal(false);
+            renderMenuDisplayGrid();
+        }
+
+        function addToCartTray(itemName, unitPrice, dishId) {
+            cart.push({ name: itemName, price: unitPrice });
+            document.getElementById('cartSummaryBtn').innerText = `Send Order (${cart.length} Items Selected) ➔`;
+            let currentAddedQuantityCount = cart.filter(item => item.name === itemName).length;
+            const targetBtn = document.getElementById(`add-btn-${dishId}`);
+            if (targetBtn) targetBtn.innerText = `Add (${currentAddedQuantityCount}) +`;
+        }
+
+        function toggleAssistantDrawer(visible) {
+            const drawer = document.getElementById('assistantDrawerNode');
+            if (visible) {
+                drawer.classList.add('active');
+                document.querySelectorAll('.quick-node-card').forEach(c => c.classList.remove('selected'));
+                selectedMultiBellOptionsCache = {};
+            } else { drawer.classList.remove('active'); }
+        }
+
+        function toggleQuickNeedListItem(elementId, contextLabelString) {
+            const cardAnchorNode = document.getElementById(elementId);
+            if (selectedMultiBellOptionsCache[elementId]) {
+                delete selectedMultiBellOptionsCache[elementId];
+                cardAnchorNode.classList.remove('selected');
+            } else {
+                selectedMultiBellOptionsCache[elementId] = contextLabelString;
+                cardAnchorNode.classList.add('selected');
+            }
+        }
+
+        function dispatchQuickAssistanceRequest() {
+            let combinedSelectionsArray = Object.values(selectedMultiBellOptionsCache);
+            if (!combinedSelectionsArray.length) return alert("Please select an operational assistance checklist parameter.");
+            const userCustomTextInstructionNotes = document.getElementById('assistantRequestNotes').value.trim();
+            let text = combinedSelectionsArray.join(' + ');
+            if (userCustomTextInstructionNotes) text += ` (Note: "${userCustomTextInstructionNotes}")`;
+
+            // 🛠️ HANDSHAKE MATCH: Emits 'call-waiter' matching our server listener
+            socket.emit('call_waiter', {
+                restaurant_id: tenantId,
+                location_context: locationContext,
+                location_identifier: `${locationIdentifier} [${text}]`
+            });
+            toggleAssistantDrawer(false);
+        }
+
+        function submitActiveOrder() {
+            if (!cart.length) return alert("Tray selections are clear. Please choose items first.");
+            let total = cart.reduce((sum, item) => sum + item.price, 0);
+            const globalKitchenCommentNote = document.getElementById('globalKitchenInstructionsNote').value.trim();
+            let idText = locationIdentifier;
+            if (globalKitchenCommentNote) idText += ` (Kitchen Note: "${globalKitchenCommentNote}")`;
+
+            // In your customer/index.html:
+            socket.emit('place_order', { restaurant_id: tenantId, location_context: locationContext, location_identifier: idText, items: cart, total_price: total });
+            cart = [];
+            document.getElementById('cartSummaryBtn').innerText = 'Send Order (0 Items Selected)';
+            document.getElementById('trackerBanner').classList.add('active');
+            renderMenuDisplayGrid();
+        }
+
+        socket.on('new_order_alert', (data) => {
+            if (data.location_identifier.startsWith(locationIdentifier)) {
+                currentActiveOrderId = data.id;
+                document.getElementById('trackerStatus').innerText = "📍 Ticket committed onto kitchen preparation tracks. Awaiting line deployment...";
+            }
+        });
+
+        socket.on('order_pipeline_update', (order) => {
+            if (order.id !== currentActiveOrderId) return;
+            const trackingStatusTextField = document.getElementById('trackerStatus');
+            if (order.status === 'Cooking') {
+                trackingStatusTextField.innerText = `🍳 Chef ${order.chef_name} is custom cooking your order choices!`;
+                if (order.chef_photo) document.getElementById('chefPhoto').src = order.chef_photo;
+                document.getElementById('chefName').innerText = order.chef_name;
+                document.getElementById('chefSpecialty').innerText = order.chef_specialties || "Culinary Specialist Focus";
+                document.getElementById('activeChefDisplay').classList.add('active');
+                startRealtimeCountdownClock(order.estimated_prep_time);
+            } else if (order.status === 'Served') {
+                document.getElementById('trackerBanner').classList.remove('active');
+                document.getElementById('activeChefDisplay').classList.remove('active');
+                document.getElementById('feedbackNode').classList.add('active');
+            }
+        });
+
+        function startRealtimeCountdownClock(minutes) {
+            clearInterval(countdownInterval);
+            let seconds = minutes * 60;
+            countdownInterval = setInterval(() => {
+                let m = Math.floor(seconds / 60); let s = seconds % 60;
+                document.getElementById('countdownClock').innerText = (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+                if (--seconds < 0) clearInterval(countdownInterval);
+            }, 1000);
+        }
+
+        function setRating(type, val) {
+            ratings[type] = val;
+            const stars = document.querySelectorAll(`#${type}Stars .star`);
+            stars.forEach((s, idx) => { s.classList.toggle('selected', idx < val); });
+        }
+
+        async function dispatchFeedbackMatrix() {
+            await fetch('/api/feedback', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ restaurant_id: tenantId, order_id: currentActiveOrderId, food_rating: ratings.food, service_rating: ratings.service, comments: document.getElementById('feedbackComments').value, chef_id: assignedChefId })
+            });
+            document.getElementById('feedbackNode').classList.remove('active');
+        }
+
+        // Boot core engine code arrays on window initialization
+        window.onload = () => {
+            // Fires exactly ONCE when the browser finishes unpacking all document elements safely!
+            initializeApp();
+
+            // Register secure service workers if supported by hardware targets
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/sw.js')
+                    .then((registration) => { console.log('Mesa PWA Scope Link:', registration.scope); })
+                    .catch((error) => { console.error('Mesa PWA Fault:', error); });
+            }
+        };
     </script>
 </body>
+
 </html>
