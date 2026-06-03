@@ -2,59 +2,39 @@
 <html lang="en">
 
 <head>
-       
     <meta charset="UTF-8">
-       
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Hospitality WebGL Interactive Terminal</title>
+    <title>Hospitality WebGL Interactive Terminal</title>
 
-       
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap"        
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
 
-       
     <script src="/socket.io/socket.io.js"></script>
 
-       
     <link rel="manifest" href="/manifest.json">
-       
-    <meta name="apple-mobile-web-app-capable" content="yes">
-       
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-       
     <script type="importmap">
-    {
-        "imports": {
-            "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
-        }
-    }
-    </script>
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
 
-        <style>
-        /* CSS Design Tokens governing themes, layouts, and system color profiles */
+    <style>
         :root {
             --bg-dark: #0B0F19;
-            /* Deep spatial background layer */
             --card-dark: #161B26;
-            /* Contained modular components background tint */
             --primary: #C5A880;
-            /* Signature luxury gold focus branding tone */
             --text-light: #F3F4F6;
-            /* High readability clean white typography text */
             --text-muted: #9CA3AF;
-            /* Subtle subtext descriptive metadata color */
             --border: #1E2533;
-            /* Rigid structural boundaries dividers grids */
             --danger: #DC2626;
-            /* High urgency action buttons and warning alerts */
             --success: #10B981;
-            /* Positive indicators and dietary veg identifiers */
             --egg-color: #FBBF24;
-            /* Knotted yellow focus marker for egg items */
             --purple-accent: #8B5CF6;
-            /* Highlights showcase structural badge focus accent */
         }
 
         * {
@@ -73,7 +53,6 @@
             overflow-x: hidden;
         }
 
-        /* 🕹️ PERSISTENT BACKGROUND CANVAS: Crucial fix for hanging. One single WebGL canvas handles the whole app */
         #masterThreeCanvas {
             position: fixed;
             top: 0;
@@ -84,14 +63,12 @@
             z-index: 1;
         }
 
-        /* Content layer forced above the single background 3D canvas thread */
         .content-layer-wrapper {
             position: relative;
             z-index: 2;
             pointer-events: auto;
         }
 
-        /* Fixed Header Infrastructure layout specifications */
         header {
             background: var(--card-dark);
             padding: 1.2rem 1.5rem;
@@ -128,7 +105,6 @@
             border: 1px solid #2A354A;
         }
 
-        /* Structural layers for safety notification parameters strip */
         .allergen-prompt-bar {
             background: #121824;
             border-bottom: 1px solid var(--border);
@@ -150,7 +126,6 @@
             font-weight: 600;
         }
 
-        /* Horizontally scrolling categorization slider engine layouts elements */
         .category-strip {
             display: flex;
             gap: 0.6rem;
@@ -181,7 +156,6 @@
             border-color: var(--primary);
         }
 
-        /* Interactive Promotional Showcase Carousel Frame elements */
         .promo-carousel {
             padding: 0 5% 1rem 5%;
             display: none;
@@ -213,7 +187,6 @@
             letter-spacing: 0.5px;
         }
 
-        /* Dynamic Catalog Grid components cards framework layouts configuration */
         .menu-container {
             padding: 0 5%;
             display: flex;
@@ -243,7 +216,6 @@
             align-items: center;
         }
 
-        /* Dietary dot indicators style maps tokens classes */
         .diet-indicator {
             display: inline-flex;
             align-items: center;
@@ -262,17 +234,9 @@
             content: '●';
         }
 
-        .diet-indicator.veg {
-            color: var(--success);
-        }
-
-        .diet-indicator.non-veg {
-            color: var(--danger);
-        }
-
-        .diet-indicator.egg {
-            color: var(--egg-color);
-        }
+        .diet-indicator.veg { color: var(--success); }
+        .diet-indicator.non-veg { color: var(--danger); }
+        .diet-indicator.egg { color: var(--egg-color); }
 
         .dish-title {
             font-size: 1.05rem;
@@ -288,7 +252,6 @@
             margin-top: 0.2rem;
         }
 
-        /* 🕹️ SCISSOR CANVAS PLACEHOLDER: Lightweight empty box. The background canvas draws inside here when visible */
         .threed-viewport-placeholder {
             width: 100%;
             height: 260px;
@@ -315,7 +278,6 @@
             z-index: 5;
         }
 
-        /* Safety pill identifiers configurations grids labels */
         .allergen-alert-strip {
             display: flex;
             flex-wrap: wrap;
@@ -358,7 +320,6 @@
             position: relative;
         }
 
-        /* Countdown and order progress tracking element interfaces */
         .status-banner {
             display: none;
             background: #111622;
@@ -378,7 +339,6 @@
             margin: 0.2rem 0;
         }
 
-        /* Realtime assigned culinary chef info profiles card modules layout */
         .chef-card {
             display: none;
             background: var(--card-dark);
@@ -402,7 +362,6 @@
             border: 2px solid var(--primary);
         }
 
-        /* Fullscreen multi-layered absolute modal overlays layers canvases handles */
         .overlay-canvas {
             display: none;
             position: fixed;
@@ -500,7 +459,6 @@
             resize: none;
         }
 
-        /* Persistent Bottom Action Frame Bar rules components elements */
         .action-bar {
             position: fixed;
             bottom: 0;
@@ -529,7 +487,6 @@
             font-size: 1rem;
         }
 
-        /* Floating interaction components triggers buttons tokens rules */
         .floating-bell-btn {
             position: fixed;
             bottom: 190px;
@@ -579,149 +536,115 @@
 
 <body>
 
-        <canvas id="masterThreeCanvas"></canvas>
+    <canvas id="masterThreeCanvas"></canvas>
 
-        <div class="content-layer-wrapper">
+    <div class="content-layer-wrapper">
 
-                <header>
-                        <h1 id="restaurantName">Mesa 3D Hardware WebGL Terminal</h1>
-                        <p id="systemHeader">Dynamic Digital Dining Terminal</p>
-                        <div class="location-badge" id="locationDisplay">Resolving Spatial Coordinates Node...</div>
-                    </header>
+        <header>
+            <h1 id="restaurantName">Mesa 3D Hardware WebGL Terminal</h1>
+            <p id="systemHeader">Dynamic Digital Dining Terminal</p>
+            <div class="location-badge" id="locationDisplay">Resolving Spatial Coordinates Node...</div>
+        </header>
 
-                <div class="status-banner" id="trackerBanner">
-                        <p id="trackerStatus" style="font-weight: 600; font-size: 0.95rem; color: var(--primary);">Your
-                order
-                                transaction is queued...</p>
-                        <div class="countdown" id="countdownClock">15:00</div>
-                    </div>
+        <div class="status-banner" id="trackerBanner">
+            <p id="trackerStatus" style="font-weight: 600; font-size: 0.95rem; color: var(--primary);">Your order transaction is queued...</p>
+            <div class="countdown" id="countdownClock">15:00</div>
+        </div>
 
-                <div class="chef-card" id="activeChefDisplay">
-                        <img src="" class="chef-avatar" id="chefPhoto" alt="Master Avatar">
-                        <div class="chef-details">
-                                <h4 id="chefName">Line Chef Assigned</h4>
-                                <p id="chefSpecialty" style="color: var(--primary);">Master Craftsman Focus</p>
-                                <p id="chefBio">Custom preparing your meal choices with precision care.</p>
-                            </div>
-                    </div>
-
-                <div class="allergen-prompt-bar" id="safetyStrip">
-                        <div style="display: flex; align-items: center; gap: 0.4rem;">
-                                <span>🛡️</span>
-                                <span style="color: var(--text-muted);" id="allergenStatusLabel">No safety allergy
-                    filters applied to
-                                        menu layout.</span>
-                            </div>
-                        <button class="allergen-select-btn" onclick="toggleAllergenSetupModal(true)">Set Filter</button>
-                    </div>
-
-                <div class="category-strip" id="categoryBar">
-                        <div class="category-pill active" onclick="filterMenuCategory('all', this)">All Items</div>
-                        <div class="category-pill" onclick="filterMenuCategory('veg', this)">🟢 Veg Only</div>
-                        <div class="category-pill" onclick="filterMenuCategory('promo', this)">✨ Highlights Choice</div>
-                    </div>
-
-                <div class="promo-carousel" id="highlightsSliderContainer"></div>
-
-                <main class="menu-container" id="masterMenuGrid">
-                        <p style="color:var(--text-muted); text-align: center; padding: 2rem;">Connecting to 3D
-                rendering
-                                pipeline...</p>
-                    </main>
-
-                <button class="floating-bell-btn" onclick="toggleAssistantDrawer(true)">🛎️<div class="bell-badge">
+        <div class="chef-card" id="activeChefDisplay">
+            <img src="" class="chef-avatar" id="chefPhoto" alt="Master Avatar">
+            <div class="chef-details">
+                <h4 id="chefName">Line Chef Assigned</h4>
+                <p id="chefSpecialty" style="color: var(--primary);">Master Craftsman Focus</p>
+                <p id="chefBio">Custom preparing your meal choices with precision care.</p>
             </div>
-                    </button>
+        </div>
 
-                <footer class="action-bar">
-                        <textarea id="globalKitchenInstructionsNote" rows="2"                
-                placeholder="🍳 Add general kitchen instructions for this order..."></textarea>
-                        <button class="btn-checkout" onclick="submitActiveOrder()" id="cartSummaryBtn">Send Order (0
-                Items
-                                Selected)</button>
-                    </footer>
+        <div class="allergen-prompt-bar" id="safetyStrip">
+            <div style="display: flex; align-items: center; gap: 0.4rem;">
+                <span>🛡️</span>
+                <span style="color: var(--text-muted);" id="allergenStatusLabel">No safety allergy filters applied to menu layout.</span>
+            </div>
+            <button class="allergen-select-btn" onclick="toggleAllergenSetupModal(true)">Set Filter</button>
+        </div>
 
-            </div>
+        <div class="category-strip" id="categoryBar">
+            <div class="category-pill active" onclick="filterMenuCategory('all', this)">All Items</div>
+            <div class="category-pill" onclick="filterMenuCategory('veg', this)">🟢 Veg Only</div>
+            <div class="category-pill" onclick="filterMenuCategory('promo', this)">✨ Highlights Choice</div>
+        </div>
 
-        <div class="overlay-canvas" id="assistantDrawerNode">
-                <div class="modal-container-box">
-                        <div class="modal-close-cross" onclick="toggleAssistantDrawer(false)">✕</div>
-                        <h3 id="assistantTitleLabel">🛎️ Staff Call Center</h3>
-                        <div class="quick-grid-menu">
-                                <div class="quick-node-card" id="opt-waiter"                    
-                    onclick="toggleQuickNeedListItem('opt-waiter', 'General Assistance')"><span                        
-                        id="icon-waiter">🙋‍♂️</span><span id="label-waiter">Call Staff</span></div>
-                                <div class="quick-node-card" id="opt-water"                    
-                    onclick="toggleQuickNeedListItem('opt-water', 'Cold Water Bottle')"><span>🧊</span><span>Water
-                                                Bottle</span></div>
-                                <div class="quick-node-card" id="opt-cutlery"                    
-                    onclick="toggleQuickNeedListItem('opt-cutlery', 'Extra Cutlery')"><span>🍴</span><span>Need
-                                                Cutlery</span></div>
-                                <div class="quick-node-card" id="opt-bill"                    
-                    onclick="toggleQuickNeedListItem('opt-bill', 'Printed Bill')"><span>💳</span><span>Bring Bill</span>
-                                    </div>
-                            </div>
-                        <textarea id="assistantRequestNotes" rows="3"                
-                placeholder="Add custom instruction note for runner..."></textarea>
-                        <button class="btn-checkout" style="background: var(--danger); color: white;"                
-                onclick="dispatchQuickAssistanceRequest()">Broadcast Checked Paging Alerts</button>
-                    </div>
-            </div>
+        <div class="promo-carousel" id="highlightsSliderContainer"></div>
 
-        <div class="overlay-canvas" id="allergenProfilerNode">
-                <div class="modal-container-box">
-                        <div class="modal-close-cross" onclick="toggleAllergenSetupModal(false)">✕</div>
-                        <h3>🛡️ Dietary Allergen Shield</h3>
-                        <div class="allergy-grid-selection">
-                                <label class="allergy-label-item"><input type="checkbox" value="nuts"
-                        class="allergen-chk">🥜 Peanut /
-                                        Tree Nuts</label>
-                                <label class="allergy-label-item"><input type="checkbox" value="dairy"
-                        class="allergen-chk">🥛 Dairy /
-                                        Lactose Alerts</label>
-                                <label class="allergy-label-item"><input type="checkbox" value="gluten"
-                        class="allergen-chk">🌾 Wheat /
-                                        Gluten Content</label>
-                                <label class="allergy-label-item"><input type="checkbox" value="shellfish"
-                        class="allergen-chk">🦀
-                                        Seafood / Shellfish Vectors</label>
-                            </div>
-                        <button class="btn-checkout" onclick="applyAllergenSafetyProfilesFilters()">Save Profile
-                                Configuration</button>
-                    </div>
-            </div>
+        <main class="menu-container" id="masterMenuGrid">
+            <p style="color:var(--text-muted); text-align: center; padding: 2rem;">Connecting to 3D rendering pipeline...</p>
+        </main>
 
-        <div class="overlay-canvas" id="feedbackNode">
-                <div class="modal-container-box">
-                        <h3>Order Served Successfully!</h3>
-                        <p style="font-size:0.8rem; color:var(--text-muted); margin-top:0.4rem;">Please rate your
-                experience:</p>
-                        <div class="rating-stars" id="foodStars">
-                                <span class="star" onclick="setRating('food', 1)">★</span><span class="star"            
-                            onclick="setRating('food', 2)">★</span><span class="star"                    
-                    onclick="setRating('food', 3)">★</span><span class="star"                    
-                    onclick="setRating('food', 4)">★</span><span class="star" onclick="setRating('food', 5)">★</span>
-                            </div>
-                        <div class="rating-stars" id="serviceStars">
-                                <span class="star" onclick="setRating('service', 1)">★</span><span class="star"        
-                                onclick="setRating('service', 2)">★</span><span class="star"                    
-                    onclick="setRating('service', 3)">★</span><span class="star"                    
-                    onclick="setRating('service', 4)">★</span><span class="star"                    
-                    onclick="setRating('service', 5)">★</span>
-                            </div>
-                        <textarea id="feedbackComments" rows="3"
-                placeholder="Any comments for administration?"></textarea>
-                        <button class="btn-checkout" onclick="dispatchFeedbackMatrix()">Submit Core Review
-                Package</button>
-                    </div>
-            </div>
+        <button class="floating-bell-btn" onclick="toggleAssistantDrawer(true)">🛎️<div class="bell-badge"></div></button>
 
-       
+        <footer class="action-bar">
+            <textarea id="globalKitchenInstructionsNote" rows="2" placeholder="🍳 Add general kitchen instructions for this order..."></textarea>
+            <button class="btn-checkout" onclick="submitActiveOrder()" id="cartSummaryBtn">Send Order (0 Items Selected)</button>
+        </footer>
+
+    </div>
+
+    <div class="overlay-canvas" id="assistantDrawerNode">
+        <div class="modal-container-box">
+            <div class="modal-close-cross" onclick="toggleAssistantDrawer(false)">✕</div>
+            <h3 id="assistantTitleLabel">🛎️ Staff Call Center</h3>
+            <div class="quick-grid-menu">
+                <div class="quick-node-card" id="opt-waiter" onclick="toggleQuickNeedListItem('opt-waiter', 'General Assistance')">
+                    <span id="icon-waiter">🙋‍♂️</span><span id="label-waiter">Call Staff</span>
+                </div>
+                <div class="quick-node-card" id="opt-water" onclick="toggleQuickNeedListItem('opt-water', 'Cold Water Bottle')">
+                    <span>🧊</span><span>Water Bottle</span>
+                </div>
+                <div class="quick-node-card" id="opt-cutlery" onclick="toggleQuickNeedListItem('opt-cutlery', 'Extra Cutlery')">
+                    <span>🍴</span><span>Need Cutlery</span>
+                </div>
+                <div class="quick-node-card" id="opt-bill" onclick="toggleQuickNeedListItem('opt-bill', 'Printed Bill')">
+                    <span>💳</span><span>Bring Bill</span>
+                </div>
+            </div>
+            <textarea id="assistantRequestNotes" rows="3" placeholder="Add custom instruction note for runner..."></textarea>
+            <button class="btn-checkout" style="background: var(--danger); color: white;" onclick="dispatchQuickAssistanceRequest()">Broadcast Checked Paging Alerts</button>
+        </div>
+    </div>
+
+    <div class="overlay-canvas" id="allergenProfilerNode">
+        <div class="modal-container-box">
+            <div class="modal-close-cross" onclick="toggleAllergenSetupModal(false)">✕</div>
+            <h3>🛡️ Dietary Allergen Shield</h3>
+            <div class="allergy-grid-selection">
+                <label class="allergy-label-item"><input type="checkbox" value="nuts" class="allergen-chk">🥜 Peanut / Tree Nuts</label>
+                <label class="allergy-label-item"><input type="checkbox" value="dairy" class="allergen-chk">🥛 Dairy / Lactose Alerts</label>
+                <label class="allergy-label-item"><input type="checkbox" value="gluten" class="allergen-chk">🌾 Wheat / Gluten Content</label>
+                <label class="allergy-label-item"><input type="checkbox" value="shellfish" class="allergen-chk">🦀 Seafood / Shellfish Vectors</label>
+            </div>
+            <button class="btn-checkout" onclick="applyAllergenSafetyProfilesFilters()">Save Profile Configuration</button>
+        </div>
+    </div>
+
+    <div class="overlay-canvas" id="feedbackNode">
+        <div class="modal-container-box">
+            <h3>Order Served Successfully!</h3>
+            <p style="font-size:0.8rem; color:var(--text-muted); margin-top:0.4rem;">Please rate your experience:</p>
+            <div class="rating-stars" id="foodStars">
+                <span class="star" onclick="setRating('food', 1)">★</span><span class="star" onclick="setRating('food', 2)">★</span><span class="star" onclick="setRating('food', 3)">★</span><span class="star" onclick="setRating('food', 4)">★</span><span class="star" onclick="setRating('food', 5)">★</span>
+            </div>
+            <div class="rating-stars" id="serviceStars">
+                <span class="star" onclick="setRating('service', 1)">★</span><span class="star" onclick="setRating('service', 2)">★</span><span class="star" onclick="setRating('service', 3)">★</span><span class="star" onclick="setRating('service', 4)">★</span><span class="star" onclick="setRating('service', 5)">★</span>
+            </div>
+            <textarea id="feedbackComments" rows="3" placeholder="Any comments for administration?"></textarea>
+            <button class="btn-checkout" onclick="dispatchFeedbackMatrix()">Submit Core Review Package</button>
+        </div>
+    </div>
+
     <script type="module">
         import * as THREE from 'three';
         import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
-        // Bind core lifecycle execution functions globally to bridge HTML click listener hooks seamlessly across execution namespaces
         window.filterMenuCategory = filterMenuCategory;
         window.toggleAllergenSetupModal = toggleAllergenSetupModal;
         window.applyAllergenSafetyProfilesFilters = applyAllergenSafetyProfilesFilters;
@@ -733,18 +656,15 @@
         window.setRating = setRating;
         window.dispatchFeedbackMatrix = dispatchFeedbackMatrix;
 
-        // Parse url parameters to isolate restaurant workspace context identities
         const urlParams = new URLSearchParams(window.location.search);
         const tenantId = urlParams.get('restaurant_id') || '1';
         const tableNum = urlParams.get('table');
         const roomNum = urlParams.get('room');
 
-        // 🏢 ADVANCED PARAMETER: Auto White-Label Translation Mapping Engine
         let venueClassificationMode = roomNum ? 'HOTEL' : (urlParams.get('mode') || 'RESTAURANT');
         let locationContext = roomNum ? 'ROOM' : 'TABLE';
         let locationIdentifier = roomNum ? ('Room ' + roomNum) : (tableNum ? ('Table ' + tableNum) : 'General Space');
 
-        // System baseline state runtime vectors allocation containers
         let rawDatabaseDishesCache = [];
         let selectedAllergenTriggers = [];
         let cart = [];
@@ -755,14 +675,11 @@
         let currentActiveFilterMode = "all";
         let selectedMultiBellOptionsCache = {};
 
-        // 🕹️ SINGLE SCISSOR CORE ARCHITECTURE STATE ENGINE DEFINITIONS
         let mainRenderer, mainScene, mainCamera, gltfLoader;
         let activeVirtualScenesMap = new Map();
 
-        // Instantiate primary server handshake communication channel thread
         const socket = io();
 
-        // 🛠️ ADDED MISSING FUNCTIONS: Restores button click event listeners mechanics
         function filterMenuCategory(category, element) {
             currentActiveFilterMode = category;
             document.querySelectorAll('.category-pill').forEach(pill => pill.classList.remove('active'));
@@ -770,28 +687,22 @@
             renderMenuDisplayGrid();
         }
 
-        // Core platform bootstrap routine setup engine execution channel
         async function initializeApp() {
             try {
                 applyWhiteLabelBrandLabels();
                 socket.emit('join_workspace', { restaurantId: tenantId });
                 initMasterSharedWebGLContext();
 
-                // 🛠️ BACKEND API DIRECT ROUTE FIX: Points directly to /api/menu
                 const dishRes = await fetch('/api/dishes?restaurant_id=' + tenantId);
                 const rawData = await dishRes.json();
 
-                // Find this block inside initializeApp() in public/customer/index.html:
                 rawDatabaseDishesCache = rawData.map((dish, index) => {
-                    // 🟩 1. Read your true database discount tracking string column ('specialties')
                     let discountRate = parseInt(dish.specialties) || 0;
                     let isPromoItem = dish.is_promo === 1 ? 1 : 0;
-
                     let assignedAllergensList = dish.allergens && dish.allergens !== 'none' ? dish.allergens.split(',') : [];
                     let displayPrice = dish.price;
                     let strikeThroughPriceHTML = "";
 
-                    // Calculate promotion tags if a discount exists
                     if (discountRate > 0) {
                         displayPrice = dish.price * (1 - (discountRate / 100));
                         strikeThroughPriceHTML = `<span style="text-decoration: line-through; color: var(--text-muted); font-size: 0.8rem; margin-left: 0.4rem;">₹${dish.price.toFixed(2)}</span>`;
@@ -805,21 +716,17 @@
                         is_promo: isPromoItem,
                         dietary_classification: dish.dietary_type || 'veg',
                         allergens_array: assignedAllergensList,
-                        // 🟩 2. Point this to 'image_url' where your server writes the 3D file path!
                         graphic_3d_asset: dish.image_url || ''
                     };
                 });
 
                 renderPromotionalShowcaseCarousel();
                 renderMenuDisplayGrid();
-
-                // Fire the master unified single loop rendering tick execution frame trace animation thread
                 executeMasterRenderTickLoop();
 
             } catch (err) { console.error("Critical Bootstrap Exception:", err); }
         }
 
-        // Helper Method: Intercepts configuration and translates structural interface names dynamically
         function applyWhiteLabelBrandLabels() {
             document.getElementById('locationDisplay').innerText = locationContext + " PORTAL: " + locationIdentifier;
 
@@ -839,7 +746,6 @@
             }
         }
 
-        // Compile and render the hand-picked Admin Showcase Highlights Carousel banner panels cards elements
         function renderPromotionalShowcaseCarousel() {
             const showcaseSliderFrame = document.getElementById('highlightsSliderContainer');
             let targetHighlightsList = rawDatabaseDishesCache.filter(dish => dish.is_promo === 1);
@@ -854,21 +760,18 @@
             showcaseSliderFrame.innerHTML = '';
             targetHighlightsList.forEach(dish => {
                 showcaseSliderFrame.innerHTML += `
-                    <div class="promo-card" style="margin-bottom:0.6rem;">
-                        <div class="promo-tag">✨ Recommended Selection</div>
-                        <h3 style="font-size: 1.1rem; color: white; font-weight:700;">${dish.name}</h3>
-                        <p style="color: var(--primary); font-weight: 600; margin-top:0.2rem; font-size:0.9rem;">Interact with the full volumetric 3D file on the menu catalog grid below!</p>
-                    </div>
-                `;
+                    <div class="promo-card" style="margin-bottom:0.6rem;">
+                        <div class="promo-tag">✨ Recommended Selection</div>
+                        <h3 style="font-size: 1.1rem; color: white; font-weight:700;">${dish.name}</h3>
+                        <p style="color: var(--primary); font-weight: 600; margin-top:0.2rem; font-size:0.9rem;">Interact with the full volumetric 3D file on the menu catalog grid below!</p>
+                    </div>
+                `;
             });
         }
 
-        // Dynamic template rendering map constructor grid mapping framework handler rows elements
         function renderMenuDisplayGrid() {
             const grid = document.getElementById('masterMenuGrid');
             grid.innerHTML = '';
-
-            // 🟩 THE FIX: Clear old 3D memory objects cache allocations before drawing new ones!
             activeVirtualScenesMap.clear();
 
             let outputTargetList = rawDatabaseDishesCache.filter(dish => {
@@ -894,23 +797,22 @@
                 let canvasContainerId = `threed-placeholder-${dish.id}`;
 
                 grid.innerHTML += `
-                    <div class="dish-card ${criticalCardWarningCSSClass}">
-                        <div class="dish-main-row">
-                            <div>
-                                <div class="diet-indicator ${classificationCSSSelector}"></div>
-                                <h3 class="dish-title">${dish.name}</h3>
-                                <p class="dish-price">₹${dish.price} ${dish.original_price_label || ''}</p>
-                                <div class="allergen-alert-strip">${technicalAllergenBadgesHTML}</div>
-                                <p class="danger-allergen-banner">⚠️ Warning: Matches Active Allergy Configuration Profile!</p>
-                            </div>
-                            <button class="btn-add-tray" id="add-btn-${dish.id}" onclick="addToCartTray('${dish.name.replace(/'/g, "\\'")}', ${dish.price}, ${dish.id})">${addBtnLabelStringText}</button>
-                        </div>
-                        
-                        <div class="threed-viewport-placeholder" id="${canvasContainerId}" data-model-path="${dish.graphic_3d_asset}">
-                            <div class="threed-badge">🕹️ Click & Drag to Rotate 3D Spatial File</div>
-                        </div>
-                    </div>
-                `;
+                    <div class="dish-card ${criticalCardWarningCSSClass}">
+                        <div class="dish-main-row">
+                            <div>
+                                <div class="diet-indicator ${classificationCSSSelector}"></div>
+                                <h3 class="dish-title">${dish.name}</h3>
+                                <p class="dish-price">₹${dish.price} ${dish.original_price_label || ''}</p>
+                                <div class="allergen-alert-strip">${technicalAllergenBadgesHTML}</div>
+                                <p class="danger-allergen-banner">⚠️ Warning: Matches Active Allergy Configuration Profile!</p>
+                            </div>
+                            <button class="btn-add-tray" id="add-btn-${dish.id}" onclick="addToCartTray('${dish.name.replace(/'/g, "\\'")}', ${dish.price}, ${dish.id})">${addBtnLabelStringText}</button>
+                        </div>
+                        <div class="threed-viewport-placeholder" id="${canvasContainerId}" data-model-path="${dish.graphic_3d_asset}">
+                            <div class="threed-badge">🕹️ Click & Drag to Rotate 3D Spatial File</div>
+                        </div>
+                    </div>
+                `;
 
                 activeVirtualScenesMap.set(canvasContainerId, {
                     modelPath: dish.graphic_3d_asset,
@@ -928,9 +830,6 @@
             });
         }
 
-        // =================================================================================
-        //     🕹️ HIGH-PERFORMANCE HARMONIZED SINGLE-CANVAS SCISSOR RENDERING PIPELINE CORE
-        // =================================================================================
         function initMasterSharedWebGLContext() {
             const canvasElementNode = document.getElementById('masterThreeCanvas');
             mainRenderer = new THREE.WebGLRenderer({ canvas: canvasElementNode, antialias: true, alpha: true, powerPreference: "high-performance" });
@@ -991,7 +890,6 @@
             window.addEventListener('touchend', () => { trackingState.isDragging = false; });
         }
 
-        // 🟩:
         function executeMasterRenderTickLoop() {
             requestAnimationFrame(executeMasterRenderTickLoop);
 
@@ -1012,12 +910,10 @@
 
                 const rectBounds = elementNodeBox.getBoundingClientRect();
                 
-                // 🟩 PERFORMANCE OPTIMIZATION: If the 3D element card is off-screen, SKIP RENDERING IT entirely!
                 if (rectBounds.bottom < 0 || rectBounds.top > height || rectBounds.right < 0 || rectBounds.left > width) {
                     return; 
                 }
 
-                // 🟩 PERFORMANCE OPTIMIZATION: Lazy load the model file ONLY when it scrolls directly into view
                 if (!sceneState.threeMeshScene) {
                     if (sceneState.modelPath && sceneState.modelPath !== '') {
                         lazyLoadAsset3DGeometryMesh(containerId, sceneState);
@@ -1046,7 +942,6 @@
 
                 mainRenderer.render(sceneState.threeMeshScene, mainCamera);
             });
-        }
         }
 
         function lazyLoadAsset3DGeometryMesh(containerId, stateObjectRef) {
@@ -1085,11 +980,9 @@
             );
         }
 
-        // =================================================================================
-        //                 SYSTEM INTERFACES MANAGEMENT IMPLEMENTATION LOOPS
-        // =================================================================================
         function toggleAllergenSetupModal(visible) {
             const targetModalNode = document.getElementById('allergenProfilerNode');
+            if (!targetModalNode) return;
             if (visible) {
                 targetModalNode.classList.add('active');
                 document.querySelectorAll('.allergen-chk').forEach(chk => {
@@ -1118,6 +1011,7 @@
 
         function toggleAssistantDrawer(visible) {
             const drawer = document.getElementById('assistantDrawerNode');
+            if (!drawer) return;
             if (visible) {
                 drawer.classList.add('active');
                 document.querySelectorAll('.quick-node-card').forEach(c => c.classList.remove('selected'));
@@ -1143,7 +1037,6 @@
             let text = combinedSelectionsArray.join(' + ');
             if (userCustomTextInstructionNotes) text += ` (Note: "${userCustomTextInstructionNotes}")`;
 
-            // 🛠️ HANDSHAKE MATCH: Emits 'call-waiter' matching our server listener
             socket.emit('call_waiter', {
                 restaurant_id: tenantId,
                 location_context: locationContext,
@@ -1159,7 +1052,6 @@
             let idText = locationIdentifier;
             if (globalKitchenCommentNote) idText += ` (Kitchen Note: "${globalKitchenCommentNote}")`;
 
-            // In your customer/index.html:
             socket.emit('place_order', { restaurant_id: tenantId, location_context: locationContext, location_identifier: idText, items: cart, total_price: total });
             cart = [];
             document.getElementById('cartSummaryBtn').innerText = 'Send Order (0 Items Selected)';
@@ -1204,7 +1096,7 @@
         function setRating(type, val) {
             ratings[type] = val;
             const stars = document.querySelectorAll(`#${type}Stars .star`);
-            stars.forEach((s, idx) => { s.classList.toggle('selected', idx < val); });
+            stars.forEach((s, idx) => { stars.classList.toggle('selected', idx < val); });
         }
 
         async function dispatchFeedbackMatrix() {
@@ -1216,12 +1108,9 @@
             document.getElementById('feedbackNode').classList.remove('active');
         }
 
-        // Boot core engine code arrays on window initialization
         window.onload = () => {
-            // Fires exactly ONCE when the browser finishes unpacking all document elements safely!
             initializeApp();
 
-            // Register secure service workers if supported by hardware targets
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.register('/sw.js')
                     .then((registration) => { console.log('Mesa PWA Scope Link:', registration.scope); })
