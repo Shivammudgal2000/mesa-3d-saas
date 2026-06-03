@@ -711,7 +711,18 @@
         let mainRenderer, mainScene, mainCamera, gltfLoader;
         let activeVirtualScenesMap = new Map();
 
-        const socket = io();
+        // 🟩 NETWORK OPTIMIZATION: Prevent reconnection loop spikes on mobile devices
+        const socket = io({
+            transports: ['websocket', 'polling'],
+            autoConnect: true,
+            reconnectionAttempts: 5, // Stop spamming if the connection drops
+            timeout: 10000
+        });
+
+        // Debug logger to trace network states without locking up the CPU
+        socket.on('connect_error', (err) => {
+            console.warn("Network Handshake Deferred: ", err.message);
+        });
 
         function filterMenuCategory(category, element) {
             currentActiveFilterMode = category;
@@ -1156,14 +1167,19 @@
             document.getElementById('feedbackNode').classList.remove('active');
         }
 
+        // 🟩 LIFECYCLE OPTIMIZATION: Prioritize 3D assets rendering over background service registration
         window.onload = () => {
+            // First, run the core 3D application initialization
             initializeApp();
 
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('/sw.js')
-                    .then((registration) => { console.log('Mesa PWA Scope Link:', registration.scope); })
-                    .catch((error) => { console.error('Mesa PWA Fault:', error); });
-            }
+            // Delay background PWA worker tasks by 3 seconds to let mobile RAM stabilize
+            setTimeout(() => {
+                if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.register('/sw.js')
+                        .then((registration) => { console.log('Mesa PWA Scope Active Link:', registration.scope); })
+                        .catch((error) => { console.error('Mesa PWA Fault:', error); });
+                }
+            }, 3000);
         };
     </script>
 </body>
