@@ -853,7 +853,7 @@
                             </div>
                             <button class="btn-add-tray" id="add-btn-${dish.id}" onclick="addToCartTray('${dish.name.replace(/'/g, "\\'")}', ${dish.price}, ${dish.id})">${addBtnLabelStringText}</button>
                         </div>
-                        <div class="threed-viewport-placeholder" id="${canvasContainerId}" data-model-path="${dish.graphic_3d_asset}">
+                        <div class="threed-viewport-placeholder" id="${canvasContainerId}" data-model-path="${dish.graphic_3d_asset}" style="display: none;">
                             <div class="threed-badge">🕹️ Click & Drag to Rotate 3D Spatial File</div>
                         </div>
                     </div>
@@ -953,69 +953,10 @@
             window.addEventListener('touchend', () => { trackingState.isDragging = false; });
         }
 
-        // 🟩 BLUEPRINT FIX: Crash-Protected Non-Blocking Execution Loop
+       // 🟩 TEST UPGRADE: Kill the master loop thread to protect mobile RAM
         function executeMasterRenderTickLoop() {
-            requestAnimationFrame(executeMasterRenderTickLoop);
-
-            // Safety Guard: If the mobile browser rejected WebGL, abort the loop completely to stop freezes!
-            if (!mainRenderer) return;
-
-            const width = window.innerWidth;
-            const height = window.innerHeight;
-            if (mainRenderer.domElement.width !== width || mainRenderer.domElement.height !== height) {
-                mainRenderer.setSize(width, height, false);
-            }
-
-            mainRenderer.setClearColor(0x000000, 0);
-            mainRenderer.setScissor(0, 0, width, height);
-            mainRenderer.setViewport(0, 0, width, height);
-            mainRenderer.clear();
-
-            activeVirtualScenesMap.forEach((sceneState, containerId) => {
-                const elementNodeBox = document.getElementById(containerId);
-                if (!elementNodeBox) return;
-
-                const rectBounds = elementNodeBox.getBoundingClientRect();
-
-                // PERFORMANCE GUARD: Bypasses calculation completely if card is off-screen
-                if (rectBounds.bottom < 0 || rectBounds.top > height || rectBounds.right < 0 || rectBounds.left > width) {
-                    return;
-                }
-
-                if (!sceneState.listenersBound) {
-                    bindPlaceholderInteractionListeners(containerId);
-                    sceneState.listenersBound = true;
-                }
-
-                // Only download the heavy 3D asset if it is explicitly sitting center-screen
-                if (!sceneState.threeMeshScene) {
-                    if (sceneState.modelPath && sceneState.modelPath !== '') {
-                        lazyLoadAsset3DGeometryMesh(containerId, sceneState);
-                    }
-                    return;
-                }
-
-                const webglBottomY = height - rectBounds.bottom;
-                const elementWidthX = rectBounds.right - rectBounds.left;
-                const elementHeightY = rectBounds.bottom - rectBounds.top;
-
-                mainRenderer.setScissor(rectBounds.left, webglBottomY, elementWidthX, elementHeightY);
-                mainRenderer.setViewport(rectBounds.left, webglBottomY, elementWidthX, elementHeightY);
-
-                mainCamera.aspect = elementWidthX / elementHeightY;
-                mainCamera.updateProjectionMatrix();
-
-                if (sceneState.threeMeshScene) {
-                    sceneState.threeMeshScene.rotation.y = sceneState.rotationY;
-                    sceneState.threeMeshScene.rotation.x = sceneState.rotationX;
-
-                    if (!sceneState.isDragging) {
-                        sceneState.rotationY += 0.004;
-                    }
-                }
-
-                mainRenderer.render(sceneState.threeMeshScene, mainCamera);
-            });
+            // We return immediately. This stops all 3D calculation processes 100%!
+            return; 
         }
 
         function lazyLoadAsset3DGeometryMesh(containerId, stateObjectRef) {
