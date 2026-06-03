@@ -991,6 +991,7 @@
             window.addEventListener('touchend', () => { trackingState.isDragging = false; });
         }
 
+        // 🟩:
         function executeMasterRenderTickLoop() {
             requestAnimationFrame(executeMasterRenderTickLoop);
 
@@ -1010,10 +1011,13 @@
                 if (!elementNodeBox) return;
 
                 const rectBounds = elementNodeBox.getBoundingClientRect();
+                
+                // 🟩 PERFORMANCE OPTIMIZATION: If the 3D element card is off-screen, SKIP RENDERING IT entirely!
                 if (rectBounds.bottom < 0 || rectBounds.top > height || rectBounds.right < 0 || rectBounds.left > width) {
-                    return;
+                    return; 
                 }
 
+                // 🟩 PERFORMANCE OPTIMIZATION: Lazy load the model file ONLY when it scrolls directly into view
                 if (!sceneState.threeMeshScene) {
                     if (sceneState.modelPath && sceneState.modelPath !== '') {
                         lazyLoadAsset3DGeometryMesh(containerId, sceneState);
@@ -1042,6 +1046,7 @@
 
                 mainRenderer.render(sceneState.threeMeshScene, mainCamera);
             });
+        }
         }
 
         function lazyLoadAsset3DGeometryMesh(containerId, stateObjectRef) {
