@@ -1,17 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <!-- Core metadata configurations for explicit character mapping and screen scaling metrics -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mesa 3D | Management Control Deck</title>
-    
+
     <!-- Premium enterprise SaaS vector typography branding elements -->
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap"
+        rel="stylesheet">
+
     <!-- Mount active Socket.io communication module from the node server instance -->
     <script src="/socket.io/socket.io.js"></script>
-    
+
     <!-- Register the custom PWA application manifest configuration file links -->
     <link rel="manifest" href="/manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -20,115 +22,513 @@
     <style>
         /* CSS Design Tokens governing themes, layouts, and system color profiles */
         :root {
-            --bg-dark: #090D16;               /* Deep spatial canvas background layer */
-            --card-dark: #121824;             /* Contained modular components background tint */
-            --primary: #C5A880;               /* Signature luxury gold focus branding tone */
-            --text-light: #F3F4F6;            /* High readability clean white typography text */
-            --text-muted: #9CA3AF;            /* Subtle subtext descriptive metadata color */
-            --border: #1E293B;                /* Rigid structural boundaries dividers grids */
-            --danger: #EF4444;                /* High urgency action buttons and warning alerts */
-            --success: #10B981;               /* Positive indicators and dietary veg identifiers */
-            --warning: #F59E0B;               /* Notice markers and active promotional tokens */
-            --action-blue: #3B82F6;            /* Paging system updates and analytics nodes */
-            --purple-accent: #8B5CF6;         /* Highlights showcase structural badge focus accent */
+            --bg-dark: #090D16;
+            /* Deep spatial canvas background layer */
+            --card-dark: #121824;
+            /* Contained modular components background tint */
+            --primary: #C5A880;
+            /* Signature luxury gold focus branding tone */
+            --text-light: #F3F4F6;
+            /* High readability clean white typography text */
+            --text-muted: #9CA3AF;
+            /* Subtle subtext descriptive metadata color */
+            --border: #1E293B;
+            /* Rigid structural boundaries dividers grids */
+            --danger: #EF4444;
+            /* High urgency action buttons and warning alerts */
+            --success: #10B981;
+            /* Positive indicators and dietary veg identifiers */
+            --warning: #F59E0B;
+            /* Notice markers and active promotional tokens */
+            --action-blue: #3B82F6;
+            /* Paging system updates and analytics nodes */
+            --purple-accent: #8B5CF6;
+            /* Highlights showcase structural badge focus accent */
         }
-        
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
-        body { background-color: var(--bg-dark); color: var(--text-light); display: flex; height: 100vh; overflow: hidden; }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
 
         /* Left Sidebar Persistent Navigation Panel Styles */
-        aside { width: 260px; background: #0E131F; border-right: 1px solid var(--border); padding: 2rem 1.5rem; display: flex; flex-direction: column; gap: 2rem; }
-        .brand-logo { font-size: 1.3rem; font-weight: 700; color: var(--primary); letter-spacing: 1px; text-transform: uppercase; }
-        .nav-links { display: flex; flex-direction: column; gap: 0.5rem; list-style: none; }
-        .nav-links li { padding: 0.8rem 1rem; border-radius: 4px; color: var(--text-muted); font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: 0.2s; border: 1px solid transparent; }
-        .nav-links li.active, .nav-links li:hover { background: var(--card-dark); color: var(--primary); border-color: var(--border); }
+        aside {
+            width: 260px;
+            background: #0E131F;
+            border-right: 1px solid var(--border);
+            padding: 2rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .brand-logo {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--primary);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .nav-links {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            list-style: none;
+        }
+
+        .nav-links li {
+            padding: 0.8rem 1rem;
+            border-radius: 4px;
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .nav-links li.active,
+        .nav-links li:hover {
+            background: var(--card-dark);
+            color: var(--primary);
+            border-color: var(--border);
+        }
 
         /* Main Workspace Content Area Engine Frame Styles */
-        main { flex: 1; display: flex; flex-direction: column; overflow-y: auto; background: var(--bg-dark); }
-        .top-nav { background: #0E131F; padding: 1.2rem 2.5rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-        .content-area { padding: 2.5rem; flex: 1; }
-        
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            background: var(--bg-dark);
+        }
+
+        .top-nav {
+            background: #0E131F;
+            padding: 1.2rem 2.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .content-area {
+            padding: 2.5rem;
+            flex: 1;
+        }
+
         /* Section switcher utility layout visibility filters */
-        .panel-section { display: none; }
-        .panel-section.active { display: block; }
+        .panel-section {
+            display: none;
+        }
+
+        .panel-section.active {
+            display: block;
+        }
 
         /* KPI Counter Stats Display Metrics Grid Blocks row */
-        .analytics-row { display: flex; gap: 1.5rem; margin-bottom: 2.5rem; flex-wrap: wrap; }
-        .kpi-card { background: var(--card-dark); border: 1px solid var(--border); padding: 1.5rem; border-radius: 6px; flex: 1; min-width: 200px; }
-        .kpi-card h4 { font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px; }
-        .kpi-card .value { font-size: 1.8rem; font-weight: 700; color: white; margin-top: 0.4rem; }
-        .kpi-card .value.revenue { color: var(--success); }
+        .analytics-row {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+            flex-wrap: wrap;
+        }
+
+        .kpi-card {
+            background: var(--card-dark);
+            border: 1px solid var(--border);
+            padding: 1.5rem;
+            border-radius: 6px;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .kpi-card h4 {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+        }
+
+        .kpi-card .value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: white;
+            margin-top: 0.4rem;
+        }
+
+        .kpi-card .value.revenue {
+            color: var(--success);
+        }
 
         /* 📊 Popularity Product Intelligence metrics bar wrapper layouts */
-        .popularity-box { background: linear-gradient(135deg, #131A26 0%, #0E1420 100%); border: 1px solid var(--border); padding: 2rem; border-radius: 8px; margin-bottom: 2.5rem; }
-        .metric-bar-wrapper { margin-top: 1.2rem; display: flex; flex-direction: column; gap: 1rem; }
-        .metric-row { display: flex; align-items: center; justify-content: space-between; font-size: 0.9rem; padding: 0.4rem 0; border-bottom: 1px dashed rgba(255,255,255,0.05); }
+        .popularity-box {
+            background: linear-gradient(135deg, #131A26 0%, #0E1420 100%);
+            border: 1px solid var(--border);
+            padding: 2rem;
+            border-radius: 8px;
+            margin-bottom: 2.5rem;
+        }
+
+        .metric-bar-wrapper {
+            margin-top: 1.2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .metric-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            padding: 0.4rem 0;
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.05);
+        }
 
         /* 🪑 SPACE MANAGE LABELS: Inventory grid tile layouts specifications fields */
-        .floor-inventory-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1.2rem; margin-top: 1.5rem; }
-        .floor-tile-card { background: var(--card-dark); border: 1px solid var(--border); padding: 1.5rem; border-radius: 8px; text-align: center; position: relative; border-top: 4px solid var(--text-muted); transition: 0.2s; }
-        .floor-tile-card.status-active { border-top-color: var(--success); background: rgba(16, 185, 129, 0.02); }
-        .floor-tile-card.status-alert { border-top-color: var(--danger); animation: pulseAlertGlow 1.5s infinite; }
-        .floor-tile-card h5 { font-size: 1.1rem; color: white; margin-bottom: 0.4rem; }
-        .floor-tile-card p { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 1rem; text-transform: uppercase; font-weight: 700; }
-        
+        .floor-inventory-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 1.2rem;
+            margin-top: 1.5rem;
+        }
+
+        .floor-tile-card {
+            background: var(--card-dark);
+            border: 1px solid var(--border);
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+            position: relative;
+            border-top: 4px solid var(--text-muted);
+            transition: 0.2s;
+        }
+
+        .floor-tile-card.status-active {
+            border-top-color: var(--success);
+            background: rgba(16, 185, 129, 0.02);
+        }
+
+        .floor-tile-card.status-alert {
+            border-top-color: var(--danger);
+            animation: pulseAlertGlow 1.5s infinite;
+        }
+
+        .floor-tile-card h5 {
+            font-size: 1.1rem;
+            color: white;
+            margin-bottom: 0.4rem;
+        }
+
+        .floor-tile-card p {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
         /* QR Sticker downloader interface trigger button classes tokens */
-        .btn-qr-download { width: 100%; background: #1E2533; border: 1px solid var(--border); color: var(--primary); padding: 0.45rem; font-size: 0.75rem; font-weight: 700; border-radius: 4px; cursor: pointer; text-transform: uppercase; transition: 0.2s; }
-        .btn-qr-download:hover { background: var(--primary); color: var(--bg-dark); }
+        .btn-qr-download {
+            width: 100%;
+            background: #1E2533;
+            border: 1px solid var(--border);
+            color: var(--primary);
+            padding: 0.45rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            border-radius: 4px;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: 0.2s;
+        }
+
+        .btn-qr-download:hover {
+            background: var(--primary);
+            color: var(--bg-dark);
+        }
 
         /* Live production line ticket monitors layout frameworks cards */
-        .admin-kitchen-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.2rem; margin-bottom: 2.5rem; }
-        .admin-kitchen-card { background: var(--card-dark); border: 1px solid var(--border); padding: 1.2rem; border-radius: 6px; display: flex; flex-direction: column; gap: 0.6rem; border-top: 4px solid var(--primary); }
-        
-        .admin-override-row { display: flex; gap: 0.4rem; margin-top: 0.6rem; flex-wrap: wrap; }
-        .btn-override { flex: 1; min-width: 70px; background: #1E2533; border: 1px solid var(--border); color: var(--text-light); font-size: 0.7rem; padding: 0.4rem; font-weight: 700; border-radius: 4px; cursor: pointer; text-transform: uppercase; }
-        .btn-override.fire-btn:hover { background: var(--action-blue); color: white; }
-        .btn-override.ready-btn:hover { background: var(--warning); color: var(--bg-dark); }
-        .btn-override.serve-btn:hover { background: var(--success); color: var(--bg-dark); }
+        .admin-kitchen-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.2rem;
+            margin-bottom: 2.5rem;
+        }
 
-        .btn-inline-delete { background: rgba(239, 68, 68, 0.15); border: 1px solid var(--danger); color: var(--danger); padding: 0.35rem 0.7rem; font-size: 0.75rem; font-weight: 700; border-radius: 4px; cursor: pointer; transition: 0.2s; }
-        .btn-inline-delete:hover { background: var(--danger); color: white; }
-        
-        .btn-inline-offer { background: rgba(59, 130, 246, 0.15); border: 1px solid var(--action-blue); color: var(--action-blue); padding: 0.35rem 0.7rem; font-size: 0.75rem; font-weight: 700; border-radius: 4px; cursor: pointer; transition: 0.2s; margin-right: 0.3rem; }
-        .btn-inline-offer:hover { background: var(--action-blue); color: white; }
+        .admin-kitchen-card {
+            background: var(--card-dark);
+            border: 1px solid var(--border);
+            padding: 1.2rem;
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+            border-top: 4px solid var(--primary);
+        }
+
+        .admin-override-row {
+            display: flex;
+            gap: 0.4rem;
+            margin-top: 0.6rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-override {
+            flex: 1;
+            min-width: 70px;
+            background: #1E2533;
+            border: 1px solid var(--border);
+            color: var(--text-light);
+            font-size: 0.7rem;
+            padding: 0.4rem;
+            font-weight: 700;
+            border-radius: 4px;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+
+        .btn-override.fire-btn:hover {
+            background: var(--action-blue);
+            color: white;
+        }
+
+        .btn-override.ready-btn:hover {
+            background: var(--warning);
+            color: var(--bg-dark);
+        }
+
+        .btn-override.serve-btn:hover {
+            background: var(--success);
+            color: var(--bg-dark);
+        }
+
+        .btn-inline-delete {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid var(--danger);
+            color: var(--danger);
+            padding: 0.35rem 0.7rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn-inline-delete:hover {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-inline-offer {
+            background: rgba(59, 130, 246, 0.15);
+            border: 1px solid var(--action-blue);
+            color: var(--action-blue);
+            padding: 0.35rem 0.7rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-right: 0.3rem;
+        }
+
+        .btn-inline-offer:hover {
+            background: var(--action-blue);
+            color: white;
+        }
 
         /* Highlight feature button token styles maps rules */
-        .btn-inline-highlight { background: rgba(139, 92, 246, 0.15); border: 1px solid var(--purple-accent); color: var(--purple-accent); padding: 0.35rem 0.7rem; font-size: 0.75rem; font-weight: 700; border-radius: 4px; cursor: pointer; transition: 0.2s; margin-right: 0.3rem; }
-        .btn-inline-highlight:hover { background: var(--purple-accent); color: white; }
-        .btn-inline-highlight.featured-true { background: var(--success); border-color: var(--success); color: var(--bg-dark); }
+        .btn-inline-highlight {
+            background: rgba(139, 92, 246, 0.15);
+            border: 1px solid var(--purple-accent);
+            color: var(--purple-accent);
+            padding: 0.35rem 0.7rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-right: 0.3rem;
+        }
+
+        .btn-inline-highlight:hover {
+            background: var(--purple-accent);
+            color: white;
+        }
+
+        .btn-inline-highlight.featured-true {
+            background: var(--success);
+            border-color: var(--success);
+            color: var(--bg-dark);
+        }
 
         /* Standard data ingestion form grid layout architecture panels components */
-        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.2rem; background: var(--card-dark); padding: 2rem; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 2.5rem; }
-        .input-block { display: flex; flex-direction: column; gap: 0.4rem; }
-        .input-block label { font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; letter-spacing: 0.5px; }
-        .input-block input, .input-block select { width: 100%; padding: 0.7rem; background: var(--bg-dark); border: 1px solid var(--border); color: white; border-radius: 4px; font-size: 0.9rem; }
-        
-        .checkbox-group-row { display: flex; flex-wrap: wrap; gap: 0.8rem; padding: 0.4rem 0; }
-        .checkbox-inline-label { display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; color: #FFFFFF; cursor: pointer; }
-        .checkbox-inline-label input { width: 16px; height: 16px; accent-color: var(--primary); }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.2rem;
+            background: var(--card-dark);
+            padding: 2rem;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            margin-bottom: 2.5rem;
+        }
 
-        .btn-action { background: var(--primary); color: var(--bg-dark); border: none; padding: 0.75rem 1.8rem; font-weight: 700; border-radius: 4px; cursor: pointer; font-size: 0.9rem; text-transform: uppercase; grid-column: 1 / -1; justify-self: end; }
+        .input-block {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .input-block label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .input-block input,
+        .input-block select {
+            width: 100%;
+            padding: 0.7rem;
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            color: white;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .checkbox-group-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+            padding: 0.4rem 0;
+        }
+
+        .checkbox-inline-label {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.85rem;
+            color: #FFFFFF;
+            cursor: pointer;
+        }
+
+        .checkbox-inline-label input {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--primary);
+        }
+
+        .btn-action {
+            background: var(--primary);
+            color: var(--bg-dark);
+            border: none;
+            padding: 0.75rem 1.8rem;
+            font-weight: 700;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            grid-column: 1 / -1;
+            justify-self: end;
+        }
 
         /* Relational ledger data rendering tables styles mappings rules */
-        table { width: 100%; border-collapse: collapse; background: var(--card-dark); border-radius: 6px; overflow: hidden; border: 1px solid var(--border); margin-top: 1rem; }
-        th, td { padding: 1rem; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.9rem; vertical-align: middle; }
-        th { background: #0E131F; color: var(--text-muted); font-weight: 600; text-transform: uppercase; font-size: 0.75rem; }
-        
-        .mini-diet-badge { display: inline-block; font-size: 0.7rem; font-weight: 700; padding: 0.15rem 0.4rem; border-radius: 3px; text-transform: uppercase; }
-        .mini-diet-badge.v-type { background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid var(--success); }
-        .mini-diet-badge.nv-type { background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid var(--danger); }
-        .mini-diet-badge.e-type { background: rgba(245, 158, 11, 0.15); color: var(--warning); border: 1px solid var(--warning); }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--card-dark);
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            margin-top: 1rem;
+        }
 
-        .feedback-node-card { background: var(--card-dark); border: 1px solid var(--border); border-left: 4px solid var(--primary); padding: 1.2rem; border-radius: 4px; margin-bottom: 1rem; }
-        
+        th,
+        td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.9rem;
+            vertical-align: middle;
+        }
+
+        th {
+            background: #0E131F;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+        }
+
+        .mini-diet-badge {
+            display: inline-block;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 0.15rem 0.4rem;
+            border-radius: 3px;
+            text-transform: uppercase;
+        }
+
+        .mini-diet-badge.v-type {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+            border: 1px solid var(--success);
+        }
+
+        .mini-diet-badge.nv-type {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+            border: 1px solid var(--danger);
+        }
+
+        .mini-diet-badge.e-type {
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--warning);
+            border: 1px solid var(--warning);
+        }
+
+        .feedback-node-card {
+            background: var(--card-dark);
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--primary);
+            padding: 1.2rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+        }
+
         /* High animation alert loop for critical workspace runner notifications */
         @keyframes pulseAlertGlow {
-            0% { box-shadow: 0 0 0 0 rgba(239, 68, 110, 0.4); }
-            70% { box-shadow: 0 0 0 10px rgba(239, 68, 110, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(239, 68, 110, 0); }
+            0% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 110, 0.4);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(239, 68, 110, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 110, 0);
+            }
         }
     </style>
 </head>
+
 <body>
 
     <!-- Left Structural Navigation aside frame bar links loop items -->
@@ -147,11 +547,12 @@
     <main>
         <div class="top-nav">
             <h2 id="activePanelTitle">MAIN INSIGHTS DASHBOARD</h2>
-            <div style="font-size:0.9rem; font-weight:600; color: var(--primary);" id="venueDisplayTag">Resolving Node Context...</div>
+            <div style="font-size:0.9rem; font-weight:600; color: var(--primary);" id="venueDisplayTag">Resolving Node
+                Context...</div>
         </div>
 
         <div class="content-area">
-            
+
             <!-- PANEL SECTION 1: METRICS AND LIVE ORDER MONITOR LINES TICKETS -->
             <div id="section-dashboard" class="panel-section active">
                 <div class="analytics-row">
@@ -175,13 +576,16 @@
 
                 <!-- DYNAMIC CORE COMPONENT: Product Intelligence statistical bar chart tracker logs loops -->
                 <div class="popularity-box">
-                    <h3 style="font-size:1.05rem; font-weight:700; color:var(--primary);">📈 Most Commonly Ordered Selections (Product Intelligence Rank)</h3>
+                    <h3 style="font-size:1.05rem; font-weight:700; color:var(--primary);">📈 Most Commonly Ordered
+                        Selections (Product Intelligence Rank)</h3>
                     <div class="metric-bar-wrapper" id="popularityMetricsBox">
-                        <p style="color:var(--text-muted); font-size:0.85rem;">Compiling order ledger metrics data analysis paths...</p>
+                        <p style="color:var(--text-muted); font-size:0.85rem;">Compiling order ledger metrics data
+                            analysis paths...</p>
                     </div>
                 </div>
 
-                <h3 style="font-size:1.1rem; font-weight:700; margin-bottom:1rem;">🍳 Live Kitchen Preparation Monitoring Grid</h3>
+                <h3 style="font-size:1.1rem; font-weight:700; margin-bottom:1rem;">🍳 Live Kitchen Preparation
+                    Monitoring Grid</h3>
                 <div class="admin-kitchen-grid" id="adminKitchenBoardGrid"></div>
 
                 <h3>Active Floor Transactions Ledger</h3>
@@ -197,7 +601,10 @@
                         </tr>
                     </thead>
                     <tbody id="ledgerTableBody">
-                        <tr><td colspan="6" style="text-align:center; color:var(--text-muted);">Awaiting tracking database streams pipelines...</td></tr>
+                        <tr>
+                            <td colspan="6" style="text-align:center; color:var(--text-muted);">Awaiting tracking
+                                database streams pipelines...</td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -222,7 +629,8 @@
                         <label id="lblInputRooms">Total VIP Rooms / Suites Count</label>
                         <input type="number" id="inputTotalRooms" placeholder="e.g., 5" min="0" max="50" value="2">
                     </div>
-                    <button type="button" class="btn-action" onclick="commitSpaceInventorySettingsManual()">Initialize Space Mapping Models</button>
+                    <button type="button" class="btn-action" onclick="commitSpaceInventorySettingsManual()">Initialize
+                        Space Mapping Models</button>
                 </div>
 
                 <h3 id="lblVisualLayoutHeading">Live Floor Visual Management Matrix (Scan Point Node Links)</h3>
@@ -260,13 +668,18 @@
                     <div class="input-block" style="grid-column: 1 / -1;">
                         <label>Allergen Protection Checklist Mapping</label>
                         <div class="checkbox-group-row">
-                            <label class="checkbox-inline-label"><input type="checkbox" value="nuts" class="menu-allergen-box">🥜 Peanut / Tree Nuts</label>
-                            <label class="checkbox-inline-label"><input type="checkbox" value="dairy" class="menu-allergen-box">🥛 Dairy / Lactose Alerts</label>
-                            <label class="checkbox-inline-label"><input type="checkbox" value="gluten" class="menu-allergen-box">🌾 Wheat / Gluten Content</label>
-                            <label class="checkbox-inline-label"><input type="checkbox" value="shellfish" class="menu-allergen-box">🦀 Seafood / Shellfish Vectors</label>
+                            <label class="checkbox-inline-label"><input type="checkbox" value="nuts"
+                                    class="menu-allergen-box">🥜 Peanut / Tree Nuts</label>
+                            <label class="checkbox-inline-label"><input type="checkbox" value="dairy"
+                                    class="menu-allergen-box">🥛 Dairy / Lactose Alerts</label>
+                            <label class="checkbox-inline-label"><input type="checkbox" value="gluten"
+                                    class="menu-allergen-box">🌾 Wheat / Gluten Content</label>
+                            <label class="checkbox-inline-label"><input type="checkbox" value="shellfish"
+                                    class="menu-allergen-box">🦀 Seafood / Shellfish Vectors</label>
                         </div>
                     </div>
-                    <button type="button" class="btn-action" onclick="addDishCardManual()">Publish 3D Asset Product</button>
+                    <button type="button" class="btn-action" onclick="addDishCardManual()">Publish 3D Asset
+                        Product</button>
                 </form>
 
                 <h3>Active Curated Catalogs Registry</h3>
@@ -328,7 +741,8 @@
             <div id="section-feedback" class="panel-section">
                 <h3>Closed-Loop Floor Activities Ticker Matrix</h3>
                 <div id="feedbackContainer">
-                    <p style="color:var(--text-muted); text-align: center; padding: 2rem;">No logs recorded across terminals yet.</p>
+                    <p style="color:var(--text-muted); text-align: center; padding: 2rem;">No logs recorded across
+                        terminals yet.</p>
                 </div>
             </div>
 
@@ -340,19 +754,45 @@
         const urlParams = new URLSearchParams(window.location.search);
         const tenantId = urlParams.get('restaurant_id') || localStorage.getItem('mesa3d_tenant_id') || '1';
         const tenantName = localStorage.getItem('mesa3d_tenant_name') || 'Mesa 3D White-Label Engine';
-        
+
         document.getElementById('venueDisplayTag').innerText = tenantName;
 
         // Initialize WebSocket pipelines connection channel links mappings
         const socket = io();
         socket.emit('join_workspace', { restaurantId: tenantId });
 
+        // 🟩 LISTEN FOR WAITER ALERT EVENTS FROM THE ROOM
+        socket.on('waiter_alert', (data) => {
+            const adminAlertBox = document.createElement('div');
+            adminAlertBox.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        background: #161B26;
+        border-left: 4px solid #DC2626;
+        color: #F3F4F6;
+        padding: 1rem;
+        border-radius: 4px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        z-index: 10000;
+        border: 1px solid #1E2533;
+    `;
+
+            adminAlertBox.innerHTML = `
+        <p style="margin:0; font-size:0.75rem; color:#9CA3AF; text-transform:uppercase;">Table Pager Alert</p>
+        <h4 style="margin:5px 0 0 0; color:#C5A880; font-size:0.95rem;">${data.location_identifier}</h4>
+        <button onclick="this.parentElement.remove()" style="margin-top:8px; background:#DC2626; color:white; border:none; padding:4px 10px; border-radius:3px; font-size:0.75rem; cursor:pointer; font-weight:600;">Dismiss</button>
+    `;
+
+            document.body.appendChild(adminAlertBox);
+        });
+
         // Platform runtime global arrays storage parameters allocations maps definitions variables
         let ordersLog = [];
         let totalRevenue = 0;
         let foodScores = [];
         let serviceScores = [];
-        let liveEnrolledChefsList = []; 
+        let liveEnrolledChefsList = [];
         let globalActiveVenueMode = "RESTAURANT"; // Tracking variable for white-label text shifts loops
 
         // Inventory local cache parameters tracking models arrays loops metrics configurations
@@ -364,23 +804,23 @@
         function switchSection(targetKey) {
             document.querySelectorAll('.nav-links li').forEach(li => li.classList.remove('active'));
             document.querySelectorAll('.panel-section').forEach(sec => sec.classList.remove('active'));
-            
+
             document.getElementById('section-' + targetKey).classList.add('active');
             document.getElementById('activePanelTitle').innerText = targetKey.toUpperCase() + " MANAGEMENT CONSOLE";
-            
+
             const activeLi = document.getElementById('nav-' + targetKey);
             if (activeLi) activeLi.classList.add('active');
 
             // Fire updates automatically on active insight windows refreshes transitions
-            if(targetKey === 'dashboard') syncPopularityAnalytics();
-            if(targetKey === 'floor') compileFloorTileGridVisualLayout();
+            if (targetKey === 'dashboard') syncPopularityAnalytics();
+            if (targetKey === 'floor') compileFloorTileGridVisualLayout();
         }
 
         // Helper Method: Handles enterprise white-label translation overrides across all text containers layers elements
         function modifyWhiteLabelUIVariables(targetModeValueString) {
             globalActiveVenueMode = targetModeValueString;
-            
-            if(globalActiveVenueMode === 'HOTEL') {
+
+            if (globalActiveVenueMode === 'HOTEL') {
                 document.getElementById('kpiOrdersLabel').innerText = "Total Suite Service Requests";
                 document.getElementById('kpiTablesLabel').innerText = "Total Operational Rooms";
                 document.getElementById('thLocationHeader').innerText = "Suite Room Identity Vector";
@@ -402,7 +842,7 @@
         function commitSpaceInventorySettingsManual() {
             totalConfiguredTablesCount = parseInt(document.getElementById('inputTotalTables').value) || 0;
             totalConfiguredRoomsCount = parseInt(document.getElementById('inputTotalRooms').value) || 0;
-            
+
             alert(`🎉 Inventory Space Models Initialized! Configured ${totalConfiguredTablesCount} standard spaces and ${totalConfiguredRoomsCount} high-priority zones.`);
             compileFloorTileGridVisualLayout();
         }
@@ -456,7 +896,7 @@
         // 📥 QR STICKER PIPELINE GENERATOR: Direct backend communication wrapper converting parameters text variables into download streams
         function triggerQRDownloadPipeline(compiledTargetURLText, identificationLabelHeader) {
             // Check condition: If an active call flag triggers alert state clicks, prioritize clearing alert panels indicators over downloads
-            if(spacesActiveAlertStateMap.has(identificationLabelHeader)) {
+            if (spacesActiveAlertStateMap.has(identificationLabelHeader)) {
                 spacesActiveAlertStateMap.delete(identificationLabelHeader);
                 compileFloorTileGridVisualLayout();
                 return;
@@ -464,7 +904,7 @@
 
             // Generate direct network link call routing parameters targets paths nodes scripts lines loops
             let backendFetchAPIEndpointRoute = `/api/inventory/qr?url=${encodeURIComponent(compiledTargetURLText)}&label=${encodeURIComponent(identificationLabelHeader)}`;
-            
+
             // Redirect absolute browser view windows execution frame target location lines directly to pull down the dynamic file generation payload
             window.open(backendFetchAPIEndpointRoute, '_blank');
         }
@@ -489,8 +929,8 @@
                 const res = await fetch(`/api/analytics/popular?restaurant_id=${tenantId}`);
                 const data = await res.json();
                 const metricsBox = document.getElementById('popularityMetricsBox');
-                
-                if(!data.length) {
+
+                if (!data.length) {
                     metricsBox.innerHTML = `<p style="color:var(--text-muted); font-size:0.85rem;">No historical database orders data records collected to compute frequency metrics yet.</p>`;
                     return;
                 }
@@ -504,7 +944,7 @@
                         </div>
                     `;
                 });
-            } catch(e) { console.error("Analytics network aggregate channel pipeline processing fault error exception:", e); }
+            } catch (e) { console.error("Analytics network aggregate channel pipeline processing fault error exception:", e); }
         }
 
         async function syncAdminData() {
@@ -515,7 +955,7 @@
                 const dishRes = await fetch('/api/dishes?restaurant_id=' + tenantId);
                 const dishes = await dishRes.json();
                 const menuBody = document.getElementById('menuTableBody');
-                
+
                 if (menuBody) {
                     menuBody.innerHTML = dishes.length ? '' : '<tr><td colspan="6" style="text-align:center; color:var(--text-muted);">No volumetric assets cataloged yet inside SQL tables rows reference points.</td></tr>';
                     dishes.forEach(d => {
@@ -523,7 +963,7 @@
                         let dietBadgeLabel = d.dietary_type === 'non-veg' ? 'NON-VEG' : (d.dietary_type === 'egg' ? 'EGG' : 'VEG');
 
                         let discountRateValue = parseInt(d.specialties) || 0;
-                        
+
                         let isHighlighted = d.is_promo === 1;
                         let highlightBtnLabel = isHighlighted ? '⭐ Featured' : 'Feature';
                         let highlightClassMod = isHighlighted ? 'featured-true' : '';
@@ -573,28 +1013,28 @@
             try {
                 const res = await fetch(`/api/dishes/toggle-highlight?id=${dishId}&is_promo=${targetStateChange}&restaurant_id=${tenantId}`, { method: 'POST' });
                 const data = await res.json();
-                if(data.success) { await syncAdminData(); }
-            } catch(e) { alert("Network Sync Error."); }
+                if (data.success) { await syncAdminData(); }
+            } catch (e) { alert("Network Sync Error."); }
         }
 
         async function promptOfferPercentage(dishId) {
             let userInput = prompt("Enter custom discount percentage for this dish (e.g., 10, 20, 50). Enter 0 to cancel:", "10");
-            if (userInput === null) return; 
+            if (userInput === null) return;
             let percentage = parseInt(userInput) || 0;
             let targetPromoToggle = percentage > 0 ? 1 : 0;
 
             try {
                 const res = await fetch(`/api/dishes/toggle-offer?id=${dishId}&is_promo=${targetPromoToggle}&percentage=${percentage}&restaurant_id=${tenantId}`, { method: 'POST' });
-                if((await res.json()).success) { await syncAdminData(); }
-            } catch(e) { alert("Network Mutation Error."); }
+                if ((await res.json()).success) { await syncAdminData(); }
+            } catch (e) { alert("Network Mutation Error."); }
         }
 
         async function addDishCardManual() {
             const nameField = document.getElementById('menuName').value.trim();
             const priceField = document.getElementById('menuPrice').value.trim();
             const modelFileNode = document.getElementById('dish3DFile');
-            
-            if(!nameField || !priceField || !modelFileNode.files.length) {
+
+            if (!nameField || !priceField || !modelFileNode.files.length) {
                 alert("Validation Check Failure: Missing title names, pricing metrics or absolute .gltf/.glb files attachments components.");
                 return;
             }
@@ -602,7 +1042,7 @@
             try {
                 let packedAllergenStringTokens = [];
                 document.querySelectorAll('.menu-allergen-box').forEach(chk => {
-                    if(chk.checked) packedAllergenStringTokens.push(chk.value);
+                    if (chk.checked) packedAllergenStringTokens.push(chk.value);
                 });
 
                 const dishFormData = new FormData();
@@ -612,10 +1052,10 @@
                 dishFormData.append('offer_percentage', document.getElementById('menuOfferPercent').value || '0');
                 dishFormData.append('dietary_type', document.getElementById('menuDietType').value);
                 dishFormData.append('allergens', packedAllergenStringTokens.length ? packedAllergenStringTokens.join(',') : 'none');
-                dishFormData.append('dish3DFile', modelFileNode.files[0]); 
+                dishFormData.append('dish3DFile', modelFileNode.files[0]);
 
                 const response = await fetch('/api/dishes/add', { method: 'POST', body: dishFormData });
-                if((await response.json()).success) {
+                if ((await response.json()).success) {
                     alert("🎉 3D Volumetric product model file ingest operations committed successfully inside relational tables catalog systems!");
                     document.getElementById('menuForm').reset();
                     await syncAdminData();
@@ -624,36 +1064,36 @@
         }
 
         async function adminDeleteDishCard(dishId) {
-            if(!confirm("Purge asset file card item matrix row completely?")) return;
+            if (!confirm("Purge asset file card item matrix row completely?")) return;
             try {
                 const res = await fetch(`/api/dishes/delete?id=${dishId}&restaurant_id=${tenantId}`, { method: 'POST' });
-                if((await res.json()).success) await syncAdminData();
-            } catch(e) { alert("Network Connection Fault."); }
+                if ((await res.json()).success) await syncAdminData();
+            } catch (e) { alert("Network Connection Fault."); }
         }
 
         async function adminDeleteChefProfile(chefId) {
-            if(!confirm("Purge staff entity row index mapping context completely?")) return;
+            if (!confirm("Purge staff entity row index mapping context completely?")) return;
             try {
                 const res = await fetch(`/api/chefs/delete?id=${chefId}&restaurant_id=${tenantId}`, { method: 'POST' });
-                if((await res.json()).success) await syncAdminData();
-            } catch(e) { alert("Network Connection Fault."); }
+                if ((await res.json()).success) await syncAdminData();
+            } catch (e) { alert("Network Connection Fault."); }
         }
 
         async function addChefProfile(e) {
             e.preventDefault();
             try {
                 const chefPhotoFieldNode = document.getElementById('chefPhotoFile');
-                if(!chefPhotoFieldNode.files.length) return alert("Attach a valid photo file image element context first.");
+                if (!chefPhotoFieldNode.files.length) return alert("Attach a valid photo file image element context first.");
 
                 const multipartFormBuilder = new FormData();
                 multipartFormBuilder.append('restaurant_id', parseInt(tenantId));
                 multipartFormBuilder.append('name', document.getElementById('chefName').value);
                 multipartFormBuilder.append('specialties', document.getElementById('chefSpecialty').value);
                 multipartFormBuilder.append('experience', document.getElementById('chefExp').value);
-                multipartFormBuilder.append('chefPhotoFile', chefPhotoFieldNode.files[0]); 
+                multipartFormBuilder.append('chefPhotoFile', chefPhotoFieldNode.files[0]);
 
                 const response = await fetch('/api/chefs/add', { method: 'POST', body: multipartFormBuilder });
-                if((await response.json()).success) {
+                if ((await response.json()).success) {
                     alert("👨‍🍳 New operational personnel profile entry written successfully into relational space models registers data tracks!");
                     document.getElementById('chefForm').reset();
                     await syncAdminData();
@@ -671,17 +1111,17 @@
         // =================================================================================
         socket.on('new_order_alert', (order) => {
             const index = ordersLog.findIndex(o => o.id === order.id);
-            if(index === -1) {
+            if (index === -1) {
                 ordersLog.unshift(order);
                 totalRevenue += order.total_price;
                 renderLedger();
-                syncPopularityAnalytics(); 
+                syncPopularityAnalytics();
             }
         });
 
         socket.on('order_pipeline_update', (order) => {
             const idx = ordersLog.findIndex(o => o.id === order.id);
-            if(idx !== -1) ordersLog[idx].status = order.status;
+            if (idx !== -1) ordersLog[idx].status = order.status;
             else ordersLog.push(order);
             renderLedger();
         });
@@ -689,11 +1129,11 @@
         socket.on('incoming_feedback', (review) => {
             foodScores.push(review.food_rating);
             serviceScores.push(review.service_rating);
-            document.getElementById('kpi-food-rating').innerText = (foodScores.reduce((a,b)=>a+b,0) / foodScores.length).toFixed(1) + " / 5.0";
-            document.getElementById('kpi-service-rating').innerText = (serviceScores.reduce((a,b)=>a+b,0) / serviceScores.length).toFixed(1) + " / 5.0";
+            document.getElementById('kpi-food-rating').innerText = (foodScores.reduce((a, b) => a + b, 0) / foodScores.length).toFixed(1) + " / 5.0";
+            document.getElementById('kpi-service-rating').innerText = (serviceScores.reduce((a, b) => a + b, 0) / serviceScores.length).toFixed(1) + " / 5.0";
 
             const container = document.getElementById('feedbackContainer');
-            if(foodScores.length === 1) container.innerHTML = ''; 
+            if (foodScores.length === 1) container.innerHTML = '';
             const warningClass = (review.food_rating <= 2 || review.service_rating <= 2) ? 'warning' : '';
             container.innerHTML = `<div class="feedback-node-card ${warningClass}"><strong>Order Ref: #ORD-${review.order_id}</strong><p>"${review.comments || 'No comment text lines elements written.'}"</p></div>` + container.innerHTML;
         });
@@ -702,17 +1142,17 @@
         socket.on('waiter_alert', (alertPayload) => {
             // Extract the location label coordinates context token tracking identifiers values (e.g., "Table 4")
             let callerSpaceLabelString = alertPayload.location_identifier.split(' [')[0];
-            
+
             console.log(`[Paging Monitor Center] Incoming assistance flag received from spatial zone locator token: ${callerSpaceLabelString}`);
-            
+
             // Log active room or table context token inside dictionary memory maps triggers to execute animations routines
             spacesActiveAlertStateMap.set(callerSpaceLabelString, true);
-            
+
             // Dynamically reload the floor visuals to force target cards tiles grids areas to blink alert lights indicators
             compileFloorTileGridVisualLayout();
 
             const container = document.getElementById('feedbackContainer');
-            if(container.innerHTML.includes('No logs recorded')) container.innerHTML = '';
+            if (container.innerHTML.includes('No logs recorded')) container.innerHTML = '';
             container.innerHTML = `<div class="feedback-node-card" style="border-left-color:var(--danger); background:rgba(239,68,68,0.02);"><strong>🚨 PAGING RUNNER LOG ALERT:</strong> Assistance signal checked at ${callerSpaceLabelString} position coordinates grid point node area.</div>` + container.innerHTML;
         });
 
@@ -728,7 +1168,7 @@
             const kitchenGridBox = document.getElementById('adminKitchenBoardGrid');
             kitchenGridBox.innerHTML = '';
             let activeCookingSlips = ordersLog.filter(o => o.status !== 'Served');
-            if(!activeCookingSlips.length) {
+            if (!activeCookingSlips.length) {
                 kitchenGridBox.innerHTML = `<p style="color:var(--text-muted); font-size:0.85rem; padding:1rem;">All active kitchen tickets lines production tracks clear at this timestamp checkpoint.</p>`;
                 return;
             }
@@ -741,4 +1181,5 @@
         window.onload = syncAdminData;
     </script>
 </body>
+
 </html>
