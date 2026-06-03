@@ -1,233 +1,744 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Core metadata configurations for explicit character mapping and screen scaling metrics -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mesa 3D Enterprise - Admin Deck</title>
-    <style>
-        /* Modern dark theme workspace styling layout structure */
-        body { margin: 0; background: #0a0a0a; color: #eaeaea; font-family: system-ui, sans-serif; padding: 20px; }
-        h1, h2, h3 { color: #fff; border-bottom: 1px solid #1f1f1f; padding-bottom: 8px; }
-        .grid-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 25px; margin-top: 20px; }
-        .panel-card { background: #121212; border: 1px solid #222; border-radius: 12px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
-        
-        /* Interactive Input Form Control elements layout definitions */
-        .form-group { margin-bottom: 15px; display: flex; flex-direction: column; gap: 6px; }
-        label { font-size: 13px; color: #aaa; font-weight: 500; }
-        input[type="text"], input[type="number"], textarea { background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 10px; border-radius: 6px; font-size: 14px; }
-        input[type="text"]:focus, input[type="number"]:focus { border-color: #0070f3; outline: none; }
-        input[type="file"] { color: #ccc; font-size: 13px; margin-top: 4px; }
-        
-        /* System operation buttons interaction mappings */
-        button { background: #0070f3; color: white; border: none; padding: 10px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
-        button:hover { background: #0051a8; }
-        .btn-offer { background: #e74c3c; font-size: 12px; padding: 6px 12px; margin-top: 8px; }
-        .btn-offer:hover { background: #c0392b; }
-        
-        /* Dynamic item container list styles */
-        .item-list { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; max-height: 300px; overflow-y: auto; }
-        .list-row { background: #181818; padding: 12px; border-radius: 6px; border-left: 4px solid #0070f3; display: flex; justify-content: space-between; align-items: center; }
-        .waiter-alert-card { background: #2c1a04; border-left-color: #ff9f43; padding: 12px; border-radius: 6px; margin-bottom: 8px; }
-    </style>
+    <title>Mesa 3D | Management Control Deck</title>
+    
+    <!-- Premium enterprise SaaS vector typography branding elements -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Mount active Socket.io communication module from the node server instance -->
     <script src="/socket.io/socket.io.js"></script>
+    
+    <!-- Register the custom PWA application manifest configuration file links -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <style>
+        /* CSS Design Tokens governing themes, layouts, and system color profiles */
+        :root {
+            --bg-dark: #090D16;               /* Deep spatial canvas background layer */
+            --card-dark: #121824;             /* Contained modular components background tint */
+            --primary: #C5A880;               /* Signature luxury gold focus branding tone */
+            --text-light: #F3F4F6;            /* High readability clean white typography text */
+            --text-muted: #9CA3AF;            /* Subtle subtext descriptive metadata color */
+            --border: #1E293B;                /* Rigid structural boundaries dividers grids */
+            --danger: #EF4444;                /* High urgency action buttons and warning alerts */
+            --success: #10B981;               /* Positive indicators and dietary veg identifiers */
+            --warning: #F59E0B;               /* Notice markers and active promotional tokens */
+            --action-blue: #3B82F6;            /* Paging system updates and analytics nodes */
+            --purple-accent: #8B5CF6;         /* Highlights showcase structural badge focus accent */
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background-color: var(--bg-dark); color: var(--text-light); display: flex; height: 100vh; overflow: hidden; }
+
+        /* Left Sidebar Persistent Navigation Panel Styles */
+        aside { width: 260px; background: #0E131F; border-right: 1px solid var(--border); padding: 2rem 1.5rem; display: flex; flex-direction: column; gap: 2rem; }
+        .brand-logo { font-size: 1.3rem; font-weight: 700; color: var(--primary); letter-spacing: 1px; text-transform: uppercase; }
+        .nav-links { display: flex; flex-direction: column; gap: 0.5rem; list-style: none; }
+        .nav-links li { padding: 0.8rem 1rem; border-radius: 4px; color: var(--text-muted); font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: 0.2s; border: 1px solid transparent; }
+        .nav-links li.active, .nav-links li:hover { background: var(--card-dark); color: var(--primary); border-color: var(--border); }
+
+        /* Main Workspace Content Area Engine Frame Styles */
+        main { flex: 1; display: flex; flex-direction: column; overflow-y: auto; background: var(--bg-dark); }
+        .top-nav { background: #0E131F; padding: 1.2rem 2.5rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .content-area { padding: 2.5rem; flex: 1; }
+        
+        /* Section switcher utility layout visibility filters */
+        .panel-section { display: none; }
+        .panel-section.active { display: block; }
+
+        /* KPI Counter Stats Display Metrics Grid Blocks row */
+        .analytics-row { display: flex; gap: 1.5rem; margin-bottom: 2.5rem; flex-wrap: wrap; }
+        .kpi-card { background: var(--card-dark); border: 1px solid var(--border); padding: 1.5rem; border-radius: 6px; flex: 1; min-width: 200px; }
+        .kpi-card h4 { font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px; }
+        .kpi-card .value { font-size: 1.8rem; font-weight: 700; color: white; margin-top: 0.4rem; }
+        .kpi-card .value.revenue { color: var(--success); }
+
+        /* 📊 Popularity Product Intelligence metrics bar wrapper layouts */
+        .popularity-box { background: linear-gradient(135deg, #131A26 0%, #0E1420 100%); border: 1px solid var(--border); padding: 2rem; border-radius: 8px; margin-bottom: 2.5rem; }
+        .metric-bar-wrapper { margin-top: 1.2rem; display: flex; flex-direction: column; gap: 1rem; }
+        .metric-row { display: flex; align-items: center; justify-content: space-between; font-size: 0.9rem; padding: 0.4rem 0; border-bottom: 1px dashed rgba(255,255,255,0.05); }
+
+        /* 🪑 SPACE MANAGE LABELS: Inventory grid tile layouts specifications fields */
+        .floor-inventory-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1.2rem; margin-top: 1.5rem; }
+        .floor-tile-card { background: var(--card-dark); border: 1px solid var(--border); padding: 1.5rem; border-radius: 8px; text-align: center; position: relative; border-top: 4px solid var(--text-muted); transition: 0.2s; }
+        .floor-tile-card.status-active { border-top-color: var(--success); background: rgba(16, 185, 129, 0.02); }
+        .floor-tile-card.status-alert { border-top-color: var(--danger); animation: pulseAlertGlow 1.5s infinite; }
+        .floor-tile-card h5 { font-size: 1.1rem; color: white; margin-bottom: 0.4rem; }
+        .floor-tile-card p { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 1rem; text-transform: uppercase; font-weight: 700; }
+        
+        /* QR Sticker downloader interface trigger button classes tokens */
+        .btn-qr-download { width: 100%; background: #1E2533; border: 1px solid var(--border); color: var(--primary); padding: 0.45rem; font-size: 0.75rem; font-weight: 700; border-radius: 4px; cursor: pointer; text-transform: uppercase; transition: 0.2s; }
+        .btn-qr-download:hover { background: var(--primary); color: var(--bg-dark); }
+
+        /* Live production line ticket monitors layout frameworks cards */
+        .admin-kitchen-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.2rem; margin-bottom: 2.5rem; }
+        .admin-kitchen-card { background: var(--card-dark); border: 1px solid var(--border); padding: 1.2rem; border-radius: 6px; display: flex; flex-direction: column; gap: 0.6rem; border-top: 4px solid var(--primary); }
+        
+        .admin-override-row { display: flex; gap: 0.4rem; margin-top: 0.6rem; flex-wrap: wrap; }
+        .btn-override { flex: 1; min-width: 70px; background: #1E2533; border: 1px solid var(--border); color: var(--text-light); font-size: 0.7rem; padding: 0.4rem; font-weight: 700; border-radius: 4px; cursor: pointer; text-transform: uppercase; }
+        .btn-override.fire-btn:hover { background: var(--action-blue); color: white; }
+        .btn-override.ready-btn:hover { background: var(--warning); color: var(--bg-dark); }
+        .btn-override.serve-btn:hover { background: var(--success); color: var(--bg-dark); }
+
+        .btn-inline-delete { background: rgba(239, 68, 68, 0.15); border: 1px solid var(--danger); color: var(--danger); padding: 0.35rem 0.7rem; font-size: 0.75rem; font-weight: 700; border-radius: 4px; cursor: pointer; transition: 0.2s; }
+        .btn-inline-delete:hover { background: var(--danger); color: white; }
+        
+        .btn-inline-offer { background: rgba(59, 130, 246, 0.15); border: 1px solid var(--action-blue); color: var(--action-blue); padding: 0.35rem 0.7rem; font-size: 0.75rem; font-weight: 700; border-radius: 4px; cursor: pointer; transition: 0.2s; margin-right: 0.3rem; }
+        .btn-inline-offer:hover { background: var(--action-blue); color: white; }
+
+        /* Highlight feature button token styles maps rules */
+        .btn-inline-highlight { background: rgba(139, 92, 246, 0.15); border: 1px solid var(--purple-accent); color: var(--purple-accent); padding: 0.35rem 0.7rem; font-size: 0.75rem; font-weight: 700; border-radius: 4px; cursor: pointer; transition: 0.2s; margin-right: 0.3rem; }
+        .btn-inline-highlight:hover { background: var(--purple-accent); color: white; }
+        .btn-inline-highlight.featured-true { background: var(--success); border-color: var(--success); color: var(--bg-dark); }
+
+        /* Standard data ingestion form grid layout architecture panels components */
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.2rem; background: var(--card-dark); padding: 2rem; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 2.5rem; }
+        .input-block { display: flex; flex-direction: column; gap: 0.4rem; }
+        .input-block label { font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; letter-spacing: 0.5px; }
+        .input-block input, .input-block select { width: 100%; padding: 0.7rem; background: var(--bg-dark); border: 1px solid var(--border); color: white; border-radius: 4px; font-size: 0.9rem; }
+        
+        .checkbox-group-row { display: flex; flex-wrap: wrap; gap: 0.8rem; padding: 0.4rem 0; }
+        .checkbox-inline-label { display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; color: #FFFFFF; cursor: pointer; }
+        .checkbox-inline-label input { width: 16px; height: 16px; accent-color: var(--primary); }
+
+        .btn-action { background: var(--primary); color: var(--bg-dark); border: none; padding: 0.75rem 1.8rem; font-weight: 700; border-radius: 4px; cursor: pointer; font-size: 0.9rem; text-transform: uppercase; grid-column: 1 / -1; justify-self: end; }
+
+        /* Relational ledger data rendering tables styles mappings rules */
+        table { width: 100%; border-collapse: collapse; background: var(--card-dark); border-radius: 6px; overflow: hidden; border: 1px solid var(--border); margin-top: 1rem; }
+        th, td { padding: 1rem; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.9rem; vertical-align: middle; }
+        th { background: #0E131F; color: var(--text-muted); font-weight: 600; text-transform: uppercase; font-size: 0.75rem; }
+        
+        .mini-diet-badge { display: inline-block; font-size: 0.7rem; font-weight: 700; padding: 0.15rem 0.4rem; border-radius: 3px; text-transform: uppercase; }
+        .mini-diet-badge.v-type { background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid var(--success); }
+        .mini-diet-badge.nv-type { background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid var(--danger); }
+        .mini-diet-badge.e-type { background: rgba(245, 158, 11, 0.15); color: var(--warning); border: 1px solid var(--warning); }
+
+        .feedback-node-card { background: var(--card-dark); border: 1px solid var(--border); border-left: 4px solid var(--primary); padding: 1.2rem; border-radius: 4px; margin-bottom: 1rem; }
+        
+        /* High animation alert loop for critical workspace runner notifications */
+        @keyframes pulseAlertGlow {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 110, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(239, 68, 110, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 110, 0); }
+        }
+    </style>
 </head>
 <body>
 
-    <h1>👨‍🍳 Mesa 3D Management Console</h1>
-    <p style="color: #888; margin-top: -10px;">Live Server Operations Sandbox Mode Environment</p>
+    <!-- Left Structural Navigation aside frame bar links loop items -->
+    <aside>
+        <div class="brand-logo">Mesa 3D Control</div>
+        <ul class="nav-links">
+            <li class="active" id="nav-dashboard" onclick="switchSection('dashboard')">📊 Main Insights</li>
+            <!-- 🪑 NEW NAVIGATION LINK: Maps directly onto our space logistics manager interface view -->
+            <li id="nav-floor" onclick="switchSection('floor')">🪑 Floor & QR Manager</li>
+            <li id="nav-menu" onclick="switchSection('menu')">🍔 Menu Catalog</li>
+            <li id="nav-chefs" onclick="switchSection('chefs')">👨‍🍳 Crew Registry</li>
+            <li id="nav-feedback" onclick="switchSection('feedback')">💬 Floor Streams Loop</li>
+        </ul>
+    </aside>
 
-    <div class="grid-container">
-
-        <div class="panel-card">
-            <h2>📦 Dish Publisher Engine</h2>
-            <form action="/api/menu" method="POST" enctype="multipart/form-data">
-                <div class="form-group">
-                    <label>Dish Name / Title</label>
-                    <input type="text" name="name" placeholder="e.g. Smoked Salmon Platter" required />
-                </div>
-                <div class="form-group">
-                    <label>Base Price (INR)</label>
-                    <input type="number" name="price" placeholder="e.g. 450" required />
-                </div>
-                <div class="form-group">
-                    <label>Allergy Indicators (Comma Separated)</label>
-                    <input type="text" name="allergies" placeholder="e.g. Dairy, Nuts, Gluten" />
-                </div>
-                <div class="form-group">
-                    <label>Interactive 3D Asset (.glb file target)</label>
-                    <input type="file" name="glb_model" accept=".glb" required />
-                </div>
-                <button type="submit">Deploy Asset to Menu</button>
-            </form>
-
-            <h3 style="margin-top: 25px;">Current Menu Stack</h3>
-            <div class="item-list" id="adminMenuContainer">
-                </div>
+    <main>
+        <div class="top-nav">
+            <h2 id="activePanelTitle">MAIN INSIGHTS DASHBOARD</h2>
+            <div style="font-size:0.9rem; font-weight:600; color: var(--primary);" id="venueDisplayTag">Resolving Node Context...</div>
         </div>
 
-        <div class="panel-card">
-            <h2>👨‍🍳 Executive Culinary Deck</h2>
-            <form action="/api/chefs" method="POST" enctype="multipart/form-data">
-                <div class="form-group">
-                    <label>Chef Name</label>
-                    <input type="text" name="name" placeholder="e.g. Chef Vikram Anand" required />
+        <div class="content-area">
+            
+            <!-- PANEL SECTION 1: METRICS AND LIVE ORDER MONITOR LINES TICKETS -->
+            <div id="section-dashboard" class="panel-section active">
+                <div class="analytics-row">
+                    <div class="kpi-card">
+                        <h4 id="kpiOrdersLabel">Total Monitored Orders</h4>
+                        <div class="value" id="kpi-orders-count">0</div>
+                    </div>
+                    <div class="kpi-card">
+                        <h4>Gross SaaS Revenue</h4>
+                        <div class="value revenue" id="kpi-revenue">₹0.00</div>
+                    </div>
+                    <div class="kpi-card">
+                        <h4 id="kpiTablesLabel">Total Active Tables</h4>
+                        <div class="value" id="kpi-active-spaces">0</div>
+                    </div>
+                    <div class="kpi-card">
+                        <h4>Platform Health Index</h4>
+                        <div class="value" style="color: var(--success);">100% PWA</div>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>Culinary Core Specialty</label>
-                    <input type="text" name="specialty" placeholder="e.g. Pastry Master / Molecular Gastronomy" required />
-                </div>
-                <div class="form-group">
-                    <label>Profile Portrait Image</label>
-                    <input type="file" name="chef_image" accept="image/*" required />
-                </div>
-                <button type="submit" style="background: #27ae60;">Register Chef Profile</button>
-            </form>
 
-            <h3 style="margin-top: 25px;">On-Duty Kitchen Staff</h3>
-            <div class="item-list" id="adminChefsContainer">
+                <!-- DYNAMIC CORE COMPONENT: Product Intelligence statistical bar chart tracker logs loops -->
+                <div class="popularity-box">
+                    <h3 style="font-size:1.05rem; font-weight:700; color:var(--primary);">📈 Most Commonly Ordered Selections (Product Intelligence Rank)</h3>
+                    <div class="metric-bar-wrapper" id="popularityMetricsBox">
+                        <p style="color:var(--text-muted); font-size:0.85rem;">Compiling order ledger metrics data analysis paths...</p>
+                    </div>
                 </div>
-        </div>
 
-        <div class="panel-card" style="border-color: #ff9f43;">
-            <h2 style="color: #ff9f43;">🛎️ Live Table Service Stream</h2>
-            <p style="font-size: 12px; color: #666; margin-top: -10px;">Listens to instant smartphone bell triggers over WebSockets</p>
-            <div id="liveWaiterAlertsLog" style="max-height: 500px; overflow-y: auto;">
-                <p style="color: #444; text-align: center; margin-top: 40px;">Awaiting service signals from dining hall network...</p>
+                <h3 style="font-size:1.1rem; font-weight:700; margin-bottom:1rem;">🍳 Live Kitchen Preparation Monitoring Grid</h3>
+                <div class="admin-kitchen-grid" id="adminKitchenBoardGrid"></div>
+
+                <h3>Active Floor Transactions Ledger</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Environment Context</th>
+                            <th id="thLocationHeader">Location Identifier Node</th>
+                            <th>Total Amount</th>
+                            <th>Pipeline Production State</th>
+                            <th>Audit Date & Time</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ledgerTableBody">
+                        <tr><td colspan="6" style="text-align:center; color:var(--text-muted);">Awaiting tracking database streams pipelines...</td></tr>
+                    </tbody>
+                </table>
             </div>
-        </div>
 
-    </div>
+            <!-- 🪑 NEW PANEL SECTION 2: THE PHYSICAL FLOOR SPACE COORDINATES AND QR GENERATOR CODE INTERFACE -->
+            <div id="section-floor" class="panel-section">
+                <h3>Configure Physical Establishment Inventory Layout</h3>
+                <div class="form-grid">
+                    <div class="input-block">
+                        <label>Business Mapping Mode Layout Profile</label>
+                        <select id="venueModeSelect" onchange="modifyWhiteLabelUIVariables(this.value)">
+                            <option value="RESTAURANT">🍔 Standard Restaurant / Diner</option>
+                            <option value="HOTEL">🏨 Hotel / Room Service Suite Mode</option>
+                            <option value="CAFE">☕ Cafe / Bistro Lounge Deck</option>
+                        </select>
+                    </div>
+                    <div class="input-block">
+                        <label id="lblInputTables">Total Dining Tables Count</label>
+                        <input type="number" id="inputTotalTables" placeholder="e.g., 15" min="1" max="100" value="10">
+                    </div>
+                    <div class="input-block">
+                        <label id="lblInputRooms">Total VIP Rooms / Suites Count</label>
+                        <input type="number" id="inputTotalRooms" placeholder="e.g., 5" min="0" max="50" value="2">
+                    </div>
+                    <button type="button" class="btn-action" onclick="commitSpaceInventorySettingsManual()">Initialize Space Mapping Models</button>
+                </div>
+
+                <h3 id="lblVisualLayoutHeading">Live Floor Visual Management Matrix (Scan Point Node Links)</h3>
+                <div class="floor-inventory-grid" id="floorLayoutVisualMatrixGrid"></div>
+            </div>
+
+            <!-- PANEL SECTION 3: CATALOG WITH INTEGRATED MODEL SHOWCASE HIGHLIGHT CONTROLLERS -->
+            <div id="section-menu" class="panel-section">
+                <h3>Publish New Menu Selection Card</h3>
+                <form class="form-grid" id="menuForm" enctype="multipart/form-data">
+                    <div class="input-block">
+                        <label>Dish / Product Title</label>
+                        <input type="text" id="menuName" placeholder="e.g., Premium Indo-European Fusion" required>
+                    </div>
+                    <div class="input-block">
+                        <label>Price Model (INR)</label>
+                        <input type="number" step="0.01" id="menuPrice" placeholder="e.g., 499.00" required>
+                    </div>
+                    <div class="input-block">
+                        <label>Initial Discount Rate (Percentage %)</label>
+                        <input type="number" id="menuOfferPercent" placeholder="e.g., 10" min="0" max="90" value="0">
+                    </div>
+                    <div class="input-block">
+                        <label>Dietary Classification Marker</label>
+                        <select id="menuDietType">
+                            <option value="veg">🟢 100% Pure Vegetarian</option>
+                            <option value="non-veg">🔴 Non-Vegetarian Selection</option>
+                            <option value="egg">🟡 Contains Egg Formulations</option>
+                        </select>
+                    </div>
+                    <div class="input-block">
+                        <label>Upload Real 3D Model File (.GLTF / .GLB)</label>
+                        <input type="file" id="dish3DFile" accept=".gltf,.glb" required style="padding:0.45rem;">
+                    </div>
+                    <div class="input-block" style="grid-column: 1 / -1;">
+                        <label>Allergen Protection Checklist Mapping</label>
+                        <div class="checkbox-group-row">
+                            <label class="checkbox-inline-label"><input type="checkbox" value="nuts" class="menu-allergen-box">🥜 Peanut / Tree Nuts</label>
+                            <label class="checkbox-inline-label"><input type="checkbox" value="dairy" class="menu-allergen-box">🥛 Dairy / Lactose Alerts</label>
+                            <label class="checkbox-inline-label"><input type="checkbox" value="gluten" class="menu-allergen-box">🌾 Wheat / Gluten Content</label>
+                            <label class="checkbox-inline-label"><input type="checkbox" value="shellfish" class="menu-allergen-box">🦀 Seafood / Shellfish Vectors</label>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-action" onclick="addDishCardManual()">Publish 3D Asset Product</button>
+                </form>
+
+                <h3>Active Curated Catalogs Registry</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Product Title Name</th>
+                            <th>Unit Pricing</th>
+                            <th>Classification Mode</th>
+                            <th>Active Percentage Offer</th>
+                            <th style="text-align: right;">Operations Controls</th>
+                        </tr>
+                    </thead>
+                    <tbody id="menuTableBody"></tbody>
+                </table>
+            </div>
+
+            <!-- PANEL SECTION 4: PERSONNEL ROSTER MANAGEMENT -->
+            <div id="section-chefs" class="panel-section">
+                <h3>Enroll Culinary Craftsman Profile Entity</h3>
+                <form class="form-grid" id="chefForm" onsubmit="addChefProfile(event)" enctype="multipart/form-data">
+                    <div class="input-block">
+                        <label>Full Name</label>
+                        <input type="text" id="chefName" placeholder="e.g., Master Chef Shivam" required>
+                    </div>
+                    <div class="input-block">
+                        <label>Core Culinary Specialties Focus</label>
+                        <input type="text" id="chefSpecialty" placeholder="e.g., Volumetric Plating Design" required>
+                    </div>
+                    <div class="input-block">
+                        <label>Experience Background Timeline</label>
+                        <input type="text" id="chefExp" placeholder="e.g., 8+ Years Luxury Hospitality" required>
+                    </div>
+                    <div class="input-block">
+                        <label>Upload Profile Photo Image File</label>
+                        <input type="file" id="chefPhotoFile" accept="image/*" required style="padding:0.45rem;">
+                    </div>
+                    <button type="submit" class="btn-action">Enroll Operations Personnel</button>
+                </form>
+
+                <h3>Active Operational Crew Roster</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Personnel Identity Photo</th>
+                            <th>Full Name</th>
+                            <th>Specialty Competency</th>
+                            <th>Experience Profile</th>
+                            <th style="text-align: right;">Operations Controls</th>
+                        </tr>
+                    </thead>
+                    <tbody id="chefsTableBody"></tbody>
+                </table>
+            </div>
+
+            <!-- PANEL SECTION 5: FEEDBACK ALERTS LOOP STREAM -->
+            <div id="section-feedback" class="panel-section">
+                <h3>Closed-Loop Floor Activities Ticker Matrix</h3>
+                <div id="feedbackContainer">
+                    <p style="color:var(--text-muted); text-align: center; padding: 2rem;">No logs recorded across terminals yet.</p>
+                </div>
+            </div>
+
+        </div>
+    </main>
 
     <script>
-        // Connect automatically to current window origin hosting domain architecture boundaries
+        // Isolate multi-tenant url parameters lookup values properties models context references strings
+        const urlParams = new URLSearchParams(window.location.search);
+        const tenantId = urlParams.get('restaurant_id') || localStorage.getItem('mesa3d_tenant_id') || '1';
+        const tenantName = localStorage.getItem('mesa3d_tenant_name') || 'Mesa 3D White-Label Engine';
+        
+        document.getElementById('venueDisplayTag').innerText = tenantName;
+
+        // Initialize WebSocket pipelines connection channel links mappings
         const socket = io();
+        socket.emit('join_workspace', { restaurantId: tenantId });
 
-        // Fetch local relational database tables and draw components onto dashboard viewports
-        async function loadDashboardData() {
-            try {
-                // 1. DYNAMICALLY LOAD AND EXTRACT CURRENT DISH ENTRIES
-                const menuRes = await fetch('/api/menu');
-                const menuItems = await menuRes.json();
-                const menuContainer = document.getElementById('adminMenuContainer');
-                menuContainer.innerHTML = ''; // Wipe pre-existing cache strings
+        // Platform runtime global arrays storage parameters allocations maps definitions variables
+        let ordersLog = [];
+        let totalRevenue = 0;
+        let foodScores = [];
+        let serviceScores = [];
+        let liveEnrolledChefsList = []; 
+        let globalActiveVenueMode = "RESTAURANT"; // Tracking variable for white-label text shifts loops
 
-                menuItems.forEach(item => {
-                    const row = document.createElement('div');
-                    row.className = 'list-row';
-                    
-                    // Read allergy array parameters. Fallback safely if value registers blank
-                    const allergiesParsed = item.allergies ? `(${item.allergies})` : '(No Allergy Flags Set)';
-                    
-                    row.innerHTML = `
-                        <div>
-                            <strong>${item.name}</strong> <span style="font-size:11px; color:#aaa;">${allergiesParsed}</span><br>
-                            <span style="color:#2ecc71;">Base: ₹${item.price}</span> 
-                            ${item.is_offer ? `<span style="color:#e74c3c; font-size:12px; margin-left:8px;">Promo: ₹${item.offer_price}</span>` : ''}
-                        </div>
-                        <div>
-                            <button class="btn-offer" onclick="promptPublishOffer(${item.id}, ${item.price})">Publish Offer</button>
-                        </div>
-                    `;
-                    menuContainer.appendChild(row);
-                });
+        // Inventory local cache parameters tracking models arrays loops metrics configurations
+        let totalConfiguredTablesCount = 10;
+        let totalConfiguredRoomsCount = 2;
+        let spacesActiveAlertStateMap = new Map(); // Tracks live caller flags to animate tiles interfaces
 
-                // 2. DYNAMICALLY LOAD AND EXTRACT ACTIVE REGISTRATION CHEF ENTRIES
-                const chefRes = await fetch('/api/chefs');
-                const chefItems = await chefRes.json();
-                const chefsContainer = document.getElementById('adminChefsContainer');
-                chefsContainer.innerHTML = '';
+        // Navigational tab switcher router routine method script
+        function switchSection(targetKey) {
+            document.querySelectorAll('.nav-links li').forEach(li => li.classList.remove('active'));
+            document.querySelectorAll('.panel-section').forEach(sec => sec.classList.remove('active'));
+            
+            document.getElementById('section-' + targetKey).classList.add('active');
+            document.getElementById('activePanelTitle').innerText = targetKey.toUpperCase() + " MANAGEMENT CONSOLE";
+            
+            const activeLi = document.getElementById('nav-' + targetKey);
+            if (activeLi) activeLi.classList.add('active');
 
-                if(chefItems.length === 0) {
-                    chefsContainer.innerHTML = `<p style="color:#444; font-size:13px; text-align:center;">No staff members logged on current system engine.</p>`;
-                }
-
-                chefItems.forEach(chef => {
-                    const row = document.createElement('div');
-                    row.className = 'list-row';
-                    row.style.borderLeftColor = '#27ae60';
-                    row.innerHTML = `
-                        <div style="display:flex; align-items:center; gap:10px;">
-                            <img src="${chef.image}" style="width:35px; height:35px; border-radius:50%; object-fit:cover; background:#222;" onerror="this.src='/uploads/default-chef.png'"/>
-                            <div>
-                                <strong>${chef.name}</strong><br>
-                                <span style="font-size:12px; color:#999;">${chef.specialty}</span>
-                            </div>
-                        </div>
-                    `;
-                    chefsContainer.appendChild(row);
-                });
-
-            } catch (err) {
-                console.error("Critical rendering pipeline interrupt:", err);
-            }
+            // Fire updates automatically on active insight windows refreshes transitions
+            if(targetKey === 'dashboard') syncPopularityAnalytics();
+            if(targetKey === 'floor') compileFloorTileGridVisualLayout();
         }
 
-        // TRIGGER DISCOUNT PROMO DIALOGUE: Packages details and dispatches configurations up backend
-        function promptPublishOffer(dishId, currentPrice) {
-            const offerPriceInput = prompt(`This item standard base is ₹${currentPrice}. Input promotional discount tag price target:`);
+        // Helper Method: Handles enterprise white-label translation overrides across all text containers layers elements
+        function modifyWhiteLabelUIVariables(targetModeValueString) {
+            globalActiveVenueMode = targetModeValueString;
             
-            // Validate inputs before continuing execution loops
-            if (offerPriceInput === null || offerPriceInput.trim() === "") return;
-            const targetPromoRate = parseFloat(offerPriceInput);
+            if(globalActiveVenueMode === 'HOTEL') {
+                document.getElementById('kpiOrdersLabel').innerText = "Total Suite Service Requests";
+                document.getElementById('kpiTablesLabel').innerText = "Total Operational Rooms";
+                document.getElementById('thLocationHeader').innerText = "Suite Room Identity Vector";
+                document.getElementById('lblInputTables').innerText = "Standard Living Rooms Count";
+                document.getElementById('lblInputRooms').innerText = "VIP Executive Suites Count";
+                document.getElementById('lblVisualLayoutHeading').innerText = "Live Hotel Space Inventory Grid (App Launcher QR Generation Matrix)";
+            } else {
+                document.getElementById('kpiOrdersLabel').innerText = "Total Monitored Orders";
+                document.getElementById('kpiTablesLabel').innerText = "Total Active Tables";
+                document.getElementById('thLocationHeader').innerText = "Location Identifier Node";
+                document.getElementById('lblInputTables').innerText = "Total Dining Tables Count";
+                document.getElementById('lblInputRooms').innerText = "Total VIP Rooms / Suites Count";
+                document.getElementById('lblVisualLayoutHeading').innerText = "Live Floor Visual Management Matrix (Scan Point Node Links)";
+            }
+            compileFloorTileGridVisualLayout();
+        }
+
+        // Commit Space Setup Method: Updates internal counts parameters and refreshes layouts grids structures elements lines
+        function commitSpaceInventorySettingsManual() {
+            totalConfiguredTablesCount = parseInt(document.getElementById('inputTotalTables').value) || 0;
+            totalConfiguredRoomsCount = parseInt(document.getElementById('inputTotalRooms').value) || 0;
             
-            if (isNaN(targetPromoRate) || targetPromoRate >= currentPrice || targetPromoRate <= 0) {
-                alert("Operation Aborted. Input a realistic, reduced numeric value configuration.");
+            alert(`🎉 Inventory Space Models Initialized! Configured ${totalConfiguredTablesCount} standard spaces and ${totalConfiguredRoomsCount} high-priority zones.`);
+            compileFloorTileGridVisualLayout();
+        }
+
+        // 🪑 NEW METHOD ENGINE: Generates print-ready app clip launcher vectors tiles arrays grids structures UI
+        function compileFloorTileGridVisualLayout() {
+            const matrixContainerGridNode = document.getElementById('floorLayoutVisualMatrixGrid');
+            matrixContainerGridNode.innerHTML = '';
+
+            let labelPrefixTables = globalActiveVenueMode === 'HOTEL' ? 'Room' : 'Table';
+            let labelPrefixRooms = globalActiveVenueMode === 'HOTEL' ? 'VIP Suite' : 'VIP Room';
+
+            // 1. Compile primary standard locations tile nodes loop indicators
+            for (let i = 1; i <= totalConfiguredTablesCount; i++) {
+                let locationKeyID = `${labelPrefixTables} ${i}`;
+                let itemAlertStateCSSClass = spacesActiveAlertStateMap.has(locationKeyID) ? 'status-alert' : '';
+                let buttonTitleLabelText = spacesActiveAlertStateMap.has(locationKeyID) ? '⚠️ Clear Alert' : '📥 Download QR';
+
+                // Format explicit launch urls mapping parameters contexts matching dynamic white-label profiles settings rules
+                let liveLauncherURLStringPath = `${window.location.origin}/customer/index.html?restaurant_id=${tenantId}&table=${i}&mode=${globalActiveVenueMode}`;
+
+                matrixContainerGridNode.innerHTML += `
+                    <div class="floor-tile-card ${itemAlertStateCSSClass}" id="tile-card-node-${i}">
+                        <h5>#${i}</h5>
+                        <p>${labelPrefixTables}</p>
+                        <button class="btn-qr-download" onclick="triggerQRDownloadPipeline('${liveLauncherURLStringPath}', '${locationKeyID}')">${buttonTitleLabelText}</button>
+                    </div>
+                `;
+            }
+
+            // 2. Compile secondary custom priority suites zone tiles entries loops indexes
+            for (let j = 1; j <= totalConfiguredRoomsCount; j++) {
+                let locationKeyID = `${labelPrefixRooms} ${j}`;
+                let itemAlertStateCSSClass = spacesActiveAlertStateMap.has(locationKeyID) ? 'status-alert' : '';
+                let buttonTitleLabelText = spacesActiveAlertStateMap.has(locationKeyID) ? '⚠️ Clear Alert' : '📥 Download QR';
+
+                let liveLauncherURLStringPath = `${window.location.origin}/customer/index.html?restaurant_id=${tenantId}&room=${j}&mode=${globalActiveVenueMode}`;
+
+                matrixContainerGridNode.innerHTML += `
+                    <div class="floor-tile-card ${itemAlertStateCSSClass}" style="background:rgba(139, 92, 246, 0.03); border-color:#4B358A;">
+                        <h5 style="color:var(--primary);">VIP #${j}</h5>
+                        <p style="color:var(--purple-accent);">${labelPrefixRooms}</p>
+                        <button class="btn-qr-download" style="color:var(--purple-accent);" onclick="triggerQRDownloadPipeline('${liveLauncherURLStringPath}', '${locationKeyID}')">${buttonTitleLabelText}</button>
+                    </div>
+                `;
+            }
+
+            document.getElementById('kpi-active-spaces').innerText = (totalConfiguredTablesCount + totalConfiguredRoomsCount);
+        }
+
+        // 📥 QR STICKER PIPELINE GENERATOR: Direct backend communication wrapper converting parameters text variables into download streams
+        function triggerQRDownloadPipeline(compiledTargetURLText, identificationLabelHeader) {
+            // Check condition: If an active call flag triggers alert state clicks, prioritize clearing alert panels indicators over downloads
+            if(spacesActiveAlertStateMap.has(identificationLabelHeader)) {
+                spacesActiveAlertStateMap.delete(identificationLabelHeader);
+                compileFloorTileGridVisualLayout();
                 return;
             }
 
-            // Post configuration arguments payload straight up production API endpoint routes
-            fetch('/api/menu/offer', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    id: dishId,
-                    offer_price: targetPromoRate,
-                    is_offer: 1
-                })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if(data.success) {
-                    alert("Promotional campaign rate broadcasted live across consumer devices!");
-                    loadDashboardData(); // Force system update
-                }
-            })
-            .catch(err => alert("Error dispatching promo configuration payload structure."));
+            // Generate direct network link call routing parameters targets paths nodes scripts lines loops
+            let backendFetchAPIEndpointRoute = `/api/inventory/qr?url=${encodeURIComponent(compiledTargetURLText)}&label=${encodeURIComponent(identificationLabelHeader)}`;
+            
+            // Redirect absolute browser view windows execution frame target location lines directly to pull down the dynamic file generation payload
+            window.open(backendFetchAPIEndpointRoute, '_blank');
         }
 
-        // WEBSOCKET BROADCAST LISTENER: Appends realtime incoming smartphone bell requests into tracking viewport logs
-        socket.on('notify-admin-waiter', (data) => {
-            const logBox = document.getElementById('liveWaiterAlertsLog');
+        function formatDateTimeToStandard(dateObjectOrString) {
+            const date = new Date(dateObjectOrString);
+            if (isNaN(date.getTime())) return "Just Now";
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            let hours = date.getHours();
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12;
+            return `${day}/${month}/${year} at ${hours}:${minutes} ${ampm}`;
+        }
+
+        // 📊 ANALYTICS DATA AGGREGATION LOOP ENGINE METHOD: Hits backends statistical node endpoint to calculate model item order frequency
+        async function syncPopularityAnalytics() {
+            try {
+                const res = await fetch(`/api/analytics/popular?restaurant_id=${tenantId}`);
+                const data = await res.json();
+                const metricsBox = document.getElementById('popularityMetricsBox');
+                
+                if(!data.length) {
+                    metricsBox.innerHTML = `<p style="color:var(--text-muted); font-size:0.85rem;">No historical database orders data records collected to compute frequency metrics yet.</p>`;
+                    return;
+                }
+
+                metricsBox.innerHTML = '';
+                data.forEach((dish, idx) => {
+                    metricsBox.innerHTML += `
+                        <div class="metric-row">
+                            <span><strong>#${idx + 1}</strong> &nbsp; ${dish.name}</span>
+                            <span style="background:rgba(197, 168, 128, 0.15); color:var(--primary); padding:0.2rem 0.6rem; border-radius:12px; font-size:0.8rem; font-weight:700;">Ordered ${dish.count} Times</span>
+                        </div>
+                    `;
+                });
+            } catch(e) { console.error("Analytics network aggregate channel pipeline processing fault error exception:", e); }
+        }
+
+        async function syncAdminData() {
+            try {
+                const chefRes = await fetch('/api/chefs?restaurant_id=' + tenantId);
+                liveEnrolledChefsList = await chefRes.json();
+
+                const dishRes = await fetch('/api/dishes?restaurant_id=' + tenantId);
+                const dishes = await dishRes.json();
+                const menuBody = document.getElementById('menuTableBody');
+                
+                if (menuBody) {
+                    menuBody.innerHTML = dishes.length ? '' : '<tr><td colspan="6" style="text-align:center; color:var(--text-muted);">No volumetric assets cataloged yet inside SQL tables rows reference points.</td></tr>';
+                    dishes.forEach(d => {
+                        let dietBadgeClass = d.dietary_type === 'non-veg' ? 'nv-type' : (d.dietary_type === 'egg' ? 'e-type' : 'v-type');
+                        let dietBadgeLabel = d.dietary_type === 'non-veg' ? 'NON-VEG' : (d.dietary_type === 'egg' ? 'EGG' : 'VEG');
+
+                        let discountRateValue = parseInt(d.specialties) || 0;
+                        
+                        let isHighlighted = d.is_promo === 1;
+                        let highlightBtnLabel = isHighlighted ? '⭐ Featured' : 'Feature';
+                        let highlightClassMod = isHighlighted ? 'featured-true' : '';
+
+                        menuBody.innerHTML += `
+                            <tr id="dish-row-${d.id}">
+                                <td>#${d.id}</td>
+                                <td><strong>${d.name}</strong></td>
+                                <td>₹${d.price.toFixed(2)}</td>
+                                <td><span class="mini-diet-badge ${dietBadgeClass}">${dietBadgeLabel}</span></td>
+                                <td style="color:var(--success); font-weight:700;">${discountRateValue > 0 ? `${discountRateValue}% OFF` : 'None'}</td>
+                                <td style="text-align: right;">
+                                    <!-- 🌟 HIGHLIGHT SLIDER OVERRIDE TRIGGER BUTTON: Changes is_promo state rows values parameters instantly -->
+                                    <button class="btn-inline-highlight ${highlightClassMod}" onclick="toggleDishHighlightDirect(${d.id}, ${d.is_promo})">${highlightBtnLabel}</button>
+                                    <button class="btn-inline-offer" onclick="promptOfferPercentage(${d.id})">Offer %</button>
+                                    <button class="btn-inline-delete" onclick="adminDeleteDishCard(${d.id})">Remove</button>
+                                </td>
+                            </tr>`;
+                    });
+                }
+
+                const chefBody = document.getElementById('chefsTableBody');
+                if (chefBody) {
+                    chefBody.innerHTML = liveEnrolledChefsList.length ? '' : '<tr><td colspan="6" style="text-align:center; color:var(--text-muted);">No profile structures registered yet inside line cook tables rosters rows.</td></tr>';
+                    liveEnrolledChefsList.forEach(c => {
+                        const renderedImageMarkupHTML = `<img src="${c.photo_url || 'https://img.icons8.com/color/100/chef-hat.png'}" style="width:35px; height:35px; border-radius:50%; object-fit:cover; border:1px solid var(--border);">`;
+                        chefBody.innerHTML += `
+                            <tr id="chef-row-${c.id}">
+                                <td>#${c.id}</td>
+                                <td style="text-align:center; padding: 0.5rem 0;">${renderedImageMarkupHTML}</td>
+                                <td><strong>${c.name}</strong></td>
+                                <td>${c.specialties || 'General Lines Cook'}</td>
+                                <td>${c.experience || 'Entry-Level'}</td>
+                                <td style="text-align: right;">
+                                    <button class="btn-inline-delete" onclick="adminDeleteChefProfile(${c.id})">Purge Profile</button>
+                                </td>
+                            </tr>`;
+                    });
+                }
+                syncPopularityAnalytics();
+                compileFloorTileGridVisualLayout();
+            } catch (err) { console.error(err); }
+        }
+
+        async function toggleDishHighlightDirect(dishId, currentHighlightState) {
+            let targetStateChange = currentHighlightState === 1 ? 0 : 1;
+            try {
+                const res = await fetch(`/api/dishes/toggle-highlight?id=${dishId}&is_promo=${targetStateChange}&restaurant_id=${tenantId}`, { method: 'POST' });
+                const data = await res.json();
+                if(data.success) { await syncAdminData(); }
+            } catch(e) { alert("Network Sync Error."); }
+        }
+
+        async function promptOfferPercentage(dishId) {
+            let userInput = prompt("Enter custom discount percentage for this dish (e.g., 10, 20, 50). Enter 0 to cancel:", "10");
+            if (userInput === null) return; 
+            let percentage = parseInt(userInput) || 0;
+            let targetPromoToggle = percentage > 0 ? 1 : 0;
+
+            try {
+                const res = await fetch(`/api/dishes/toggle-offer?id=${dishId}&is_promo=${targetPromoToggle}&percentage=${percentage}&restaurant_id=${tenantId}`, { method: 'POST' });
+                if((await res.json()).success) { await syncAdminData(); }
+            } catch(e) { alert("Network Mutation Error."); }
+        }
+
+        async function addDishCardManual() {
+            const nameField = document.getElementById('menuName').value.trim();
+            const priceField = document.getElementById('menuPrice').value.trim();
+            const modelFileNode = document.getElementById('dish3DFile');
             
-            // Wipe initial text layer on incoming first signal trigger
-            if(logBox.innerText.includes("Awaiting service signals")) {
-                logBox.innerHTML = '';
+            if(!nameField || !priceField || !modelFileNode.files.length) {
+                alert("Validation Check Failure: Missing title names, pricing metrics or absolute .gltf/.glb files attachments components.");
+                return;
             }
 
-            const alertCard = document.createElement('div');
-            alertCard.className = 'waiter-alert-card';
-            
-            const optionalNoteBlock = data.note ? `<div style="margin-top:6px; font-size:12px; background:#1e1202; padding:6px; border-radius:4px; border:1px dashed #7f8c8d; color:#ddd;">📝 <strong>User Note:</strong> "${data.note}"</div>` : '';
+            try {
+                let packedAllergenStringTokens = [];
+                document.querySelectorAll('.menu-allergen-box').forEach(chk => {
+                    if(chk.checked) packedAllergenStringTokens.push(chk.value);
+                });
 
-            alertCard.innerHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span style="font-size:15px; font-weight:bold; color:#ff9f43;">📍 ${data.table}</span>
-                    <span style="font-size:11px; color:#7f8c8d;">${data.timestamp}</span>
-                </div>
-                <div style="margin-top:4px; font-size:14px;">⚡ Requested Action item: <strong>${data.request}</strong></div>
-                ${optionalNoteBlock}
-            `;
-            
-            // Prepend logs to maintain newest tracking information directly at user's eye-line entry bounds
-            logBox.insertBefore(alertCard, logBox.firstChild);
+                const dishFormData = new FormData();
+                dishFormData.append('restaurant_id', parseInt(tenantId));
+                dishFormData.append('name', nameField);
+                dishFormData.append('price', parseFloat(priceField));
+                dishFormData.append('offer_percentage', document.getElementById('menuOfferPercent').value || '0');
+                dishFormData.append('dietary_type', document.getElementById('menuDietType').value);
+                dishFormData.append('allergens', packedAllergenStringTokens.length ? packedAllergenStringTokens.join(',') : 'none');
+                dishFormData.append('dish3DFile', modelFileNode.files[0]); 
+
+                const response = await fetch('/api/dishes/add', { method: 'POST', body: dishFormData });
+                if((await response.json()).success) {
+                    alert("🎉 3D Volumetric product model file ingest operations committed successfully inside relational tables catalog systems!");
+                    document.getElementById('menuForm').reset();
+                    await syncAdminData();
+                }
+            } catch (err) { alert("Ingestion pipeline network connection fault execution exception error."); }
+        }
+
+        async function adminDeleteDishCard(dishId) {
+            if(!confirm("Purge asset file card item matrix row completely?")) return;
+            try {
+                const res = await fetch(`/api/dishes/delete?id=${dishId}&restaurant_id=${tenantId}`, { method: 'POST' });
+                if((await res.json()).success) await syncAdminData();
+            } catch(e) { alert("Network Connection Fault."); }
+        }
+
+        async function adminDeleteChefProfile(chefId) {
+            if(!confirm("Purge staff entity row index mapping context completely?")) return;
+            try {
+                const res = await fetch(`/api/chefs/delete?id=${chefId}&restaurant_id=${tenantId}`, { method: 'POST' });
+                if((await res.json()).success) await syncAdminData();
+            } catch(e) { alert("Network Connection Fault."); }
+        }
+
+        async function addChefProfile(e) {
+            e.preventDefault();
+            try {
+                const chefPhotoFieldNode = document.getElementById('chefPhotoFile');
+                if(!chefPhotoFieldNode.files.length) return alert("Attach a valid photo file image element context first.");
+
+                const multipartFormBuilder = new FormData();
+                multipartFormBuilder.append('restaurant_id', parseInt(tenantId));
+                multipartFormBuilder.append('name', document.getElementById('chefName').value);
+                multipartFormBuilder.append('specialties', document.getElementById('chefSpecialty').value);
+                multipartFormBuilder.append('experience', document.getElementById('chefExp').value);
+                multipartFormBuilder.append('chefPhotoFile', chefPhotoFieldNode.files[0]); 
+
+                const response = await fetch('/api/chefs/add', { method: 'POST', body: multipartFormBuilder });
+                if((await response.json()).success) {
+                    alert("👨‍🍳 New operational personnel profile entry written successfully into relational space models registers data tracks!");
+                    document.getElementById('chefForm').reset();
+                    await syncAdminData();
+                }
+            } catch (err) { alert("Upload execution engine pipeline fault."); }
+        }
+
+        function adminPipelineOverride(orderId, targetStatus) {
+            let backupChefId = liveEnrolledChefsList.length ? liveEnrolledChefsList[0].id : 1;
+            socket.emit('update_order_status', { restaurant_id: parseInt(tenantId), order_id: parseInt(orderId), status: targetStatus, chef_id: backupChefId, prep_time: 12 });
+        }
+
+        // =================================================================================
+        //         REAL-TIME WEBSOCKET LISTENER NETWORK CHANNELS INTERCEPTORS
+        // =================================================================================
+        socket.on('new_order_alert', (order) => {
+            const index = ordersLog.findIndex(o => o.id === order.id);
+            if(index === -1) {
+                ordersLog.unshift(order);
+                totalRevenue += order.total_price;
+                renderLedger();
+                syncPopularityAnalytics(); 
+            }
         });
 
-        // Setup pipeline refreshing logic hooks ensuring layouts remain uniform across modifications
-        socket.on('menu-updated', loadDashboardData);
-        socket.on('chefs-updated', loadDashboardData);
+        socket.on('order_pipeline_update', (order) => {
+            const idx = ordersLog.findIndex(o => o.id === order.id);
+            if(idx !== -1) ordersLog[idx].status = order.status;
+            else ordersLog.push(order);
+            renderLedger();
+        });
 
-        // Run data fetching loop on dashboard mount initialization processes
-        window.addEventListener('DOMContentLoaded', loadDashboardData);
+        socket.on('incoming_feedback', (review) => {
+            foodScores.push(review.food_rating);
+            serviceScores.push(review.service_rating);
+            document.getElementById('kpi-food-rating').innerText = (foodScores.reduce((a,b)=>a+b,0) / foodScores.length).toFixed(1) + " / 5.0";
+            document.getElementById('kpi-service-rating').innerText = (serviceScores.reduce((a,b)=>a+b,0) / serviceScores.length).toFixed(1) + " / 5.0";
+
+            const container = document.getElementById('feedbackContainer');
+            if(foodScores.length === 1) container.innerHTML = ''; 
+            const warningClass = (review.food_rating <= 2 || review.service_rating <= 2) ? 'warning' : '';
+            container.innerHTML = `<div class="feedback-node-card ${warningClass}"><strong>Order Ref: #ORD-${review.order_id}</strong><p>"${review.comments || 'No comment text lines elements written.'}"</p></div>` + container.innerHTML;
+        });
+
+        // 🚨 WEBSOCKET SERVICE BELL INTERCEPTOR: Automatically triggers visual tile alert matrices transformations
+        socket.on('waiter_alert', (alertPayload) => {
+            // Extract the location label coordinates context token tracking identifiers values (e.g., "Table 4")
+            let callerSpaceLabelString = alertPayload.location_identifier.split(' [')[0];
+            
+            console.log(`[Paging Monitor Center] Incoming assistance flag received from spatial zone locator token: ${callerSpaceLabelString}`);
+            
+            // Log active room or table context token inside dictionary memory maps triggers to execute animations routines
+            spacesActiveAlertStateMap.set(callerSpaceLabelString, true);
+            
+            // Dynamically reload the floor visuals to force target cards tiles grids areas to blink alert lights indicators
+            compileFloorTileGridVisualLayout();
+
+            const container = document.getElementById('feedbackContainer');
+            if(container.innerHTML.includes('No logs recorded')) container.innerHTML = '';
+            container.innerHTML = `<div class="feedback-node-card" style="border-left-color:var(--danger); background:rgba(239,68,68,0.02);"><strong>🚨 PAGING RUNNER LOG ALERT:</strong> Assistance signal checked at ${callerSpaceLabelString} position coordinates grid point node area.</div>` + container.innerHTML;
+        });
+
+        function renderLedger() {
+            document.getElementById('kpi-orders-count').innerText = ordersLog.length;
+            document.getElementById('kpi-revenue').innerText = "₹" + totalRevenue.toFixed(2);
+            const tbody = document.getElementById('ledgerTableBody');
+            tbody.innerHTML = '';
+            ordersLog.forEach(o => {
+                tbody.innerHTML += `<tr><td>#${o.id}</td><td>${o.location_context}</td><td><strong>${o.location_identifier}</strong></td><td>₹${o.total_price.toFixed(2)}</td><td>${o.status}</td><td>${formatDateTimeToStandard(o.timestamp || new Date())}</td></tr>`;
+            });
+
+            const kitchenGridBox = document.getElementById('adminKitchenBoardGrid');
+            kitchenGridBox.innerHTML = '';
+            let activeCookingSlips = ordersLog.filter(o => o.status !== 'Served');
+            if(!activeCookingSlips.length) {
+                kitchenGridBox.innerHTML = `<p style="color:var(--text-muted); font-size:0.85rem; padding:1rem;">All active kitchen tickets lines production tracks clear at this timestamp checkpoint.</p>`;
+                return;
+            }
+            activeCookingSlips.forEach(order => {
+                kitchenGridBox.innerHTML += `<div class="admin-kitchen-card"><strong>Ticket #${order.id} [${order.location_identifier}]</strong><div class="admin-override-row"><button class="btn-override fire-btn" onclick="adminPipelineOverride(${order.id}, 'Cooking')">🔥 Cook</button><button class="btn-override ready-btn" onclick="adminPipelineOverride(${order.id}, 'Ready')">🛎️ Ready</button><button class="btn-override serve-btn" onclick="adminPipelineOverride(${order.id}, 'Served')">✅ Serve</button></div></div>`;
+            });
+        }
+
+        // Initialize synchronization systems routines components upon asset window body tree structure load execution
+        window.onload = syncAdminData;
     </script>
 </body>
 </html>
