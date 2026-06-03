@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hospitality WebGL Interactive Terminal</title>
+    <title>XYZ HOTEL</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap"
         rel="stylesheet">
@@ -545,7 +545,7 @@
 
 <body>
 
-    <canvas id="masterThreeCanvas"></canvas>
+    <canvas id="masterThreeCanvas" width="320" height="480"></canvas>
 
     <div class="content-layer-wrapper">
 
@@ -873,23 +873,36 @@
             });
         }
 
-        // 🟩 OPTIMIZED FOR SMOOTH PERFORMANCE ON LAPTOPS
+        // 🟩 BLUEPRINT FIX: Mobile Fail-Safe WebGL Engine Initialization
         function initMasterSharedWebGLContext() {
             const canvasElementNode = document.getElementById('masterThreeCanvas');
+            if (!canvasElementNode) {
+                console.error("Critical: Shared canvas layout token missing.");
+                return;
+            }
 
-            // 1. Turned antialias to false to prevent laptop stuttering
-            mainRenderer = new THREE.WebGLRenderer({ canvas: canvasElementNode, antialias: false, alpha: true, powerPreference: "high-performance" });
+            try {
+                // Initialize the renderer with low-power configurations suited for mobile devices
+                mainRenderer = new THREE.WebGLRenderer({
+                    canvas: canvasElementNode,
+                    antialias: false,
+                    alpha: true,
+                    powerPreference: "low-power",
+                    precision: "mediump" // Lowers shader precision to completely stop mobile heating
+                });
 
-            // 2. Reduced pixel ratio mapping limit down to 1 to cut graphics workload in half
-            mainRenderer.setPixelRatio(1);
+                mainRenderer.setPixelRatio(1);
+                mainRenderer.shadowMap.enabled = false;
+                mainRenderer.setScissorTest(true);
 
-            // 3. Disabled complex dynamic shadow maps calculations to avoid frame dropping
-            mainRenderer.shadowMap.enabled = false;
-            mainRenderer.setScissorTest(true);
+                mainCamera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 100);
+                mainCamera.position.set(0, 1.2, 3.0);
+                gltfLoader = new GLTFLoader();
 
-            mainCamera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 100);
-            mainCamera.position.set(0, 1.2, 3.0);
-            gltfLoader = new GLTFLoader();
+            } catch (webglError) {
+                console.error("Hardware Context Rejected. Switching to standard layout fallback mode.", webglError);
+                mainRenderer = null; // Safety latch to prevent rendering crashes downstream
+            }
         }
 
         function bindPlaceholderInteractionListeners(containerId) {
@@ -940,9 +953,12 @@
             window.addEventListener('touchend', () => { trackingState.isDragging = false; });
         }
 
-        // 🟩 SYSTEM UPGRADE: SCROLL-DRIVEN LIVE MEMORY REGULATOR
+        // 🟩 BLUEPRINT FIX: Crash-Protected Non-Blocking Execution Loop
         function executeMasterRenderTickLoop() {
             requestAnimationFrame(executeMasterRenderTickLoop);
+
+            // Safety Guard: If the mobile browser rejected WebGL, abort the loop completely to stop freezes!
+            if (!mainRenderer) return;
 
             const width = window.innerWidth;
             const height = window.innerHeight;
@@ -961,18 +977,17 @@
 
                 const rectBounds = elementNodeBox.getBoundingClientRect();
 
-                // If the card is off-screen, completely bypass it to keep RAM near 0MB
+                // PERFORMANCE GUARD: Bypasses calculation completely if card is off-screen
                 if (rectBounds.bottom < 0 || rectBounds.top > height || rectBounds.right < 0 || rectBounds.left > width) {
                     return;
                 }
 
-                // Card is on-screen! Let's bind the drag/touch listeners safely if not done yet
                 if (!sceneState.listenersBound) {
                     bindPlaceholderInteractionListeners(containerId);
                     sceneState.listenersBound = true;
                 }
 
-                // Download and build the 3D model mesh ONLY now that the customer is looking at it
+                // Only download the heavy 3D asset if it is explicitly sitting center-screen
                 if (!sceneState.threeMeshScene) {
                     if (sceneState.modelPath && sceneState.modelPath !== '') {
                         lazyLoadAsset3DGeometryMesh(containerId, sceneState);
