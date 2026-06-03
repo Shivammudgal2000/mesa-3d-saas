@@ -4,10 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>XYZ HOTEL</title>
+    <title>Hospitality WebGL Interactive Terminal</title>
 
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
 
     <script src="/socket.io/socket.io.js"></script>
 
@@ -54,6 +53,7 @@
             overflow-x: hidden;
         }
 
+        /* Fixed background element layer mapping */
         #masterThreeCanvas {
             position: fixed;
             top: 0;
@@ -200,7 +200,7 @@
             backdrop-filter: blur(8px);
             border: 1px solid var(--border);
             border-radius: 8px;
-            padding: 1rem;
+            padding: 1.2rem;
             display: flex;
             flex-direction: column;
             gap: 0.8rem;
@@ -235,17 +235,9 @@
             content: '●';
         }
 
-        .diet-indicator.veg {
-            color: var(--success);
-        }
-
-        .diet-indicator.non-veg {
-            color: var(--danger);
-        }
-
-        .diet-indicator.egg {
-            color: var(--egg-color);
-        }
+        .diet-indicator.veg { color: var(--success); }
+        .diet-indicator.non-veg { color: var(--danger); }
+        .diet-indicator.egg { color: var(--egg-color); }
 
         .dish-title {
             font-size: 1.05rem;
@@ -261,37 +253,11 @@
             margin-top: 0.2rem;
         }
 
-        .threed-viewport-placeholder {
-            width: 100%;
-            height: 260px;
-            background: rgba(6, 9, 18, 0.5);
-            border-radius: 6px;
-            border: 1px solid #1E2533;
-            position: relative;
-            overflow: hidden;
-            outline: none;
-        }
-
-        .threed-badge {
-            position: absolute;
-            bottom: 8px;
-            left: 8px;
-            background: rgba(0, 0, 0, 0.7);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            font-size: 0.65rem;
-            color: var(--primary);
-            padding: 0.2rem 0.5rem;
-            border-radius: 20px;
-            font-weight: 700;
-            pointer-events: none;
-            z-index: 5;
-        }
-
         .allergen-alert-strip {
             display: flex;
             flex-wrap: wrap;
             gap: 0.4rem;
-            margin-top: 0.2rem;
+            margin-top: 0.4rem;
         }
 
         .allergen-pill-badge {
@@ -317,16 +283,15 @@
         }
 
         .btn-add-tray {
-            background: transparent;
-            border: 1px solid var(--primary);
-            color: var(--primary);
+            background: var(--primary);
+            color: var(--bg-dark);
+            border: none;
             padding: 0.5rem 1.2rem;
             font-weight: 700;
             border-radius: 4px;
             cursor: pointer;
             font-size: 0.85rem;
-            z-index: 10;
-            position: relative;
+            transition: all 0.2s ease;
         }
 
         .status-banner {
@@ -545,7 +510,7 @@
 
 <body>
 
-    <canvas id="masterThreeCanvas" width="320" height="480"></canvas>
+    <canvas id="masterThreeCanvas"></canvas>
 
     <div class="content-layer-wrapper">
 
@@ -556,8 +521,7 @@
         </header>
 
         <div class="status-banner" id="trackerBanner">
-            <p id="trackerStatus" style="font-weight: 600; font-size: 0.95rem; color: var(--primary);">Your order
-                transaction is queued...</p>
+            <p id="trackerStatus" style="font-weight: 600; font-size: 0.95rem; color: var(--primary);">Your order transaction is queued...</p>
             <div class="countdown" id="countdownClock">15:00</div>
         </div>
 
@@ -573,8 +537,7 @@
         <div class="allergen-prompt-bar" id="safetyStrip">
             <div style="display: flex; align-items: center; gap: 0.4rem;">
                 <span>🛡️</span>
-                <span style="color: var(--text-muted);" id="allergenStatusLabel">No safety allergy filters applied to
-                    menu layout.</span>
+                <span style="color: var(--text-muted);" id="allergenStatusLabel">No safety allergy filters applied to menu layout.</span>
             </div>
             <button class="allergen-select-btn" onclick="toggleAllergenSetupModal(true)">Set Filter</button>
         </div>
@@ -588,20 +551,27 @@
         <div class="promo-carousel" id="highlightsSliderContainer"></div>
 
         <main class="menu-container" id="masterMenuGrid">
-            <p style="color:var(--text-muted); text-align: center; padding: 2rem;">Connecting to 3D rendering
-                pipeline...</p>
+            <p style="color:var(--text-muted); text-align: center; padding: 2rem;">Connecting to 3D rendering pipeline...</p>
         </main>
 
-        <button class="floating-bell-btn" onclick="toggleAssistantDrawer(true)">🛎️<div class="bell-badge"></div>
-        </button>
+        <button class="floating-bell-btn" onclick="toggleAssistantDrawer(true)">🛎️<div class="bell-badge"></div></button>
 
         <footer class="action-bar">
-            <textarea id="globalKitchenInstructionsNote" rows="2"
-                placeholder="🍳 Add general kitchen instructions for this order..."></textarea>
-            <button class="btn-checkout" onclick="submitActiveOrder()" id="cartSummaryBtn">Send Order (0 Items
-                Selected)</button>
+            <textarea id="globalKitchenInstructionsNote" rows="2" placeholder="🍳 Add general kitchen instructions for this order..."></textarea>
+            <button class="btn-checkout" onclick="submitActiveOrder()" id="cartSummaryBtn">Send Order (0 Items Selected)</button>
         </footer>
 
+    </div>
+
+    <div class="overlay-canvas" id="volumetricPreviewModal" style="display: none; position: fixed; top:0; left:0; width:100vw; height:100vh; background: rgba(11,15,25,0.98); z-index: 5000; flex-direction: column; align-items: center; justify-content: center; padding: 1rem;">
+        <div style="position: absolute; top: 20px; right: 25px; font-size: 2rem; color: var(--text-muted); cursor: pointer; font-weight: bold; z-index: 5100;" onclick="closeVolumetric3DViewer()">✕</div>
+        
+        <h3 id="modalDishTitle" style="color: white; font-size: 1.4rem; margin-bottom: 0.3rem; font-weight: 700; z-index: 5100;">Dish Preview</h3>
+        <p style="color: var(--primary); font-size: 0.8rem; margin-bottom: 1.5rem; font-weight: 600; z-index: 5100;">🕹️ Swipe / Drag anywhere on box area to rotate 3D view</p>
+        
+        <div id="canvasModalAnchorContainer" style="width: 90vw; height: 50vh; background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px dashed var(--border); outline: none;"></div>
+        
+        <button class="btn-checkout" id="modalOrderBtn" style="margin-top: 2rem; max-width: 320px; z-index: 5100;">Add Item to Order Tray</button>
     </div>
 
     <div class="overlay-canvas" id="assistantDrawerNode">
@@ -609,27 +579,21 @@
             <div class="modal-close-cross" onclick="toggleAssistantDrawer(false)">✕</div>
             <h3 id="assistantTitleLabel">🛎️ Staff Call Center</h3>
             <div class="quick-grid-menu">
-                <div class="quick-node-card" id="opt-waiter"
-                    onclick="toggleQuickNeedListItem('opt-waiter', 'General Assistance')">
+                <div class="quick-node-card" id="opt-waiter" onclick="toggleQuickNeedListItem('opt-waiter', 'General Assistance')">
                     <span id="icon-waiter">🙋‍♂️</span><span id="label-waiter">Call Staff</span>
                 </div>
-                <div class="quick-node-card" id="opt-water"
-                    onclick="toggleQuickNeedListItem('opt-water', 'Cold Water Bottle')">
+                <div class="quick-node-card" id="opt-water" onclick="toggleQuickNeedListItem('opt-water', 'Cold Water Bottle')">
                     <span>🧊</span><span>Water Bottle</span>
                 </div>
-                <div class="quick-node-card" id="opt-cutlery"
-                    onclick="toggleQuickNeedListItem('opt-cutlery', 'Extra Cutlery')">
+                <div class="quick-node-card" id="opt-cutlery" onclick="toggleQuickNeedListItem('opt-cutlery', 'Extra Cutlery')">
                     <span>🍴</span><span>Need Cutlery</span>
                 </div>
-                <div class="quick-node-card" id="opt-bill"
-                    onclick="toggleQuickNeedListItem('opt-bill', 'Printed Bill')">
+                <div class="quick-node-card" id="opt-bill" onclick="toggleQuickNeedListItem('opt-bill', 'Printed Bill')">
                     <span>💳</span><span>Bring Bill</span>
                 </div>
             </div>
-            <textarea id="assistantRequestNotes" rows="3"
-                placeholder="Add custom instruction note for runner..."></textarea>
-            <button class="btn-checkout" style="background: var(--danger); color: white;"
-                onclick="dispatchQuickAssistanceRequest()">Broadcast Checked Paging Alerts</button>
+            <textarea id="assistantRequestNotes" rows="3" placeholder="Add custom instruction note for runner..."></textarea>
+            <button class="btn-checkout" style="background: var(--danger); color: white;" onclick="dispatchQuickAssistanceRequest()">Broadcast Checked Paging Alerts</button>
         </div>
     </div>
 
@@ -638,17 +602,12 @@
             <div class="modal-close-cross" onclick="toggleAllergenSetupModal(false)">✕</div>
             <h3>🛡️ Dietary Allergen Shield</h3>
             <div class="allergy-grid-selection">
-                <label class="allergy-label-item"><input type="checkbox" value="nuts" class="allergen-chk">🥜 Peanut /
-                    Tree Nuts</label>
-                <label class="allergy-label-item"><input type="checkbox" value="dairy" class="allergen-chk">🥛 Dairy /
-                    Lactose Alerts</label>
-                <label class="allergy-label-item"><input type="checkbox" value="gluten" class="allergen-chk">🌾 Wheat /
-                    Gluten Content</label>
-                <label class="allergy-label-item"><input type="checkbox" value="shellfish" class="allergen-chk">🦀
-                    Seafood / Shellfish Vectors</label>
+                <label class="allergy-label-item"><input type="checkbox" value="nuts" class="allergen-chk">🥜 Peanut / Tree Nuts</label>
+                <label class="allergy-label-item"><input type="checkbox" value="dairy" class="allergen-chk">🥛 Dairy / Lactose Alerts</label>
+                <label class="allergy-label-item"><input type="checkbox" value="gluten" class="allergen-chk">🌾 Wheat / Gluten Content</label>
+                <label class="allergy-label-item"><input type="checkbox" value="shellfish" class="allergen-chk">🦀 Seafood / Shellfish Vectors</label>
             </div>
-            <button class="btn-checkout" onclick="applyAllergenSafetyProfilesFilters()">Save Profile
-                Configuration</button>
+            <button class="btn-checkout" onclick="applyAllergenSafetyProfilesFilters()">Save Profile Configuration</button>
         </div>
     </div>
 
@@ -657,17 +616,10 @@
             <h3>Order Served Successfully!</h3>
             <p style="font-size:0.8rem; color:var(--text-muted); margin-top:0.4rem;">Please rate your experience:</p>
             <div class="rating-stars" id="foodStars">
-                <span class="star" onclick="setRating('food', 1)">★</span><span class="star"
-                    onclick="setRating('food', 2)">★</span><span class="star"
-                    onclick="setRating('food', 3)">★</span><span class="star"
-                    onclick="setRating('food', 4)">★</span><span class="star" onclick="setRating('food', 5)">★</span>
+                <span class="star" onclick="setRating('food', 1)">★</span><span class="star" onclick="setRating('food', 2)">★</span><span class="star" onclick="setRating('food', 3)">★</span><span class="star" onclick="setRating('food', 4)">★</span><span class="star" onclick="setRating('food', 5)">★</span>
             </div>
             <div class="rating-stars" id="serviceStars">
-                <span class="star" onclick="setRating('service', 1)">★</span><span class="star"
-                    onclick="setRating('service', 2)">★</span><span class="star"
-                    onclick="setRating('service', 3)">★</span><span class="star"
-                    onclick="setRating('service', 4)">★</span><span class="star"
-                    onclick="setRating('service', 5)">★</span>
+                <span class="star" onclick="setRating('service', 1)">★</span><span class="star" onclick="setRating('service', 2)">★</span><span class="star" onclick="setRating('service', 3)">★</span><span class="star" onclick="setRating('service', 4)">★</span><span class="star" onclick="setRating('service', 5)">★</span>
             </div>
             <textarea id="feedbackComments" rows="3" placeholder="Any comments for administration?"></textarea>
             <button class="btn-checkout" onclick="dispatchFeedbackMatrix()">Submit Core Review Package</button>
@@ -678,6 +630,7 @@
         import * as THREE from 'three';
         import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
+        // Bind lifecycle callbacks seamlessly onto global namespaces tracks
         window.filterMenuCategory = filterMenuCategory;
         window.toggleAllergenSetupModal = toggleAllergenSetupModal;
         window.applyAllergenSafetyProfilesFilters = applyAllergenSafetyProfilesFilters;
@@ -688,6 +641,10 @@
         window.submitActiveOrder = submitActiveOrder;
         window.setRating = setRating;
         window.dispatchFeedbackMatrix = dispatchFeedbackMatrix;
+        
+        // 🟩 GLOBAL INTERFACE BOUNDARIES MAPPINGS FOR SINGLE PREVIEW PORTAL CONTROLS
+        window.openVolumetric3DViewer = openVolumetric3DViewer;
+        window.closeVolumetric3DViewer = closeVolumetric3DViewer;
 
         const urlParams = new URLSearchParams(window.location.search);
         const tenantId = urlParams.get('restaurant_id') || '1';
@@ -708,20 +665,21 @@
         let currentActiveFilterMode = "all";
         let selectedMultiBellOptionsCache = {};
 
-        let mainRenderer, mainScene, mainCamera, gltfLoader;
-        let activeVirtualScenesMap = new Map();
+        // 🟩 EXTREMELY STABLE CENTRAL CANVAS SYSTEM STATE MEMORY ARRAYS
+        let mainRenderer, activeModelScene, mainCamera, gltfLoader;
+        let currentLoadedMeshInstance = null;
+        let isUserDraggingModel = false;
+        let prevMousePositionX = 0;
+        let prevMousePositionY = 0;
+        let modelRotationAngleY = 0;
+        let modelRotationAngleX = 0;
 
-        // 🟩 NETWORK OPTIMIZATION: Prevent reconnection loop spikes on mobile devices
+        // Optimized socket layer configuration profile targeting mobile devices stability
         const socket = io({
             transports: ['websocket', 'polling'],
             autoConnect: true,
-            reconnectionAttempts: 5, // Stop spamming if the connection drops
+            reconnectionAttempts: 5,
             timeout: 10000
-        });
-
-        // Debug logger to trace network states without locking up the CPU
-        socket.on('connect_error', (err) => {
-            console.warn("Network Handshake Deferred: ", err.message);
         });
 
         function filterMenuCategory(category, element) {
@@ -740,7 +698,7 @@
                 const dishRes = await fetch('/api/dishes?restaurant_id=' + tenantId);
                 const rawData = await dishRes.json();
 
-                rawDatabaseDishesCache = rawData.map((dish, index) => {
+                rawDatabaseDishesCache = rawData.map((dish) => {
                     let discountRate = parseInt(dish.specialties) || 0;
                     let isPromoItem = dish.is_promo === 1 ? 1 : 0;
                     let assignedAllergensList = dish.allergens && dish.allergens !== 'none' ? dish.allergens.split(',') : [];
@@ -781,7 +739,6 @@
                 document.getElementById('assistantTitleLabel').innerText = "🛎️ Hospitality Service Hub";
                 document.getElementById('label-waiter').innerText = "Housekeeping";
                 document.getElementById('icon-waiter').innerText = "🧹";
-                if (document.getElementById('opt-waiter')) window.toggleQuickNeedListItem('opt-waiter', 'Room Housekeeping Request');
             } else if (venueClassificationMode === 'CAFE') {
                 document.getElementById('restaurantName').innerText = "Bistro & Espresso Cafe Bar Terminal";
                 document.getElementById('systemHeader').innerText = "Digital Lounge Smart Counter Directory";
@@ -807,17 +764,15 @@
                     <div class="promo-card" style="margin-bottom:0.6rem;">
                         <div class="promo-tag">✨ Recommended Selection</div>
                         <h3 style="font-size: 1.1rem; color: white; font-weight:700;">${dish.name}</h3>
-                        <p style="color: var(--primary); font-weight: 600; margin-top:0.2rem; font-size:0.9rem;">Interact with the full volumetric 3D file on the menu catalog grid below!</p>
+                        <p style="color: var(--primary); font-weight: 600; margin-top:0.2rem; font-size:0.9rem;">Tap the View 3D Model button on its card down inside grid below to interact!</p>
                     </div>
                 `;
             });
         }
 
-        // 🟩 SYSTEM UPGRADE: MEMORY-SAFE GRID MANAGER FOR MOBILE PHONES
         function renderMenuDisplayGrid() {
             const grid = document.getElementById('masterMenuGrid');
             grid.innerHTML = '';
-            activeVirtualScenesMap.clear();
 
             let outputTargetList = rawDatabaseDishesCache.filter(dish => {
                 if (currentActiveFilterMode === 'all') return true;
@@ -827,7 +782,7 @@
             });
 
             if (!outputTargetList.length) {
-                grid.innerHTML = '<p style="color:var(--text-muted); text-align:center; padding:2rem; width:100%;">No assets match your active catalog layout category filter states.</p>';
+                grid.innerHTML = '<p style="color:var(--text-muted); text-align:center; padding:2rem; width:100%;">No assets match your active filter profile states.</p>';
                 return;
             }
 
@@ -839,220 +794,175 @@
 
                 let currentAddedQuantityCount = cart.filter(item => item.name === dish.name).length;
                 let addBtnLabelStringText = currentAddedQuantityCount > 0 ? `Add (${currentAddedQuantityCount}) +` : 'Add +';
-                let canvasContainerId = `threed-placeholder-${dish.id}`;
 
+                // 🟩 SYSTEM UPGRADE: Cards now render lightweight action selectors, skipping heavy inline scroll viewports
                 grid.innerHTML += `
                     <div class="dish-card ${criticalCardWarningCSSClass}">
-                        <div class="dish-main-row">
-                            <div>
+                        <div class="dish-main-row" style="align-items: center; gap: 1rem;">
+                            <div style="flex: 1;">
                                 <div class="diet-indicator ${classificationCSSSelector}"></div>
                                 <h3 class="dish-title">${dish.name}</h3>
                                 <p class="dish-price">₹${dish.price} ${dish.original_price_label || ''}</p>
                                 <div class="allergen-alert-strip">${technicalAllergenBadgesHTML}</div>
                                 <p class="danger-allergen-banner">⚠️ Warning: Matches Active Allergy Configuration Profile!</p>
                             </div>
-                            <button class="btn-add-tray" id="add-btn-${dish.id}" onclick="addToCartTray('${dish.name.replace(/'/g, "\\'")}', ${dish.price}, ${dish.id})">${addBtnLabelStringText}</button>
-                        </div>
-                        <div class="threed-viewport-placeholder" id="${canvasContainerId}" data-model-path="${dish.graphic_3d_asset}">
-                            <div class="threed-badge">🕹️ Click & Drag to Rotate 3D Spatial File</div>
+                            <div style="display: flex; flex-direction: column; gap: 0.6rem; min-width: 120px; align-items: flex-end;">
+                                <button class="btn-add-tray" id="add-btn-${dish.id}" onclick="addToCartTray('${dish.name.replace(/'/g, "\\'")}', ${dish.price}, ${dish.id})">${addBtnLabelStringText}</button>
+                                <button class="btn-add-tray" style="background: transparent; color: var(--primary); border: 1px solid var(--primary); font-size: 0.75rem; padding: 0.35rem 0.7rem;" onclick="openVolumetric3DViewer('${dish.graphic_3d_asset}', '${dish.name.replace(/'/g, "\\'")}', ${dish.price}, ${dish.id})">🔍 View 3D Model</button>
+                            </div>
                         </div>
                     </div>
                 `;
-
-                // WE KEEP modelPath NULL AT START TO PREVENT IMMEDATE LOADING OVERLOAD
-                activeVirtualScenesMap.set(canvasContainerId, {
-                    modelPath: dish.graphic_3d_asset,
-                    threeMeshScene: null,
-                    rotationY: 0,
-                    rotationX: 0,
-                    isDragging: false,
-                    previousMouseX: 0,
-                    previousMouseY: 0,
-                    listenersBound: false // Track listeners to avoid duplicating them
-                });
             });
         }
 
-        // 🟩 BLUEPRINT FIX: Mobile Fail-Safe WebGL Engine Initialization
+        // 🟩 HIGH QUALITY SINGLE PIPELINE STORAGE INITIALIZATION CONTROLS
         function initMasterSharedWebGLContext() {
             const canvasElementNode = document.getElementById('masterThreeCanvas');
-            if (!canvasElementNode) {
-                console.error("Critical: Shared canvas layout token missing.");
+            if (!canvasElementNode) return;
+
+            mainRenderer = new THREE.WebGLRenderer({ canvas: canvasElementNode, antialias: false, alpha: true, precision: "mediump" });
+            mainRenderer.setPixelRatio(1);
+            
+            activeModelScene = new THREE.Scene();
+            
+            const ambLight = new THREE.AmbientLight('#ffffff', 1.5);
+            activeModelScene.add(ambLight);
+
+            const dirLight = new THREE.DirectionalLight('#ffffff', 1.8);
+            dirLight.position.set(3, 5, 3);
+            activeModelScene.add(dirLight);
+
+            mainCamera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+            mainCamera.position.set(0, 1.2, 3.2);
+            gltfLoader = new GLTFLoader();
+
+            // Register spatial interaction touch movement controls once globally
+            bindGlobalDragInteractionListeners();
+        }
+
+        function bindGlobalDragInteractionListeners() {
+            const container = document.getElementById('canvasModalAnchorContainer');
+            
+            const startDrag = (clientX, clientY) => {
+                isUserDraggingModel = true;
+                prevMousePositionX = clientX;
+                prevMousePositionY = clientY;
+            };
+
+            const moveDrag = (clientX, clientY) => {
+                if (!isUserDraggingModel || !currentLoadedMeshInstance) return;
+                const deltaX = clientX - prevMousePositionX;
+                const deltaY = clientY - prevMousePositionY;
+
+                modelRotationAngleY += deltaX * 0.008;
+                modelRotationAngleX += deltaY * 0.008;
+
+                prevMousePositionX = clientX;
+                prevMousePositionY = clientY;
+            };
+
+            container.addEventListener('mousedown', (e) => startDrag(e.clientX, e.clientY));
+            container.addEventListener('touchstart', (e) => { if(e.touches.length === 1) startDrag(e.touches[0].clientX, e.touches[0].clientY); }, {passive: true});
+
+            window.addEventListener('mousemove', (e) => moveDrag(e.clientX, e.clientY));
+            window.addEventListener('touchmove', (e) => { if(e.touches.length === 1) moveDrag(e.touches[0].clientX, e.touches[0].clientY); }, {passive: true});
+
+            window.addEventListener('mouseup', () => { isUserDraggingModel = false; });
+            window.addEventListener('touchend', () => { isUserDraggingModel = false; });
+        }
+
+        // 🟩 LIGHTWEIGHT TARGET HANDLERS FOR LOAD ON ACTION TRIGGERS
+        function openVolumetric3DViewer(assetPath, name, price, dishId) {
+            document.getElementById('modalDishTitle').innerText = name;
+            
+            const modalBtn = document.getElementById('modalOrderBtn');
+            modalBtn.onclick = () => {
+                addToCartTray(name, price, dishId);
+                closeVolumetric3DViewer();
+            };
+
+            const modalWindow = document.getElementById('volumetricPreviewModal');
+            modalWindow.style.display = 'flex';
+
+            // Clear any lingering assets completely out of memory before spawning a new one
+            if (currentLoadedMeshInstance) activeModelScene.remove(currentLoadedMeshInstance);
+
+            if (!assetPath || assetPath === '') {
+                loadGeometryErrorPlaceholder();
                 return;
             }
 
-            try {
-                // Initialize the renderer with low-power configurations suited for mobile devices
-                mainRenderer = new THREE.WebGLRenderer({
-                    canvas: canvasElementNode,
-                    antialias: false,
-                    alpha: true,
-                    powerPreference: "low-power",
-                    precision: "mediump" // Lowers shader precision to completely stop mobile heating
-                });
+            gltfLoader.load(assetPath, (gltf) => {
+                currentLoadedMeshInstance = gltf.scene;
+                
+                const bBox = new THREE.Box3().setFromObject(currentLoadedMeshInstance);
+                const center = bBox.getCenter(new THREE.Vector3());
+                
+                // Align model pivot coordinates directly onto world scene center vectors matrix
+                currentLoadedMeshInstance.position.x += (0) - center.x;
+                currentLoadedMeshInstance.position.y += (0) - center.y;
+                currentLoadedMeshInstance.position.z += (0) - center.z;
 
-                mainRenderer.setPixelRatio(1);
-                mainRenderer.shadowMap.enabled = false;
-                mainRenderer.setScissorTest(true);
+                activeModelScene.add(currentLoadedMeshInstance);
+                modelRotationAngleX = 0;
+                modelRotationAngleY = 0;
+            }, undefined, (err) => {
+                loadGeometryErrorPlaceholder();
+            });
+        }
 
-                mainCamera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 100);
-                mainCamera.position.set(0, 1.2, 3.0);
-                gltfLoader = new GLTFLoader();
-
-            } catch (webglError) {
-                console.error("Hardware Context Rejected. Switching to standard layout fallback mode.", webglError);
-                mainRenderer = null; // Safety latch to prevent rendering crashes downstream
+        function closeVolumetric3DViewer() {
+            document.getElementById('volumetricPreviewModal').style.display = 'none';
+            if (currentLoadedMeshInstance) {
+                activeModelScene.remove(currentLoadedMeshInstance);
+                currentLoadedMeshInstance = null;
             }
         }
 
-        function bindPlaceholderInteractionListeners(containerId) {
-            const el = document.getElementById(containerId);
-            if (!el) return;
-
-            const trackingState = activeVirtualScenesMap.get(containerId);
-
-            el.addEventListener('mousedown', (e) => {
-                trackingState.isDragging = true;
-                trackingState.previousMouseX = e.clientX;
-                trackingState.previousMouseY = e.clientY;
-            });
-
-            el.addEventListener('touchstart', (e) => {
-                if (e.touches.length === 1) {
-                    trackingState.isDragging = true;
-                    trackingState.previousMouseX = e.touches[0].clientX;
-                    trackingState.previousMouseY = e.touches[0].clientY;
-                }
-            }, { passive: true });
-
-            window.addEventListener('mousemove', (e) => {
-                if (!trackingState.isDragging) return;
-                const deltaX = e.clientX - trackingState.previousMouseX;
-                const deltaY = e.clientY - trackingState.previousMouseY;
-
-                trackingState.rotationY += deltaX * 0.007;
-                trackingState.rotationX += deltaY * 0.007;
-
-                trackingState.previousMouseX = e.clientX;
-                trackingState.previousMouseY = e.clientY;
-            });
-
-            window.addEventListener('touchmove', (e) => {
-                if (!trackingState.isDragging || e.touches.length !== 1) return;
-                const deltaX = e.touches[0].clientX - trackingState.previousMouseX;
-                const deltaY = e.touches[0].clientY - trackingState.previousMouseY;
-
-                trackingState.rotationY += deltaX * 0.009;
-                trackingState.rotationX += deltaY * 0.009;
-
-                trackingState.previousMouseX = e.touches[0].clientX;
-                trackingState.previousMouseY = e.touches[0].clientY;
-            }, { passive: true });
-
-            window.addEventListener('mouseup', () => { trackingState.isDragging = false; });
-            window.addEventListener('touchend', () => { trackingState.isDragging = false; });
+        function loadGeometryErrorPlaceholder() {
+            const errorGeometry = new THREE.ConeGeometry(0.5, 0.9, 4);
+            const errorMaterial = new THREE.MeshBasicMaterial({ color: '#C5A880', wireframe: true });
+            currentLoadedMeshInstance = new THREE.Mesh(errorGeometry, errorMaterial);
+            activeModelScene.add(currentLoadedMeshInstance);
         }
 
-        // 🟩 BLUEPRINT FIX: Crash-Protected Non-Blocking Execution Loop
-        // 🟩 PERFORMANCE RESTORE: Ultra-lightweight scroll loop for mobile devices
+        // 🟩 DEDICATED GRAPHICS RENDER LOOP TICK CONTROL PIPELINE
         function executeMasterRenderTickLoop() {
             requestAnimationFrame(executeMasterRenderTickLoop);
 
-            if (!mainRenderer) return;
+            const modalWindow = document.getElementById('volumetricPreviewModal');
+            if (!modalWindow || modalWindow.style.display === 'none') return;
 
-            const width = window.innerWidth;
-            const height = window.innerHeight;
-            if (mainRenderer.domElement.width !== width || mainRenderer.domElement.height !== height) {
-                mainRenderer.setSize(width, height, false);
+            const container = document.getElementById('canvasModalAnchorContainer');
+            if (!container) return;
+
+            const rectBounds = container.getBoundingClientRect();
+            const width = rectBounds.width;
+            const height = rectBounds.height;
+
+            if (mainRenderer.domElement.width !== window.innerWidth || mainRenderer.domElement.height !== window.innerHeight) {
+                mainRenderer.setSize(window.innerWidth, window.innerHeight, false);
             }
 
-            mainRenderer.setClearColor(0x000000, 0);
-            mainRenderer.setScissor(0, 0, width, height);
-            mainRenderer.setViewport(0, 0, width, height);
-            mainRenderer.clear();
+            const webglBottomY = window.innerHeight - rectBounds.bottom;
+            mainRenderer.setScissor(rectBounds.left, webglBottomY, width, height);
+            mainRenderer.setViewport(rectBounds.left, webglBottomY, width, height);
+            mainRenderer.setScissorTest(true);
 
-            activeVirtualScenesMap.forEach((sceneState, containerId) => {
-                const elementNodeBox = document.getElementById(containerId);
-                if (!elementNodeBox) return;
+            mainCamera.aspect = width / height;
+            mainCamera.updateProjectionMatrix();
 
-                const rectBounds = elementNodeBox.getBoundingClientRect();
+            if (currentLoadedMeshInstance) {
+                currentLoadedMeshInstance.rotation.y = modelRotationAngleY;
+                currentLoadedMeshInstance.rotation.x = modelRotationAngleX;
 
-                // 1. HARD LIMIT CHECK: If the 3D card is off-screen by even 1 pixel, completely bypass it!
-                if (rectBounds.bottom < 0 || rectBounds.top > height || rectBounds.right < 0 || rectBounds.left > width) {
-                    return;
+                if (!isUserDraggingModel) {
+                    modelRotationAngleY += 0.005; // Auto-orbit smoothly when untouched
                 }
+            }
 
-                // 2. CARD IS CENTERED: Safe connect interaction mechanics
-                if (!sceneState.listenersBound) {
-                    bindPlaceholderInteractionListeners(containerId);
-                    sceneState.listenersBound = true;
-                }
-
-                // 3. LAZY ENGINE FETCH: Fetch the .glb file ONLY for this specific card
-                if (!sceneState.threeMeshScene) {
-                    if (sceneState.modelPath && sceneState.modelPath !== '') {
-                        lazyLoadAsset3DGeometryMesh(containerId, sceneState);
-                    }
-                    return;
-                }
-
-                const webglBottomY = height - rectBounds.bottom;
-                const elementWidthX = rectBounds.right - rectBounds.left;
-                const elementHeightY = rectBounds.bottom - rectBounds.top;
-
-                mainRenderer.setScissor(rectBounds.left, webglBottomY, elementWidthX, elementHeightY);
-                mainRenderer.setViewport(rectBounds.left, webglBottomY, elementWidthX, elementHeightY);
-
-                mainCamera.aspect = elementWidthX / elementHeightY;
-                mainCamera.updateProjectionMatrix();
-
-                if (sceneState.threeMeshScene) {
-                    sceneState.threeMeshScene.rotation.y = sceneState.rotationY;
-                    sceneState.threeMeshScene.rotation.x = sceneState.rotationX;
-
-                    if (!sceneState.isDragging) {
-                        sceneState.rotationY += 0.004;
-                    }
-                }
-
-                mainRenderer.render(sceneState.threeMeshScene, mainCamera);
-            });
-        }
-
-        function lazyLoadAsset3DGeometryMesh(containerId, stateObjectRef) {
-            const isolatedScene = new THREE.Scene();
-            isolatedScene.background = null;
-
-            const ambLight = new THREE.AmbientLight('#ffffff', 1.4);
-            isolatedScene.add(ambLight);
-
-            const dirLight = new THREE.DirectionalLight('#ffffff', 1.6);
-            dirLight.position.set(4, 6, 4);
-            isolatedScene.add(dirLight);
-
-            gltfLoader.load(
-                stateObjectRef.modelPath,
-                (gltf) => {
-                    const modelRootMesh = gltf.scene;
-                    const bBox = new THREE.Box3().setFromObject(modelRootMesh);
-                    const center = bBox.getCenter(new THREE.Vector3());
-
-                    modelRootMesh.position.x += (0) - center.x;
-                    modelRootMesh.position.y += (0) - center.y;
-                    modelRootMesh.position.z += (0) - center.z;
-
-                    isolatedScene.add(modelRootMesh);
-                    stateObjectRef.threeMeshScene = isolatedScene;
-                },
-                undefined,
-                (err) => {
-                    const errorGeometry = new THREE.ConeGeometry(0.6, 1.0, 4);
-                    const errorMaterial = new THREE.MeshBasicMaterial({ color: '#C5A880', wireframe: true });
-                    const errorMesh = new THREE.Mesh(errorGeometry, errorMaterial);
-                    isolatedScene.add(errorMesh);
-                    stateObjectRef.threeMeshScene = isolatedScene;
-                }
-            );
+            mainRenderer.render(activeModelScene, mainCamera);
         }
 
         function toggleAllergenSetupModal(visible) {
@@ -1171,7 +1081,7 @@
         function setRating(type, val) {
             ratings[type] = val;
             const stars = document.querySelectorAll(`#${type}Stars .star`);
-            stars.forEach((s, idx) => { stars.classList.toggle('selected', idx < val); });
+            stars.forEach((s, idx) => { s.classList.toggle('selected', idx < val); });
         }
 
         async function dispatchFeedbackMatrix() {
@@ -1183,16 +1093,14 @@
             document.getElementById('feedbackNode').classList.remove('active');
         }
 
-        // 🟩 LIFECYCLE OPTIMIZATION: Prioritize 3D assets rendering over background service registration
         window.onload = () => {
-            // First, run the core 3D application initialization
             initializeApp();
 
-            // Delay background PWA worker tasks by 3 seconds to let mobile RAM stabilize
+            // Delay background PWA Service worker worker setups by 3s to shield mobile phone boot memory
             setTimeout(() => {
                 if ('serviceWorker' in navigator) {
                     navigator.serviceWorker.register('/sw.js')
-                        .then((registration) => { console.log('Mesa PWA Scope Active Link:', registration.scope); })
+                        .then((registration) => { console.log('Mesa PWA Scope Link:', registration.scope); })
                         .catch((error) => { console.error('Mesa PWA Fault:', error); });
                 }
             }, 3000);
