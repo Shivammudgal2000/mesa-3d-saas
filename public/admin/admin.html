@@ -1155,11 +1155,19 @@
 
         async function syncAdminData() {
             try {
+                // Fetch out raw chefs profiles array data structures safely from network ports
                 const chefRes = await fetch('/api/chefs?restaurant_id=' + tenantId);
-                liveEnrolledChefsList = await chefRes.json();
+
+                // 🟩 FIXED: Verifies response status code properties before attempting to write memory maps
+                if (chefRes.ok) {
+                    const parsedChefsPayload = await chefRes.json();
+                    // Fallback to empty array if the server returns an object instead of a roster list array
+                    liveEnrolledChefsList = Array.isArray(parsedChefsPayload) ? parsedChefsPayload : [];
+                } else {
+                    liveEnrolledChefsList = [];
+                }
 
                 const dishRes = await fetch('/api/dishes?restaurant_id=' + tenantId);
-                const dishes = await dishRes.json();
                 const menuBody = document.getElementById('menuTableBody');
 
                 if (menuBody) {
@@ -1395,27 +1403,42 @@
             } catch (e) { alert("Network Connection Fault."); }
         }
 
-        async function addChefProfile(e) {
-            e.preventDefault();
-            try {
-                const chefPhotoFieldNode = document.getElementById('chefPhotoFile');
-                if (!chefPhotoFieldNode.files.length) return alert("Attach a valid photo file image element context first.");
+        window.addChefProfile = async function (e) {
+            if (e) e.preventDefault();
 
+            const nameField = document.getElementById('chefName').value.trim();
+            const specialtyField = document.getElementById('chefSpecialty').value.trim();
+            const expField = document.getElementById('chefExp').value.trim();
+            const chefPhotoFieldNode = document.getElementById('chefPhotoFile');
+
+            if (!nameField || !specialtyField || !expField || !chefPhotoFieldNode.files.length) {
+                alert("⚠️ Validation Failure: Please complete all profile fields and attach an avatar image.");
+                return false;
+            }
+
+            try {
                 const multipartFormBuilder = new FormData();
                 multipartFormBuilder.append('restaurant_id', parseInt(tenantId));
-                multipartFormBuilder.append('name', document.getElementById('chefName').value);
-                multipartFormBuilder.append('specialties', document.getElementById('chefSpecialty').value);
-                multipartFormBuilder.append('experience', document.getElementById('chefExp').value);
+                multipartFormBuilder.append('name', nameField);
+                multipartFormBuilder.append('specialties', specialtyField);
+                multipartFormBuilder.append('experience', expField);
                 multipartFormBuilder.append('chefPhotoFile', chefPhotoFieldNode.files[0]);
 
                 const response = await fetch('/api/chefs/add', { method: 'POST', body: multipartFormBuilder });
-                if ((await response.json()).success) {
-                    alert("👨‍🍳 New operational personnel profile entry written successfully into relational space models registers data tracks!");
+                const data = await response.json();
+
+                if (data.success) {
+                    alert("🎉 Success! New personnel profile written smoothly to operational rosters rows.");
                     document.getElementById('chefForm').reset();
                     await syncAdminData();
+                } else {
+                    alert("❌ Server Error: " + (data.error || "Profile registry rejected."));
                 }
-            } catch (err) { alert("Upload execution engine pipeline fault."); }
-        }
+            } catch (err) {
+                alert("❌ Upload Ingestion Pipeline Error: Network connection stream interrupted.");
+            }
+            return false;
+        };
 
         function adminPipelineOverride(orderId, targetStatus) {
             let backupChefId = liveEnrolledChefsList.length ? liveEnrolledChefsList[0].id : 1;
