@@ -707,7 +707,7 @@
                         <button type="button" class="btn-action"
                             style="background: transparent; border: 1px solid var(--primary); color: var(--primary);"
                             onclick="stageDishLocallyForBatchProcessing()">➕ Add More Dishes</button>
-                        
+
                 </form>
 
                 <div id="stagedDishesWrapper"
@@ -744,43 +744,55 @@
 
             <!-- PANEL SECTION 4: chef register -->
             <div id="section-chefs" class="panel-section">
-                <h3>Add Chef</h3>
-                <form class="form-grid" id="chefForm" onsubmit="addChefProfile(event)" enctype="multipart/form-data">
+                <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: var(--primary);">👨‍🍳
+                    REGISTER NEW OPERATIONAL PERSONNEL PROFILE</h3>
+
+                <form class="form-grid" id="chefForm" onsubmit="addChefProfile(event)" enctype="multipart/form-data"
+                    style="margin-bottom: 2.5rem;">
                     <div class="input-block">
                         <label>Full Name</label>
                         <input type="text" id="chefName" placeholder="e.g., Master Chef Shivam" required>
                     </div>
                     <div class="input-block">
                         <label>Specialization</label>
-                        <input type="text" id="chefSpecialty" placeholder="e.g., Saucier(Sauce Chef)" required>
+                        <input type="text" id="chefSpecialty" placeholder="e.g., Saucier (Sauce Specialist)" required>
                     </div>
                     <div class="input-block">
-                        <label>Experience</label>
+                        <label>Experience Profile</label>
                         <input type="text" id="chefExp" placeholder="e.g., 8+ Years Luxury Hospitality" required>
                     </div>
                     <div class="input-block">
-                        <label>Upload Profile Photo</label>
+                        <label>Upload Profile Photo Image</label>
                         <input type="file" id="chefPhotoFile" accept="image/*" required style="padding:0.45rem;">
                     </div>
-                    <button type="submit" class="btn-action">Add Chef</button>
+                    <div style="grid-column: 1 / -1; display: flex; justify-content: flex-end; margin-top: 0.5rem;">
+                        <button type="submit" class="btn-action"
+                            style="background: var(--primary); color: var(--bg-dark);">Add Operational Chef</button>
+                    </div>
                 </form>
 
-                <h3>Active Operational Chefs</h3>
+                <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: white;">📋 ACTIVE
+                    OPERATIONAL PERSONNEL ROSTER</h3>
                 <table>
                     <thead>
                         <tr>
-                            <th>ID</th>
-                            <th>Personal Identity Photo</th>
+                            <th style="width: 80px;">ID</th>
+                            <th style="width: 100px; text-align: center;">Avatar</th>
                             <th>Full Name</th>
-                            <th>Specialty</th>
-                            <th>Experience Profile</th>
-                            <th style="text-align: right;">Operations Controls</th>
+                            <th>Specialty Track</th>
+                            <th>Experience Metrics</th>
+                            <th style="text-align: right; width: 150px;">Operational Controls</th>
                         </tr>
                     </thead>
-                    <tbody id="chefsTableBody"></tbody>
+                    <tbody id="chefsTableBody">
+                        <tr>
+                            <td colspan="6" style="text-align:center; color:var(--text-muted); padding: 2rem;">
+                                Awaiting database connectivity pipeline streams...
+                            </td>
+                        </tr>
+                    </tbody>
                 </table>
             </div>
-
             <!-- PANEL SECTION 5: FEEDBACK ALERTS LOOP STREAM -->
             <div id="section-feedback" class="panel-section">
                 <h3>Activity</h3>
@@ -1186,7 +1198,7 @@
                         // Safe fallback links if image pathways parameters are missing
                         const verifiedAvatarUrlString = c.photo_url ? c.photo_url : 'https://img.icons8.com/color/100/chef-hat.png';
                         const renderedImageMarkupHTML = `<img src="${verifiedAvatarUrlString}" style="width:35px; height:35px; border-radius:50%; object-fit:cover; border:1px solid var(--border); display: inline-block; vertical-align: middle;">`;
-                        
+
                         chefBody.innerHTML += `
                             <tr id="chef-row-${c.id}">
                                 <td>#${c.id}</td>
