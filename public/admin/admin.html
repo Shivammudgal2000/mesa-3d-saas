@@ -707,7 +707,7 @@
                         <button type="button" class="btn-action"
                             style="background: transparent; border: 1px solid var(--primary); color: var(--primary);"
                             onclick="stageDishLocallyForBatchProcessing()">➕ Add More Dishes</button>
-
+                    </div>
                 </form>
 
                 <div id="stagedDishesWrapper"
@@ -1019,6 +1019,7 @@
             // Fire updates automatically on active insight windows refreshes transitions
             if (targetKey === 'dashboard') syncPopularityAnalytics();
             if (targetKey === 'floor') compileFloorTileGridVisualLayout();
+            if (targetKey === 'chefs') syncAdminData();
         }
 
         // Helper Method: Handles enterprise white-label translation overrides across all text containers layers elements
