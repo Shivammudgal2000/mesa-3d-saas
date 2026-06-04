@@ -706,10 +706,8 @@
                         style="display: flex; gap: 1rem; grid-column: 1 / -1; justify-content: flex-end; margin-top: 0.5rem;">
                         <button type="button" class="btn-action"
                             style="background: transparent; border: 1px solid var(--primary); color: var(--primary);"
-                            onclick="stageDishLocallyForBatchProcessing()">➕ Stage Dish to Batch List</button>
-                        <button type="button" class="btn-action" onclick="addDishCardManual()">Instant Single
-                            Upload</button>
-                    </div>
+                            onclick="stageDishLocallyForBatchProcessing()">➕ Add More Dishes</button>
+                        
                 </form>
 
                 <div id="stagedDishesWrapper"
@@ -1312,10 +1310,19 @@
                 batchFormData.append('dish3DFile', dish.binaryFileBlob);
                 try {
                     const response = await fetch('/api/dishes/add', { method: 'POST', body: batchFormData });
+
+                    // 🟩 FIX: Verifies content packet type header metadata BEFORE executing parsing routines
+                    const responseContentTypeString = response.headers.get("content-type") || "";
+
+                    if (!responseContentTypeString.includes("application/json")) {
+                        const failureHTMLTextPayload = await response.text();
+                        throw new Error(`Server returned HTML instead of JSON. Ensure file is under 30MB. Details: ${failureHTMLTextPayload.substring(0, 100)}...`);
+                    }
+
                     const data = await response.json();
-                    if (!data.success) throw new Error("Staging rejected by server network ports.");
+                    if (!data.success) throw new Error(data.error || "Staging rejected by server network ports.");
                 } catch (err) {
-                    alert(`⚠️ Batch Error on "${dish.name}": ` + err.message);
+                    alert(`❌ Batch Upload Stopped on item "${dish.name}": ` + err.message);
                     return;
                 }
             }
