@@ -4,8 +4,8 @@ const CACHE_NAME_TOKEN = 'mesa3d-core-v2';
 // Core static script infrastructure targets assets to lock locally in mobile memory storage
 const STATIC_ASSETS_TO_CACHE = [
     '/customer/index.html',
-    '/admin/index.html',
-    '/kitchen/index.html',
+    '/admin/admin.html',
+    '/kitchen/kitchen.html',
     '/manifest.json'
 ];
 
