@@ -724,7 +724,6 @@
                             System</button>
                     </div>
                 </div>
-                </form>
 
                 <h3>Active Menu Catalogs</h3>
                 <table>
@@ -1167,7 +1166,10 @@
                     liveEnrolledChefsList = [];
                 }
 
+                // 🟩 FIXED: Fetches and cleanly parses the dishes payload array to prevent initialization crashes
                 const dishRes = await fetch('/api/dishes?restaurant_id=' + tenantId);
+                const dishes = dishRes.ok ? await dishRes.json() : [];
+
                 const menuBody = document.getElementById('menuTableBody');
 
                 if (menuBody) {
