@@ -197,7 +197,7 @@ app.get('/api/dishes', async (req, res) => {
         // Enforce the tracking query value to always read as a true base-10 integer!
         const rid = parseInt(req.query.restaurant_id) || 1;
 
-        const items = await db.all('SELECT * FROM dishes WHERE restaurant_id = ?', [rid]);
+        const items = await db.all('SELECT id, restaurant_id, name, price, image_url, is_promo, dietary_type, allergens, specialties AS offer_percentage FROM dishes WHERE restaurant_id = ?', [rid]);
         res.json(items);
     } catch (err) {
         res.status(500).json([]);
