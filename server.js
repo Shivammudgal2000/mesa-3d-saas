@@ -381,7 +381,7 @@ app.post('/api/chefs/delete', async (req, res) => {
     }
 });
 
-// API Endpoint 11: Closed-Loop Reviews Receiver Node - Ingests score matrices metrics parameters and alerts workspace listeners
+// 🟩 SYSTEM FIX: Self-contained referencing loop preventing Express runtime crashes
 app.post('/api/feedback', async (req, res) => {
     try {
         const { restaurant_id, order_id, food_rating, service_rating, comments, chef_id } = req.body;
@@ -392,15 +392,29 @@ app.post('/api/feedback', async (req, res) => {
             [rid, order_id, food_rating, service_rating, comments, chef_id]
         );
 
-        // Broadcast review scores package instantly to connected workspace manager view modules tabs panels screens channels
-        io.to(`restaurant_${rid}`).emit('incoming_feedback', {
-            id: result.lastID, order_id, food_rating, service_rating, comments, chef_id
-        });
+        const feedbackPayload = {
+            id: result.lastID,
+            order_id: parseInt(order_id),
+            food_rating: parseInt(food_rating),
+            service_rating: parseInt(service_rating),
+            comments: comments,
+            chef_id: chef_id
+        };
+
+        // Uses the active server reference attached securely to the application context layer
+        const socketEngine = req.app.get('io') || io;
+        if (socketEngine) {
+            socketEngine.to(`workspace_${rid}`).emit('incoming_feedback', feedbackPayload);
+        }
+
         res.json({ success: true });
     } catch (err) {
         res.status(500).json({ success: false, error: err.message });
     }
 });
+
+// Pass the instance mapping configuration right below your Server instantiation (Line 38)
+app.set('io', io);
 
 // API Endpoint 12: System Tenants Index Resolver Map List Node - Dispatches baseline system listings data
 app.get('/api/tenants', async (req, res) => {
@@ -410,15 +424,16 @@ app.get('/api/tenants', async (req, res) => {
 
 
 // =================================================================================
-//             REAL-TIME WEBSOCKET (SOCKET.IO) CHANNEL COMMUNICATION CHANNELS
+//            REAL-TIME WEBSOCKET (SOCKET.IO) CHANNEL COMMUNICATION CHANNELS
 // =================================================================================
 io.on('connection', (socket) => {
 
     // Channel Action 1: Synchronizes panel view terminals to an isolated workspace room container partition
     socket.on('join_workspace', ({ restaurantId }) => {
         const rid = restaurantId || 1;
-        socket.join(`restaurant_${rid}`); // Join designated communication pipeline path room cluster
-        console.log(`Socket synchronized to room channel pipeline matrix point: restaurant_${rid}`);
+        // 🟩 FIXED: Changed room name string pattern to 'workspace_' to sync with frontend listeners
+        socket.join(`workspace_${rid}`);
+        console.log(`[Socket Matrix] Terminal successfully synchronized to pipeline room: workspace_${rid}`);
     });
 
     // Channel Action 2: Processes incoming check-out transaction rows packages and streams to monitors
@@ -435,8 +450,9 @@ io.on('connection', (socket) => {
 
             // Build real-time event notification message load payload data bundle package container tracking variables
             const payload = { id: result.lastID, ...orderData, status: 'New', estimated_prep_time: 15 };
-            // Stream the incoming ticket alert banner card immediately out to the target workspace control dashboards panels
-            io.to(`restaurant_${rid}`).emit('new_order_alert', payload);
+
+            // 🟩 FIXED: Switched room target destination channel address identifier string cleanly
+            io.to(`workspace_${rid}`).emit('new_order_alert', payload);
         } catch (err) {
             console.error('Order tracking transaction pipeline stream breakdown failure event trace:', err.message);
         }
@@ -462,8 +478,8 @@ io.on('connection', (socket) => {
                 FROM orders o LEFT JOIN chefs c ON o.assigned_chef_id = c.id WHERE o.id = ?
             `, [order_id]);
 
-            // Synchronize status tracker changes cleanly down onto customer mobile phone displays and monitor arrays instantly
-            io.to(`restaurant_${rid}`).emit('order_pipeline_update', completeOrder);
+            // 🟩 FIXED: Synchronize status tracker shifts down onto administrative channels matching front dashboard parameters context
+            io.to(`workspace_${rid}`).emit('order_pipeline_update', completeOrder);
         } catch (err) {
             console.error('Status override state tracking transformation failure event log trace error:', err.message);
         }
@@ -472,19 +488,24 @@ io.on('connection', (socket) => {
     // Channel Action 4: Real-time Multi-Checklist Service Bell Runner Dispatch Module Pipeline Hub
     socket.on('call_waiter', ({ restaurant_id, location_context, location_identifier }) => {
         const rid = restaurant_id || 1;
-        // Dispatches multi-select staff pager request cards immediately directly onto workspace monitors and dashboard tickers
-        io.to(`restaurant_${rid}`).emit('waiter_alert', { location_context, location_identifier, timestamp: new Date() });
+
+        // 🟩 FIXED: Dispatches staff pager notifications cleanly to the active workspace channel partition
+        io.to(`workspace_${rid}`).emit('waiter_alert', {
+            location_context,
+            location_identifier,
+            timestamp: new Date(),
+            id: Date.now() // Added generation ID signature token to assist task node lifecycle deletion routines
+        });
     });
 });
 
 
 // =================================================================================
-//                       CORE SERVER BOOTSTRAPPING ENGINE BLOCK
+//                        CORE SERVER BOOTSTRAPPING ENGINE BLOCK
 // =================================================================================
 // Bind application runtime engine pipelines to evaluate ambient infrastructure cloud environment port matrices parameters
-const PORT = process.env.PORT || 3000; // Evaluates environment configuration parameters, defaulting locally to web port 3000
+const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-    // Console log message fires to indicate successful system boot and open listener socket channels state readiness
     console.log(`=================================================================================`);
     console.log(` MESA 3D ENGINE CORE MODULE: Infrastructure listening effectively on web port: ${PORT}`);
     console.log(`=================================================================================`);
