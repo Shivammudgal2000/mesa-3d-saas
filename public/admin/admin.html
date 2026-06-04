@@ -12,7 +12,7 @@
         rel="stylesheet">
 
     <!-- Mount active Socket.io communication module from the node server instance -->
-    <script src="../socket.io/socket.io.js"></script>'''
+    <script src="/socket.io/socket.io.js"></script>
 
     <!-- Register the custom PWA application manifest configuration file links -->
     <link rel="manifest" href="/manifest.json">
@@ -706,8 +706,10 @@
                         style="display: flex; gap: 1rem; grid-column: 1 / -1; justify-content: flex-end; margin-top: 0.5rem;">
                         <button type="button" class="btn-action"
                             style="background: transparent; border: 1px solid var(--primary); color: var(--primary);"
-                            onclick="stageDishLocallyForBatchProcessing()">➕ Add More Dishes</button>
-
+                            onclick="stageDishLocallyForBatchProcessing()">➕ Stage Dish to Batch List</button>
+                        <button type="button" class="btn-action" onclick="addDishCardManual()">Instant Single
+                            Upload</button>
+                    </div>
                 </form>
 
                 <div id="stagedDishesWrapper"
@@ -724,6 +726,7 @@
                             System</button>
                     </div>
                 </div>
+                </form>
 
                 <h3>Active Menu Catalogs</h3>
                 <table>
@@ -743,55 +746,43 @@
 
             <!-- PANEL SECTION 4: chef register -->
             <div id="section-chefs" class="panel-section">
-                <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: var(--primary);">👨‍🍳
-                    REGISTER NEW OPERATIONAL PERSONNEL PROFILE</h3>
-
-                <form class="form-grid" id="chefForm" onsubmit="addChefProfile(event)" enctype="multipart/form-data"
-                    style="margin-bottom: 2.5rem;">
+                <h3>Add Chef</h3>
+                <form class="form-grid" id="chefForm" onsubmit="addChefProfile(event)" enctype="multipart/form-data">
                     <div class="input-block">
                         <label>Full Name</label>
                         <input type="text" id="chefName" placeholder="e.g., Master Chef Shivam" required>
                     </div>
                     <div class="input-block">
                         <label>Specialization</label>
-                        <input type="text" id="chefSpecialty" placeholder="e.g., Saucier (Sauce Specialist)" required>
+                        <input type="text" id="chefSpecialty" placeholder="e.g., Saucier(Sauce Chef)" required>
                     </div>
                     <div class="input-block">
-                        <label>Experience Profile</label>
+                        <label>Experience</label>
                         <input type="text" id="chefExp" placeholder="e.g., 8+ Years Luxury Hospitality" required>
                     </div>
                     <div class="input-block">
-                        <label>Upload Profile Photo Image</label>
+                        <label>Upload Profile Photo</label>
                         <input type="file" id="chefPhotoFile" accept="image/*" required style="padding:0.45rem;">
                     </div>
-                    <div style="grid-column: 1 / -1; display: flex; justify-content: flex-end; margin-top: 0.5rem;">
-                        <button type="submit" class="btn-action"
-                            style="background: var(--primary); color: var(--bg-dark);">Add Operational Chef</button>
-                    </div>
+                    <button type="submit" class="btn-action">Add Chef</button>
                 </form>
 
-                <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: white;">📋 ACTIVE
-                    OPERATIONAL PERSONNEL ROSTER</h3>
+                <h3>Active Operational Chefs</h3>
                 <table>
                     <thead>
                         <tr>
-                            <th style="width: 80px;">ID</th>
-                            <th style="width: 100px; text-align: center;">Avatar</th>
+                            <th>ID</th>
+                            <th>Personal Identity Photo</th>
                             <th>Full Name</th>
-                            <th>Specialty Track</th>
-                            <th>Experience Metrics</th>
-                            <th style="text-align: right; width: 150px;">Operational Controls</th>
+                            <th>Specialty</th>
+                            <th>Experience Profile</th>
+                            <th style="text-align: right;">Operations Controls</th>
                         </tr>
                     </thead>
-                    <tbody id="chefsTableBody">
-                        <tr>
-                            <td colspan="6" style="text-align:center; color:var(--text-muted); padding: 2rem;">
-                                Awaiting database connectivity pipeline streams...
-                            </td>
-                        </tr>
-                    </tbody>
+                    <tbody id="chefsTableBody"></tbody>
                 </table>
             </div>
+
             <!-- PANEL SECTION 5: FEEDBACK ALERTS LOOP STREAM -->
             <div id="section-feedback" class="panel-section">
                 <h3>Activity</h3>
@@ -1154,22 +1145,11 @@
 
         async function syncAdminData() {
             try {
-                // Fetch out raw chefs profiles array data structures safely from network ports
                 const chefRes = await fetch('/api/chefs?restaurant_id=' + tenantId);
+                liveEnrolledChefsList = await chefRes.json();
 
-                // 🟩 FIXED: Verifies response status code properties before attempting to write memory maps
-                if (chefRes.ok) {
-                    const parsedChefsPayload = await chefRes.json();
-                    // Fallback to empty array if the server returns an object instead of a roster list array
-                    liveEnrolledChefsList = Array.isArray(parsedChefsPayload) ? parsedChefsPayload : [];
-                } else {
-                    liveEnrolledChefsList = [];
-                }
-
-                // 🟩 FIXED: Fetches and cleanly parses the dishes payload array to prevent initialization crashes
                 const dishRes = await fetch('/api/dishes?restaurant_id=' + tenantId);
-                const dishes = dishRes.ok ? await dishRes.json() : [];
-
+                const dishes = await dishRes.json();
                 const menuBody = document.getElementById('menuTableBody');
 
                 if (menuBody) {
@@ -1205,17 +1185,14 @@
                 if (chefBody) {
                     chefBody.innerHTML = liveEnrolledChefsList.length ? '' : '<tr><td colspan="6" style="text-align:center; color:var(--text-muted);">No profile structures registered yet inside line cook tables rosters rows.</td></tr>';
                     liveEnrolledChefsList.forEach(c => {
-                        // Safe fallback links if image pathways parameters are missing
-                        const verifiedAvatarUrlString = c.photo_url ? c.photo_url : 'https://img.icons8.com/color/100/chef-hat.png';
-                        const renderedImageMarkupHTML = `<img src="${verifiedAvatarUrlString}" style="width:35px; height:35px; border-radius:50%; object-fit:cover; border:1px solid var(--border); display: inline-block; vertical-align: middle;">`;
-
+                        const renderedImageMarkupHTML = `<img src="${c.photo_url || 'https://img.icons8.com/color/100/chef-hat.png'}" style="width:35px; height:35px; border-radius:50%; object-fit:cover; border:1px solid var(--border);">`;
                         chefBody.innerHTML += `
                             <tr id="chef-row-${c.id}">
                                 <td>#${c.id}</td>
                                 <td style="text-align:center; padding: 0.5rem 0;">${renderedImageMarkupHTML}</td>
-                                <td><strong>${c.name || 'Anonymous Cook'}</strong></td>
-                                <td>${c.specialties || c.specialty || 'General Lines Cook'}</td>
-                                <td>${c.experience || 'Entry-Level Profile'}</td>
+                                <td><strong>${c.name}</strong></td>
+                                <td>${c.specialties || 'General Lines Cook'}</td>
+                                <td>${c.experience || 'Entry-Level'}</td>
                                 <td style="text-align: right;">
                                     <button class="btn-inline-delete" onclick="adminDeleteChefProfile(${c.id})">Purge Profile</button>
                                 </td>
@@ -1335,19 +1312,10 @@
                 batchFormData.append('dish3DFile', dish.binaryFileBlob);
                 try {
                     const response = await fetch('/api/dishes/add', { method: 'POST', body: batchFormData });
-
-                    // 🟩 FIX: Verifies content packet type header metadata BEFORE executing parsing routines
-                    const responseContentTypeString = response.headers.get("content-type") || "";
-
-                    if (!responseContentTypeString.includes("application/json")) {
-                        const failureHTMLTextPayload = await response.text();
-                        throw new Error(`Server returned HTML instead of JSON. Ensure file is under 30MB. Details: ${failureHTMLTextPayload.substring(0, 100)}...`);
-                    }
-
                     const data = await response.json();
-                    if (!data.success) throw new Error(data.error || "Staging rejected by server network ports.");
+                    if (!data.success) throw new Error("Staging rejected by server network ports.");
                 } catch (err) {
-                    alert(`❌ Batch Upload Stopped on item "${dish.name}": ` + err.message);
+                    alert(`⚠️ Batch Error on "${dish.name}": ` + err.message);
                     return;
                 }
             }
@@ -1405,42 +1373,27 @@
             } catch (e) { alert("Network Connection Fault."); }
         }
 
-        window.addChefProfile = async function (e) {
-            if (e) e.preventDefault();
-
-            const nameField = document.getElementById('chefName').value.trim();
-            const specialtyField = document.getElementById('chefSpecialty').value.trim();
-            const expField = document.getElementById('chefExp').value.trim();
-            const chefPhotoFieldNode = document.getElementById('chefPhotoFile');
-
-            if (!nameField || !specialtyField || !expField || !chefPhotoFieldNode.files.length) {
-                alert("⚠️ Validation Failure: Please complete all profile fields and attach an avatar image.");
-                return false;
-            }
-
+        async function addChefProfile(e) {
+            e.preventDefault();
             try {
+                const chefPhotoFieldNode = document.getElementById('chefPhotoFile');
+                if (!chefPhotoFieldNode.files.length) return alert("Attach a valid photo file image element context first.");
+
                 const multipartFormBuilder = new FormData();
                 multipartFormBuilder.append('restaurant_id', parseInt(tenantId));
-                multipartFormBuilder.append('name', nameField);
-                multipartFormBuilder.append('specialties', specialtyField);
-                multipartFormBuilder.append('experience', expField);
+                multipartFormBuilder.append('name', document.getElementById('chefName').value);
+                multipartFormBuilder.append('specialties', document.getElementById('chefSpecialty').value);
+                multipartFormBuilder.append('experience', document.getElementById('chefExp').value);
                 multipartFormBuilder.append('chefPhotoFile', chefPhotoFieldNode.files[0]);
 
                 const response = await fetch('/api/chefs/add', { method: 'POST', body: multipartFormBuilder });
-                const data = await response.json();
-
-                if (data.success) {
-                    alert("🎉 Success! New personnel profile written smoothly to operational rosters rows.");
+                if ((await response.json()).success) {
+                    alert("👨‍🍳 New operational personnel profile entry written successfully into relational space models registers data tracks!");
                     document.getElementById('chefForm').reset();
                     await syncAdminData();
-                } else {
-                    alert("❌ Server Error: " + (data.error || "Profile registry rejected."));
                 }
-            } catch (err) {
-                alert("❌ Upload Ingestion Pipeline Error: Network connection stream interrupted.");
-            }
-            return false;
-        };
+            } catch (err) { alert("Upload execution engine pipeline fault."); }
+        }
 
         function adminPipelineOverride(orderId, targetStatus) {
             let backupChefId = liveEnrolledChefsList.length ? liveEnrolledChefsList[0].id : 1;
