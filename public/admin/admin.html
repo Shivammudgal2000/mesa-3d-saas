@@ -2,48 +2,40 @@
 <html lang="en">
 
 <head>
-    <!-- Core metadata configurations for explicit character mapping and screen scaling metrics -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mesa 3D | Management Control Deck</title>
+    <title>XYZ HOTEL</title>
 
-    <!-- Premium enterprise SaaS vector typography branding elements -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap"
         rel="stylesheet">
 
-    <!-- Mount active Socket.io communication module from the node server instance -->
     <script src="/socket.io/socket.io.js"></script>
 
-    <!-- Register the custom PWA application manifest configuration file links -->
     <link rel="manifest" href="/manifest.json">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+
     <style>
-        /* CSS Design Tokens governing themes, layouts, and system color profiles */
         :root {
-            --bg-dark: #090D16;
-            /* Deep spatial canvas background layer */
-            --card-dark: #121824;
-            /* Contained modular components background tint */
+            --bg-dark: #0B0F19;
+            --card-dark: #161B26;
             --primary: #C5A880;
-            /* Signature luxury gold focus branding tone */
             --text-light: #F3F4F6;
-            /* High readability clean white typography text */
             --text-muted: #9CA3AF;
-            /* Subtle subtext descriptive metadata color */
-            --border: #1E293B;
-            /* Rigid structural boundaries dividers grids */
-            --danger: #EF4444;
-            /* High urgency action buttons and warning alerts */
+            --border: #1E2533;
+            --danger: #DC2626;
             --success: #10B981;
-            /* Positive indicators and dietary veg identifiers */
-            --warning: #F59E0B;
-            /* Notice markers and active promotional tokens */
-            --action-blue: #3B82F6;
-            /* Paging system updates and analytics nodes */
+            --egg-color: #FBBF24;
             --purple-accent: #8B5CF6;
-            /* Highlights showcase structural badge focus accent */
         }
 
         * {
@@ -56,1493 +48,1027 @@
         body {
             background-color: var(--bg-dark);
             color: var(--text-light);
-            display: flex;
+            padding-bottom: 180px;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        #masterThreeCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
             height: 100vh;
-            overflow: hidden;
+            pointer-events: none;
+            z-index: 1;
         }
 
-        /* Left Sidebar Persistent Navigation Panel Styles */
-        aside {
-            width: 260px;
-            background: #0E131F;
-            border-right: 1px solid var(--border);
-            padding: 2rem 1.5rem;
-            display: flex;
-            flex-direction: column;
-            gap: 2rem;
+        .content-layer-wrapper {
+            position: relative;
+            z-index: 2;
+            pointer-events: auto;
         }
 
-        .brand-logo {
-            font-size: 1.3rem;
-            font-weight: 700;
+        header {
+            background: var(--card-dark);
+            padding: 1.2rem 1.5rem;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        header h1 {
+            font-size: 1.25rem;
             color: var(--primary);
-            letter-spacing: 1px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
             text-transform: uppercase;
         }
 
-        .nav-links {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-            list-style: none;
-        }
-
-        .nav-links li {
-            padding: 0.8rem 1rem;
-            border-radius: 4px;
+        header p {
+            font-size: 0.8rem;
             color: var(--text-muted);
-            font-weight: 600;
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: 0.2s;
-            border: 1px solid transparent;
+            margin-top: 0.2rem;
         }
 
-        .nav-links li.active,
-        .nav-links li:hover {
-            background: var(--card-dark);
+        .location-badge {
+            display: inline-block;
+            background: #1E2533;
             color: var(--primary);
-            border-color: var(--border);
+            padding: 0.25rem 0.9rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-top: 0.6rem;
+            border: 1px solid #2A354A;
         }
 
-        /* Main Workspace Content Area Engine Frame Styles */
-        main {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow-y: auto;
-            background: var(--bg-dark);
-        }
-
-        .top-nav {
-            background: #0E131F;
-            padding: 1.2rem 2.5rem;
+        .allergen-prompt-bar {
+            background: #121824;
             border-bottom: 1px solid var(--border);
+            padding: 0.8rem 1.5rem;
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            justify-content: space-between;
+            font-size: 0.8rem;
         }
 
-        .content-area {
-            padding: 2.5rem;
-            flex: 1;
+        .allergen-select-btn {
+            background: transparent;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            padding: 0.25rem 0.6rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 600;
         }
 
-        /* Section switcher utility layout visibility filters */
-        .panel-section {
+        .category-strip {
+            display: flex;
+            gap: 0.6rem;
+            overflow-x: auto;
+            padding: 1rem 5%;
+            scrollbar-width: none;
+        }
+
+        .category-strip::-webkit-scrollbar {
             display: none;
         }
 
-        .panel-section.active {
+        .category-pill {
+            background: var(--card-dark);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 0.5rem 1.2rem;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+
+        .category-pill.active {
+            background: var(--primary);
+            color: var(--bg-dark);
+            border-color: var(--primary);
+        }
+
+        .promo-carousel {
+            padding: 0 5% 1rem 5%;
+            display: none;
+        }
+
+        .promo-carousel.has-items {
             display: block;
         }
 
-        /* KPI Counter Stats Display Metrics Grid Blocks row */
-        .analytics-row {
-            display: flex;
-            gap: 1.5rem;
-            margin-bottom: 2.5rem;
-            flex-wrap: wrap;
+        .promo-card {
+            background: linear-gradient(135deg, #1A2333 0%, #111722 100%);
+            border: 1px dashed var(--primary);
+            padding: 1.2rem;
+            border-radius: 8px;
+            position: relative;
         }
 
-        .kpi-card {
-            background: var(--card-dark);
-            border: 1px solid var(--border);
-            padding: 1.5rem;
-            border-radius: 6px;
-            flex: 1;
-            min-width: 200px;
-        }
-
-        .kpi-card h4 {
-            font-size: 0.8rem;
+        .promo-tag {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: var(--purple-accent);
+            color: white;
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 0.15rem 0.5rem;
+            border-radius: 3px;
             text-transform: uppercase;
-            color: var(--text-muted);
             letter-spacing: 0.5px;
         }
 
-        .kpi-card .value {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: white;
-            margin-top: 0.4rem;
-        }
-
-        .kpi-card .value.revenue {
-            color: var(--success);
-        }
-
-        /* 📊 Popularity Product Intelligence metrics bar wrapper layouts */
-        .popularity-box {
-            background: linear-gradient(135deg, #131A26 0%, #0E1420 100%);
-            border: 1px solid var(--border);
-            padding: 2rem;
-            border-radius: 8px;
-            margin-bottom: 2.5rem;
-        }
-
-        .metric-bar-wrapper {
-            margin-top: 1.2rem;
+        .menu-container {
+            padding: 0 5%;
             display: flex;
             flex-direction: column;
             gap: 1rem;
         }
 
-        .metric-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-size: 0.9rem;
-            padding: 0.4rem 0;
-            border-bottom: 1px dashed rgba(255, 255, 255, 0.05);
-        }
-
-        /* 🪑 SPACE MANAGE LABELS: Inventory grid tile layouts specifications fields */
-        .floor-inventory-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 1.2rem;
-            margin-top: 1.5rem;
-        }
-
-        .floor-tile-card {
-            background: var(--card-dark);
+        .dish-card {
+            background: rgba(22, 27, 38, 0.85);
+            backdrop-filter: blur(8px);
             border: 1px solid var(--border);
-            padding: 1.5rem;
             border-radius: 8px;
-            text-align: center;
-            position: relative;
-            border-top: 4px solid var(--text-muted);
-            transition: 0.2s;
-        }
-
-        .floor-tile-card.status-active {
-            border-top-color: var(--success);
-            background: rgba(16, 185, 129, 0.02);
-        }
-
-        .floor-tile-card.status-alert {
-            border-top-color: var(--danger);
-            animation: pulseAlertGlow 1.5s infinite;
-        }
-
-        .floor-tile-card h5 {
-            font-size: 1.1rem;
-            color: white;
-            margin-bottom: 0.4rem;
-        }
-
-        .floor-tile-card p {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            margin-bottom: 1rem;
-            text-transform: uppercase;
-            font-weight: 700;
-        }
-
-        /* QR Sticker downloader interface trigger button classes tokens */
-        .btn-qr-download {
-            width: 100%;
-            background: #1E2533;
-            border: 1px solid var(--border);
-            color: var(--primary);
-            padding: 0.45rem;
-            font-size: 0.75rem;
-            font-weight: 700;
-            border-radius: 4px;
-            cursor: pointer;
-            text-transform: uppercase;
-            transition: 0.2s;
-        }
-
-        .btn-qr-download:hover {
-            background: var(--primary);
-            color: var(--bg-dark);
-        }
-
-        /* Live production line ticket monitors layout frameworks cards */
-        .admin-kitchen-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 1.2rem;
-            margin-bottom: 2.5rem;
-        }
-
-        .admin-kitchen-card {
-            background: var(--card-dark);
-            border: 1px solid var(--border);
-            padding: 1.2rem;
-            border-radius: 6px;
-            display: flex;
-            flex-direction: column;
-            gap: 0.6rem;
-            border-top: 4px solid var(--primary);
-        }
-
-        .admin-override-row {
-            display: flex;
-            gap: 0.4rem;
-            margin-top: 0.6rem;
-            flex-wrap: wrap;
-        }
-
-        .btn-override {
-            flex: 1;
-            min-width: 70px;
-            background: #1E2533;
-            border: 1px solid var(--border);
-            color: var(--text-light);
-            font-size: 0.7rem;
-            padding: 0.4rem;
-            font-weight: 700;
-            border-radius: 4px;
-            cursor: pointer;
-            text-transform: uppercase;
-        }
-
-        .btn-override.fire-btn:hover {
-            background: var(--action-blue);
-            color: white;
-        }
-
-        .btn-override.ready-btn:hover {
-            background: var(--warning);
-            color: var(--bg-dark);
-        }
-
-        .btn-override.serve-btn:hover {
-            background: var(--success);
-            color: var(--bg-dark);
-        }
-
-        .btn-inline-delete {
-            background: rgba(239, 68, 68, 0.15);
-            border: 1px solid var(--danger);
-            color: var(--danger);
-            padding: 0.35rem 0.7rem;
-            font-size: 0.75rem;
-            font-weight: 700;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        .btn-inline-delete:hover {
-            background: var(--danger);
-            color: white;
-        }
-
-        .btn-inline-offer {
-            background: rgba(59, 130, 246, 0.15);
-            border: 1px solid var(--action-blue);
-            color: var(--action-blue);
-            padding: 0.35rem 0.7rem;
-            font-size: 0.75rem;
-            font-weight: 700;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: 0.2s;
-            margin-right: 0.3rem;
-        }
-
-        .btn-inline-offer:hover {
-            background: var(--action-blue);
-            color: white;
-        }
-
-        /* Highlight feature button token styles maps rules */
-        .btn-inline-highlight {
-            background: rgba(139, 92, 246, 0.15);
-            border: 1px solid var(--purple-accent);
-            color: var(--purple-accent);
-            padding: 0.35rem 0.7rem;
-            font-size: 0.75rem;
-            font-weight: 700;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: 0.2s;
-            margin-right: 0.3rem;
-        }
-
-        .btn-inline-highlight:hover {
-            background: var(--purple-accent);
-            color: white;
-        }
-
-        .btn-inline-highlight.featured-true {
-            background: var(--success);
-            border-color: var(--success);
-            color: var(--bg-dark);
-        }
-
-        /* Standard data ingestion form grid layout architecture panels components */
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 1.2rem;
-            background: var(--card-dark);
-            padding: 2rem;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            margin-bottom: 2.5rem;
-        }
-
-        .input-block {
-            display: flex;
-            flex-direction: column;
-            gap: 0.4rem;
-        }
-
-        .input-block label {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            color: var(--text-muted);
-            font-weight: 700;
-            letter-spacing: 0.5px;
-        }
-
-        .input-block input,
-        .input-block select {
-            width: 100%;
-            padding: 0.7rem;
-            background: var(--bg-dark);
-            border: 1px solid var(--border);
-            color: white;
-            border-radius: 4px;
-            font-size: 0.9rem;
-        }
-
-        .checkbox-group-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.8rem;
-            padding: 0.4rem 0;
-        }
-
-        .checkbox-inline-label {
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-            font-size: 0.85rem;
-            color: #FFFFFF;
-            cursor: pointer;
-        }
-
-        .checkbox-inline-label input {
-            width: 16px;
-            height: 16px;
-            accent-color: var(--primary);
-        }
-
-        .btn-action {
-            background: var(--primary);
-            color: var(--bg-dark);
-            border: none;
-            padding: 0.75rem 1.8rem;
-            font-weight: 700;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            grid-column: 1 / -1;
-            justify-self: end;
-        }
-
-        /* Relational ledger data rendering tables styles mappings rules */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: var(--card-dark);
-            border-radius: 6px;
-            overflow: hidden;
-            border: 1px solid var(--border);
-            margin-top: 1rem;
-        }
-
-        th,
-        td {
             padding: 1rem;
-            text-align: left;
-            border-bottom: 1px solid var(--border);
-            font-size: 0.9rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+
+        .dish-card.allergen-warning {
+            border-color: #B45309;
+            background: rgba(180, 83, 9, 0.03);
+        }
+
+        .dish-main-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .diet-indicator {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 14px;
+            height: 14px;
+            border: 1px solid currentColor;
+            padding: 2px;
+            margin-right: 0.4rem;
+            border-radius: 2px;
+            font-size: 6px;
             vertical-align: middle;
         }
 
-        th {
-            background: #0E131F;
-            color: var(--text-muted);
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 0.75rem;
+        .diet-indicator::before {
+            content: '●';
         }
 
-        .mini-diet-badge {
+        .diet-indicator.veg {
+            color: var(--success);
+        }
+
+        .diet-indicator.non-veg {
+            color: var(--danger);
+        }
+
+        .diet-indicator.egg {
+            color: var(--egg-color);
+        }
+
+        .dish-title {
+            font-size: 1.05rem;
+            font-weight: 700;
             display: inline-block;
+            vertical-align: middle;
+        }
+
+        .dish-price {
+            color: var(--primary);
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-top: 0.2rem;
+        }
+
+        .threed-viewport-placeholder {
+            width: 100%;
+            height: 260px;
+            background: rgba(6, 9, 18, 0.5);
+            border-radius: 6px;
+            border: 1px solid #1E2533;
+            position: relative;
+            overflow: hidden;
+            outline: none;
+        }
+
+        .threed-badge {
+            position: absolute;
+            bottom: 8px;
+            left: 8px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            font-size: 0.65rem;
+            color: var(--primary);
+            padding: 0.2rem 0.5rem;
+            border-radius: 20px;
+            font-weight: 700;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .allergen-alert-strip {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            margin-top: 0.2rem;
+        }
+
+        .allergen-pill-badge {
+            background: #1C2333;
+            color: var(--text-muted);
+            font-size: 0.65rem;
+            font-weight: 600;
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+            border: 1px solid #2B354D;
+        }
+
+        .danger-allergen-banner {
+            color: #F59E0B;
             font-size: 0.7rem;
             font-weight: 700;
-            padding: 0.15rem 0.4rem;
-            border-radius: 3px;
-            text-transform: uppercase;
+            margin-top: 0.3rem;
+            display: none;
         }
 
-        .mini-diet-badge.v-type {
-            background: rgba(16, 185, 129, 0.15);
-            color: var(--success);
-            border: 1px solid var(--success);
+        .dish-card.allergen-warning .danger-allergen-banner {
+            display: block;
         }
 
-        .mini-diet-badge.nv-type {
-            background: rgba(239, 68, 68, 0.15);
-            color: var(--danger);
-            border: 1px solid var(--danger);
-        }
-
-        .mini-diet-badge.e-type {
-            background: rgba(245, 158, 11, 0.15);
-            color: var(--warning);
-            border: 1px solid var(--warning);
-        }
-
-        .feedback-node-card {
-            background: var(--card-dark);
-            border: 1px solid var(--border);
-            border-left: 4px solid var(--primary);
-            padding: 1.2rem;
+        .btn-add-tray {
+            background: transparent;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            padding: 0.5rem 1.2rem;
+            font-weight: 700;
             border-radius: 4px;
-            margin-bottom: 1rem;
+            cursor: pointer;
+            font-size: 0.85rem;
+            z-index: 10;
+            position: relative;
         }
 
-        /* High animation alert loop for critical workspace runner notifications */
-        @keyframes pulseAlertGlow {
-            0% {
-                box-shadow: 0 0 0 0 rgba(239, 68, 110, 0.4);
-            }
+        .status-banner {
+            display: none;
+            background: #111622;
+            border-bottom: 2px solid var(--primary);
+            padding: 1.2rem;
+            text-align: center;
+        }
 
-            70% {
-                box-shadow: 0 0 0 10px rgba(239, 68, 110, 0);
-            }
+        .status-banner.active {
+            display: block;
+        }
 
-            100% {
-                box-shadow: 0 0 0 0 rgba(239, 68, 110, 0);
-            }
+        .countdown {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 0.2rem 0;
+        }
+
+        .chef-card {
+            display: none;
+            background: var(--card-dark);
+            border: 1px solid #222938;
+            padding: 1.2rem;
+            margin: 1rem 5% 0 5%;
+            border-radius: 8px;
+            align-items: center;
+            gap: 1.2rem;
+        }
+
+        .chef-card.active {
+            display: flex;
+        }
+
+        .chef-avatar {
+            width: 65px;
+            height: 65px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--primary);
+        }
+
+        .overlay-canvas {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(11, 15, 25, 0.95);
+            backdrop-filter: blur(10px);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 1.5rem;
+        }
+
+        .overlay-canvas.active {
+            display: flex;
+        }
+
+        .modal-container-box {
+            background: var(--card-dark);
+            border: 1px solid #222938;
+            width: 100%;
+            max-width: 420px;
+            padding: 2rem;
+            border-radius: 12px;
+            position: relative;
+            text-align: center;
+        }
+
+        .modal-close-cross {
+            position: absolute;
+            top: 15px;
+            right: 18px;
+            font-size: 1.3rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-weight: 700;
+        }
+
+        .quick-grid-menu {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.8rem;
+            margin: 1.2rem 0;
+        }
+
+        .quick-node-card {
+            background: #1C2333;
+            border: 1px solid #2C374E;
+            padding: 1rem 0.5rem;
+            border-radius: 6px;
+            text-align: center;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+            justify-content: center;
+            align-items: center;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        .quick-node-card.selected {
+            border-color: var(--success);
+            background: rgba(16, 185, 129, 0.08);
+            color: var(--success);
+        }
+
+        .allergy-grid-selection {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.6rem;
+            margin: 1.2rem 0;
+            text-align: left;
+        }
+
+        .allergy-label-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+            color: var(--text-light);
+            cursor: pointer;
+        }
+
+        textarea {
+            width: 100%;
+            background: var(--bg-dark);
+            border: 1px solid #2C374E;
+            border-radius: 6px;
+            color: white;
+            padding: 0.8rem;
+            font-size: 0.9rem;
+            resize: none;
+        }
+
+        .action-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: var(--card-dark);
+            border-top: 1px solid var(--border);
+            padding: 1rem 5%;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+            z-index: 200;
+        }
+
+        .btn-checkout {
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+            background: var(--primary);
+            color: var(--bg-dark);
+            border: none;
+            padding: 0.9rem 2rem;
+            font-weight: 700;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .floating-bell-btn {
+            position: fixed;
+            bottom: 190px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background: var(--danger);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 1.6rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 299;
+        }
+
+        .bell-badge {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 11px;
+            height: 11px;
+            background: #FBBF24;
+            border-radius: 50%;
+        }
+
+        .rating-stars {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin: 0.5rem 0 1.2rem 0;
+        }
+
+        .star {
+            font-size: 1.8rem;
+            color: #333F56;
+            cursor: pointer;
+        }
+
+        .star.selected {
+            color: #FFD700;
         }
     </style>
 </head>
 
 <body>
 
-    <div id="temporaryAlertPopups"
-        style="position: fixed; top: 20px; right: 20px; width: 320px; z-index: 99999; pointer-events: auto;"></div>
+    <div class="overlay-canvas" id="volumetricPreviewModal"
+        style="display: none; position: fixed; top:0; left:0; width:100vw; height:100vh; background: rgba(11,15,25,0.98); z-index: 5000; flex-direction: column; align-items: center; justify-content: center; padding: 1rem;">
+        <div style="position: absolute; top: 20px; right: 25px; font-size: 2rem; color: var(--text-muted); cursor: pointer; font-weight: bold; z-index: 5100;"
+            onclick="closeVolumetric3DViewer()">✕</div>
+        <h3 id="modalDishTitle"
+            style="color: white; font-size: 1.4rem; margin-bottom: 0.3rem; font-weight: 700; z-index: 5100;">Dish
+            Preview</h3>
+        <p style="color: var(--primary); font-size: 0.8rem; margin-bottom: 1.5rem; font-weight: 600; z-index: 5100;">🕹️
+            Swipe / Drag inside the box to rotate 3D view</p>
+        <div id="canvasModalAnchorContainer"
+            style="width: 90vw; height: 50vh; background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px dashed var(--border); outline: none;">
+        </div>
+        <button class="btn-checkout" id="modalOrderBtn" style="margin-top: 2rem; max-width: 320px; z-index: 5100;">Add
+            Item to Order Tray</button>
+    </div>
 
-    <aside>
-        <div class="brand-logo">Mesa 3D Control</div>
-        <ul class="nav-links">
-            <li class="active" id="nav-dashboard" onclick="switchSection('dashboard')">📊 DashBoard</li>
-            <li id="nav-floor" onclick="switchSection('floor')">🪑 Floor & QR Manager</li>
-            <li id="nav-menu" onclick="switchSection('menu')">🍔 Menu</li>
-            <li id="nav-chefs" onclick="switchSection('chefs')">👨‍🍳 Chef Register</li>
-            <li id="nav-feedback" onclick="switchSection('feedback')">💬 Notifications</li>
-        </ul>
-    </aside>
+    <canvas id="masterThreeCanvas" style="display:none;"></canvas>
 
-    <main>
-        <div class="top-nav">
-            <h2 id="activePanelTitle">DashBoard</h2>
+    <div class="content-layer-wrapper">
+        <header>
+            <h1 id="restaurantName">Mesa 3D Hardware WebGL Terminal</h1>
+            <p id="systemHeader">Dynamic Digital Dining Terminal</p>
+            <div class="location-badge" id="locationDisplay">Resolving Spatial Coordinates Node...</div>
+        </header>
 
-            <div style="display: flex; align-items: center; gap: 1.5rem;">
-                <div class="navigation-dropdown-profile" style="position: relative;">
-                    <span class="icon"
-                        style="background: #121824; border: 1px solid var(--border); padding: 0.5rem 1rem; border-radius: 4px; font-size: 0.8rem; font-weight: 600; cursor: pointer;">🔔
-                        Active Task Feed</span>
-                    <div id="statusBarNotificationFeed"
-                        style="display: none; position: absolute; top: 40px; right: 0; width: 320px; background: #121824; border: 1px solid var(--border); max-height: 300px; overflow-y: auto; border-radius: 4px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); z-index: 9999;">
-                    </div>
-                </div>
-                <div style="font-size:0.9rem; font-weight:600; color: var(--primary);" id="venueDisplayTag">Resolving
-                    Node Context...</div>
+        <div class="status-banner" id="trackerBanner">
+            <p id="trackerStatus" style="font-weight: 600; font-size: 0.95rem; color: var(--primary);">Your order
+                transaction is queued...</p>
+            <div class="countdown" id="countdownClock">15:00</div>
+        </div>
+
+        <div class="chef-card" id="activeChefDisplay">
+            <img src="" class="chef-avatar" id="chefPhoto" alt="Master Avatar">
+            <div class="chef-details">
+                <h4 id="chefName">Line Chef Assigned</h4>
+                <p id="chefSpecialty" style="color: var(--primary);">Master Craftsman Focus</p>
+                <p id="chefBio">Custom preparing your meal choices with precision care.</p>
             </div>
         </div>
 
-        <div class="content-area">
-
-            <div id="fullDashboardAlertBannerZone"></div>
-
-            <div id="section-dashboard" class="panel-section active">
-
-                <div id="activeWaiterPagingDashboardBannerZone"
-                    style="margin-bottom: 1.5rem; display:none; flex-direction: column; gap: 0.8rem;">
-                    <h3
-                        style="font-size:0.9rem; text-transform:uppercase; color: var(--danger); font-weight:700; letter-spacing:0.5px;">
-                        🛎️ Active Outstanding Table Service Requests Ticker</h3>
-                    <div id="liveDashboardBlinkingAlarmsGridContainer"
-                        style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:1rem;">
-                    </div>
-                </div>
-
-                <div class="analytics-row">
-                    <div class="kpi-card">
-                        <h4 id="kpiOrdersLabel">Total Orders</h4>
-                        <div class="value" id="kpi-orders-count">0</div>
-                    </div>
-                    <div class="kpi-card">
-                        <h4>Total Rveneue</h4>
-                        <div class="value revenue" id="kpi-revenue">₹0.00</div>
-                    </div>
-                    <div class="kpi-card">
-                        <h4 id="kpiTablesLabel">Total Active Tables</h4>
-                        <div class="value" id="kpi-active-spaces">0</div>
-                    </div>
-                    <div class="kpi-card">
-                        <h4>Platform Health Index</h4>
-                        <div class="value" id="livePlatformHealthIndex" style="color: var(--success);">Checking...</div>
-                    </div>
-                </div>
-
-                <!-- DYNAMIC CORE COMPONENT: Product Intelligence statistical bar chart tracker logs loops -->
-                <div class="popularity-box">
-                    <h3 style="font-size:1.05rem; font-weight:700; color:var(--primary);">📈 Most Commonly Ordered
-                        Selections (Product Intelligence Rank)</h3>
-                    <div class="metric-bar-wrapper" id="popularityMetricsBox">
-                        <p style="color:var(--text-muted); font-size:0.85rem;">Compiling order ledger metrics data
-                            analysis paths...</p>
-                    </div>
-                </div>
-
-                <h3 style="font-size:1.1rem; font-weight:700; margin-bottom:1rem;">🍳 Live Kitchen Preparation
-                    Monitoring Grid</h3>
-                <div class="admin-kitchen-grid" id="adminKitchenBoardGrid"></div>
-
-                <h3>Active Kitchen</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Order ID</th>
-                            <th>Environment Context</th>
-                            <th id="thLocationHeader">Tables</th>
-                            <th>Total Amount</th>
-                            <th>Pipeline Production State</th>
-                            <th>Date & Time</th>
-                        </tr>
-                    </thead>
-                    <tbody id="ledgerTableBody">
-                        <tr>
-                            <td colspan="6" style="text-align:center; color:var(--text-muted);">Awaiting tracking
-                                database streams pipelines...</td>
-                        </tr>
-                    </tbody>
-                </table>
+        <div class="allergen-prompt-bar" id="safetyStrip">
+            <div style="display: flex; align-items: center; gap: 0.4rem;">
+                <span>🛡️</span>
+                <span style="color: var(--text-muted);" id="allergenStatusLabel">No safety allergy filters applied to
+                    menu layout.</span>
             </div>
-
-            <!-- 🪑 NEW PANEL SECTION 2: THE PHYSICAL FLOOR SPACE COORDINATES AND QR GENERATOR CODE INTERFACE -->
-            <div id="section-floor" class="panel-section">
-                <h3>Generate QR Code</h3>
-                <div class="form-grid">
-                    <div class="input-block">
-                        <label>Business Type</label>
-                        <select id="venueModeSelect" onchange="modifyWhiteLabelUIVariables(this.value)">
-                            <option value="RESTAURANT">🍔 Standard Restaurant / Diner</option>
-                            <option value="HOTEL">🏨 Hotel / Room Service Suite Mode</option>
-                            <option value="CAFE">☕ Cafe / Bistro Lounge Deck</option>
-                        </select>
-                    </div>
-                    <div class="input-block">
-                        <label id="lblInputTables">Total Dining Tables</label>
-                        <input type="number" id="inputTotalTables" placeholder="e.g., 15" min="1" max="100" value="10">
-                    </div>
-                    <div class="input-block">
-                        <label id="lblInputRooms">Total VIP Rooms / Suites</label>
-                        <input type="number" id="inputTotalRooms" placeholder="e.g., 5" min="0" max="50" value="2">
-                    </div>
-                    <button type="button" class="btn-action"
-                        onclick="commitSpaceInventorySettingsManual()">Generate</button>
-                </div>
-
-                <h3 id="lblVisualLayoutHeading">All QR</h3>
-                <div class="floor-inventory-grid" id="floorLayoutVisualMatrixGrid"></div>
-            </div>
-
-            <!-- PANEL SECTION 3: CATALOG WITH INTEGRATED MODEL SHOWCASE HIGHLIGHT CONTROLLERS -->
-            <div id="section-menu" class="panel-section">
-                <h3>Add Menu</h3>
-                <form class="form-grid" id="menuForm" enctype="multipart/form-data">
-                    <div class="input-block">
-                        <label>Dish / Product Name</label>
-                        <input type="text" id="menuName" placeholder="e.g., Premium Indo-European Fusion" required>
-                    </div>
-                    <div class="input-block">
-                        <label>Price (INR)</label>
-                        <input type="number" step="0.01" id="menuPrice" placeholder="e.g., 499.00" required>
-                    </div>
-                    <div class="input-block">
-                        <label>Discount Rate (Percentage %)</label>
-                        <input type="number" id="menuOfferPercent" placeholder="e.g., 10" min="0" max="90" value="0">
-                    </div>
-                    <div class="input-block">
-                        <label>Menu Preferences</label>
-                        <select id="menuDietType">
-                            <option value="veg">🟢 100% Pure Vegetarian</option>
-                            <option value="non-veg">🔴 Non-Vegetarian Selection</option>
-                            <option value="egg">🟡 Contains Egg Formulations</option>
-                        </select>
-                    </div>
-                    <div class="input-block">
-                        <label>Upload Real 3D Model File (.GLTF / .GLB)</label>
-                        <input type="file" id="dish3DFile" accept=".gltf,.glb" required style="padding:0.45rem;">
-                    </div>
-                    <div class="input-block" style="grid-column: 1 / -1;">
-                        <label>Allergy Option</label>
-                        <div class="checkbox-group-row">
-                            <label class="checkbox-inline-label"><input type="checkbox" value="nuts"
-                                    class="menu-allergen-box">🥜 Peanut / Tree Nuts</label>
-                            <label class="checkbox-inline-label"><input type="checkbox" value="dairy"
-                                    class="menu-allergen-box">🥛 Dairy / Lactose Alerts</label>
-                            <label class="checkbox-inline-label"><input type="checkbox" value="gluten"
-                                    class="menu-allergen-box">🌾 Wheat / Gluten Content</label>
-                            <label class="checkbox-inline-label"><input type="checkbox" value="shellfish"
-                                    class="menu-allergen-box">🦀 Seafood / Shellfish Vectors</label>
-                        </div>
-                    </div>
-                    <div
-                        style="display: flex; gap: 1rem; grid-column: 1 / -1; justify-content: flex-end; margin-top: 0.5rem;">
-                        <button type="button" class="btn-action"
-                            style="background: transparent; border: 1px solid var(--primary); color: var(--primary);"
-                            onclick="stageDishLocallyForBatchProcessing()">➕ Add More Dishes</button>
-                    </div>
-                </form>
-
-                <div id="stagedDishesWrapper"
-                    style="margin-top: 1.5rem; display: none; background: #0E131F; border: 1px dashed var(--border); padding: 1.5rem; border-radius: 6px;">
-                    <h4
-                        style="font-size: 0.85rem; text-transform: uppercase; color: var(--primary); letter-spacing: 0.5px; margin-bottom: 0.8rem;">
-                        📦 Dishes Staged for Batch Injection</h4>
-                    <ul id="stagedItemsList"
-                        style="list-style: none; display: flex; flex-direction: column; gap: 0.6rem;"></ul>
-                    <div style="display: flex; justify-content: flex-end; margin-top: 1.2rem;">
-                        <button type="button" class="btn-action"
-                            style="background: var(--success); color: var(--bg-dark);"
-                            onclick="commitStagedBatchToCloudDatabase()">🚀 Commit All Staged Dishes to Cloud
-                            System</button>
-                    </div>
-                </div>
-
-                <h3>Active Menu Catalogs</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Product Title Name</th>
-                            <th>Unit Pricing</th>
-                            <th>Classification Mode</th>
-                            <th>Active Percentage Offer</th>
-                            <th style="text-align: right;">Operations Controls</th>
-                        </tr>
-                    </thead>
-                    <tbody id="menuTableBody"></tbody>
-                </table>
-            </div>
-
-            <!-- PANEL SECTION 4: chef register -->
-            <div id="section-chefs" class="panel-section">
-                <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: var(--primary);">👨‍🍳
-                    REGISTER NEW OPERATIONAL PERSONNEL PROFILE</h3>
-
-                <form class="form-grid" id="chefForm" onsubmit="addChefProfile(event)" enctype="multipart/form-data"
-                    style="margin-bottom: 2.5rem;">
-                    <div class="input-block">
-                        <label>Full Name</label>
-                        <input type="text" id="chefName" placeholder="e.g., Master Chef Shivam" required>
-                    </div>
-                    <div class="input-block">
-                        <label>Specialization</label>
-                        <input type="text" id="chefSpecialty" placeholder="e.g., Saucier (Sauce Specialist)" required>
-                    </div>
-                    <div class="input-block">
-                        <label>Experience Profile</label>
-                        <input type="text" id="chefExp" placeholder="e.g., 8+ Years Luxury Hospitality" required>
-                    </div>
-                    <div class="input-block">
-                        <label>Upload Profile Photo Image</label>
-                        <input type="file" id="chefPhotoFile" accept="image/*" required style="padding:0.45rem;">
-                    </div>
-                    <div style="grid-column: 1 / -1; display: flex; justify-content: flex-end; margin-top: 0.5rem;">
-                        <button type="submit" class="btn-action"
-                            style="background: var(--primary); color: var(--bg-dark);">Add Operational Chef</button>
-                    </div>
-                </form>
-
-                <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: white;">📋 ACTIVE
-                    OPERATIONAL PERSONNEL ROSTER</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th style="width: 80px;">ID</th>
-                            <th style="width: 100px; text-align: center;">Avatar</th>
-                            <th>Full Name</th>
-                            <th>Specialty Track</th>
-                            <th>Experience Metrics</th>
-                            <th style="text-align: right; width: 150px;">Operational Controls</th>
-                        </tr>
-                    </thead>
-                    <tbody id="chefsTableBody">
-                        <tr>
-                            <td colspan="6" style="text-align:center; color:var(--text-muted); padding: 2rem;">
-                                Awaiting database connectivity pipeline streams...
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            <!-- PANEL SECTION 5: FEEDBACK ALERTS LOOP STREAM -->
-            <div id="section-feedback" class="panel-section">
-                <h3>Activity</h3>
-                <div id="feedbackContainer">
-                    <p style="color:var(--text-muted); text-align: center; padding: 2rem;">No logs recorded across
-                        terminals yet.</p>
-                </div>
-            </div>
-
+            <button class="allergen-select-btn" onclick="toggleAllergenSetupModal(true)">Set Filter</button>
         </div>
-    </main>
 
-    <script>
-        // Isolate multi-tenant url parameters lookup values properties models context references strings
+        <div class="category-strip" id="categoryBar">
+            <div class="category-pill active" onclick="filterMenuCategory('all', this)">All Items</div>
+            <div class="category-pill" onclick="filterMenuCategory('veg', this)">🟢 Veg Only</div>
+            <div class="category-pill" onclick="filterMenuCategory('promo', this)">✨ Highlights Choice</div>
+        </div>
+
+        <div class="promo-carousel" id="highlightsSliderContainer"></div>
+
+        <main class="menu-container" id="masterMenuGrid">
+            <p style="color:var(--text-muted); text-align: center; padding: 2rem;">Connecting to 3D rendering
+                pipeline...</p>
+        </main>
+
+        <button class="floating-bell-btn" onclick="toggleAssistantDrawer(true)">🛎️<div class="bell-badge"></div>
+        </button>
+
+        <footer class="action-bar">
+            <textarea id="globalKitchenInstructionsNote" rows="2"
+                placeholder="🍳 Add general kitchen instructions for this order..."></textarea>
+            <button class="btn-checkout" onclick="submitActiveOrder()" id="cartSummaryBtn">Send Order (0 Items
+                Selected)</button>
+        </footer>
+    </div>
+
+
+    <!-- WITH THIS: -->
+    <div class="overlay-canvas" id="assistantDrawerNode">
+        <div class="modal-container-box">
+            <span class="modal-close-cross" onclick="toggleAssistantDrawer(false)">✕</span>
+            <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.3rem;">🛎️ Need Assistance?</h3>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 0.5rem;">Select what you need:</p>
+            <div class="quick-grid-menu">
+                <div class="quick-node-card" id="qn-water"
+                    onclick="toggleQuickNeedListItem('qn-water', 'Water Refill')">💧<span>Water Refill</span></div>
+                <div class="quick-node-card" id="qn-waiter"
+                    onclick="toggleQuickNeedListItem('qn-waiter', 'Call Waiter')">🙋 <span>Call Waiter</span></div>
+                <div class="quick-node-card" id="qn-bill" onclick="toggleQuickNeedListItem('qn-bill', 'Request Bill')">
+                    🧾 <span>Request Bill</span></div>
+                <div class="quick-node-card" id="qn-cutlery"
+                    onclick="toggleQuickNeedListItem('qn-cutlery', 'Extra Cutlery')">🍴 <span>Extra Cutlery</span></div>
+            </div>
+            <textarea id="assistantRequestNotes" rows="2" placeholder="Any specific notes? (optional)"></textarea>
+            <button class="btn-checkout" style="margin-top: 1rem;" onclick="dispatchQuickAssistanceRequest()">Send
+                Request</button>
+        </div>
+    </div>
+
+    <div class="overlay-canvas" id="allergenProfilerNode">
+        <div class="modal-container-box">
+            <span class="modal-close-cross" onclick="toggleAllergenSetupModal(false)">✕</span>
+            <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.3rem;">🛡️ Allergy Filter</h3>
+            <p style="color: var(--text-muted); font-size: 0.85rem;">Select allergens to hide or flag dishes:</p>
+            <div class="allergy-grid-selection">
+                <label class="allergy-label-item"><input type="checkbox" class="allergen-chk" value="nuts"> 🥜 Peanuts /
+                    Nuts</label>
+                <label class="allergy-label-item"><input type="checkbox" class="allergen-chk" value="dairy"> 🥛 Dairy /
+                    Lactose</label>
+                <label class="allergy-label-item"><input type="checkbox" class="allergen-chk" value="gluten"> 🌾 Gluten
+                    / Wheat</label>
+                <label class="allergy-label-item"><input type="checkbox" class="allergen-chk" value="shellfish"> 🦀
+                    Shellfish</label>
+            </div>
+            <button class="btn-checkout" onclick="applyAllergenSafetyProfilesFilters()">Apply Filter</button>
+        </div>
+    </div>
+
+    <div class="overlay-canvas" id="feedbackNode">
+        <div class="modal-container-box">
+            <span class="modal-close-cross"
+                onclick="document.getElementById('feedbackNode').classList.remove('active')">✕</span>
+            <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem;">⭐ Rate Your Experience</h3>
+            <p style="color: var(--text-muted); font-size: 0.85rem;">Food Quality</p>
+            <div class="rating-stars" id="foodStars">
+                <span class="star" onclick="setRating('food', 1)">★</span>
+                <span class="star" onclick="setRating('food', 2)">★</span>
+                <span class="star" onclick="setRating('food', 3)">★</span>
+                <span class="star" onclick="setRating('food', 4)">★</span>
+                <span class="star" onclick="setRating('food', 5)">★</span>
+            </div>
+            <p style="color: var(--text-muted); font-size: 0.85rem;">Service Quality</p>
+            <div class="rating-stars" id="serviceStars">
+                <span class="star" onclick="setRating('service', 1)">★</span>
+                <span class="star" onclick="setRating('service', 2)">★</span>
+                <span class="star" onclick="setRating('service', 3)">★</span>
+                <span class="star" onclick="setRating('service', 4)">★</span>
+                <span class="star" onclick="setRating('service', 5)">★</span>
+            </div>
+            <textarea id="feedbackComments" rows="3" placeholder="Any comments? (optional)"></textarea>
+            <button class="btn-checkout" style="margin-top: 1rem;" onclick="dispatchFeedbackMatrix()">Submit
+                Feedback</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+        // =================================================================================
+        // 🟩 PHASE 1: DESERIALIZE RUNTIME TRACKING VARIABLES & CACHES (CRITICAL INITIALIZATION)
+        // =================================================================================
         const urlParams = new URLSearchParams(window.location.search);
-        const tenantId = urlParams.get('restaurant_id') || localStorage.getItem('mesa3d_tenant_id') || '1';
-        const tenantName = localStorage.getItem('mesa3d_tenant_name') || 'Mesa 3D White-Label Engine';
+        const tenantId = urlParams.get('restaurant_id') || '1';
+        const tableNum = urlParams.get('table');
+        const roomNum = urlParams.get('room');
 
-        document.getElementById('venueDisplayTag').innerText = tenantName;
+        let venueClassificationMode = roomNum ? 'HOTEL' : (urlParams.get('mode') || 'RESTAURANT');
+        let locationContext = roomNum ? 'ROOM' : 'TABLE';
+        let locationIdentifier = roomNum ? ('Room ' + roomNum) : (tableNum ? ('Table ' + tableNum) : 'General Space');
 
-        // 🟩 DYNAMIC BRAND NAME SIGNUP LINKING
-        const brandLogoWidgetContainer = document.querySelector('.brand-logo');
-        if (brandLogoWidgetContainer && tenantName) {
-            brandLogoWidgetContainer.innerText = tenantName;
-            brandLogoWidgetContainer.style.color = "var(--primary)";
-        }
+        // State containers are instantiated immediately at the top to prevent Hoisting/Initialization errors
+        let rawDatabaseDishesCache = [];
+        let selectedAllergenTriggers = [];
+        let cart = [];
+        let currentActiveOrderId = null;
+        let countdownInterval = null;
+        let ratings = { food: 0, service: 0 };
+        let assignedChefId = null;
+        let currentActiveFilterMode = "all";
+        let selectedMultiBellOptionsCache = {};
 
-        // Initialize WebSocket pipelines connection channel links mappings
+        let mainRenderer, activeModelScene, mainCamera, gltfLoader;
+        let currentLoadedMeshInstance = null;
+        let isUserDraggingModel = false;
+        let prevMousePositionX = 0, prevMousePositionY = 0;
+        let modelRotationAngleY = 0, modelRotationAngleX = 0;
 
-        // Initialize WebSocket pipelines connection channel links mappings
-        const socket = io();
-        socket.emit('join_workspace', { restaurantId: tenantId });
-        // Initialize WebSocket pipelines connection channel links mappings
-        // 🟩 SYSTEM UPDATE: Update the health readout dynamically based on live server connectivity
-        socket.on('connect', () => {
-            const healthIndicatorNode = document.getElementById('livePlatformHealthIndex');
-            if (healthIndicatorNode) {
-                healthIndicatorNode.innerText = "100% Stable";
-                healthIndicatorNode.style.color = "var(--success)";
-            }
-        });
-
-        socket.on('disconnect', () => {
-            const healthIndicatorNode = document.getElementById('livePlatformHealthIndex');
-            if (healthIndicatorNode) {
-                healthIndicatorNode.innerText = "Degraded (Offline)";
-                healthIndicatorNode.style.color = "var(--danger)";
-            }
+        // Initialize low-latency WebSockets socket connectivity layers
+        const socket = io({
+            transports: ['websocket', 'polling'],
+            autoConnect: true,
+            reconnectionAttempts: 5,
+            timeout: 10000
         });
 
         // =================================================================================
-        // 🚨 LIVE DISPATCH MONITOR SYSTEM: Persistent trackers with 10s popup fallback
+        // 🟩 PHASE 2: BIND MODULE FUNCTIONS EXPLICITLY TO GLOBAL WINDOW OBJECT LAYER
         // =================================================================================
-        socket.on('waiter_alert', (data) => {
-            const mainAlertPopupContainer = document.getElementById('temporaryAlertPopups');
-            const persistentNotificationBar = document.getElementById('statusBarNotificationFeed');
-            const feedbackTickerMatrix = document.getElementById('feedbackContainer');
-
-            // Isolate coordinate labels context string
-            let callerSpaceLabelString = data.location_identifier.split(' [')[0];
-            const uniqueAlertId = `task-node-${data.id || Date.now()}`;
-
-            // 1. Trigger the automatic visual tile alert matrix highlight animations
-            spacesActiveAlertStateMap.set(callerSpaceLabelString, true);
-            compileFloorTileGridVisualLayout();
-
-            // 2. Spawn high-urgency passing popup toast (Expires completely in 10 seconds)
-            if (mainAlertPopupContainer) {
-                const temporaryPopupHTML = `
-                    <div class="urgent-popup-toast" id="popup-${uniqueAlertId}" style="transition: all 0.5s ease; padding: 1rem; background: var(--danger); color: white; border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); margin-bottom: 0.5rem; font-weight: 600; font-size: 0.85rem;">
-                        🛎️ Real-Time Paging Alert: ${data.location_identifier}
-                    </div>
-                `;
-                mainAlertPopupContainer.insertAdjacentHTML('beforeend', temporaryPopupHTML);
-
-                setTimeout(() => {
-                    const targetPopup = document.getElementById(`popup-${uniqueAlertId}`);
-                    if (targetPopup) {
-                        targetPopup.style.opacity = '0';
-                        setTimeout(() => targetPopup.remove(), 500);
-                    }
-                }, 10000); // Remove popup message after 10 seconds
-            }
-
-            // 3. Append to Persistent Status Notification bar feed (Stays until waiter is assigned)
-            if (persistentNotificationBar) {
-                const navItemHTML = `
-                    <div class="nav-notification-item" id="nav-item-${uniqueAlertId}" style="padding: 0.8rem; background: #161B26; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; gap: 0.5rem;">
-                        <span style="font-size: 0.8rem; color: #F3F4F6;">🏃 ${callerSpaceLabelString} needs assistance</span>
-                        <button style="background: var(--success); color: var(--bg-dark); border: none; font-weight: 700; font-size: 0.65rem; padding: 0.25rem 0.5rem; border-radius: 3px; cursor: pointer;" onclick="resolveStaffDeployment('${uniqueAlertId}', '${callerSpaceLabelString}')">Assign</button>
-                    </div>
-                `;
-                persistentNotificationBar.insertAdjacentHTML('afterbegin', navItemHTML);
-            }
-
-            // 4. Update the bottom activities ticker logs stream panel
-            if (feedbackTickerMatrix) {
-                if (feedbackTickerMatrix.innerHTML.includes('No logs recorded')) feedbackTickerMatrix.innerHTML = '';
-                feedbackTickerMatrix.innerHTML = `<div class="feedback-node-card" id="card-log-${uniqueAlertId}" style="border-left-color:var(--danger); background:rgba(239,68,68,0.02);"><strong>🚨 PAGING RUNNER LOG ALERT:</strong> Active signal at ${callerSpaceLabelString}. Awaiting task deployment... <button style="background:var(--danger); border:none; color:white; font-size:0.65rem; padding:2px 6px; border-radius:2px; margin-left:10px; cursor:pointer;" onclick="resolveStaffDeployment('${uniqueAlertId}', '${callerSpaceLabelString}')">Assign Staff from Deck</button></div>` + feedbackTickerMatrix.innerHTML;
-            }
-
-            // 🟩 CARD INJECTION FOR THE DASHBOARD HUD
-            const dashboardAlarmGrid = document.getElementById('liveDashboardBlinkingAlarmsGridContainer');
-            const dashboardAlarmSectionWrapper = document.getElementById('activeWaiterPagingDashboardBannerZone');
-            if (dashboardAlarmGrid && dashboardAlarmSectionWrapper) {
-                dashboardAlarmSectionWrapper.style.display = 'flex';
-                const dashboardCardHTML = `
-                    <div class="kpi-card" id="dash-card-${uniqueAlertId}" style="border:2px solid var(--danger); background: rgba(220, 38, 38, 0.04); animation: pulseAlertGlow 1.5s infinite; display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
-                        <div>
-                            <div style="font-size:0.65rem; text-transform:uppercase; color:var(--text-muted); font-weight:700;">Urgent Assist Call</div>
-                            <div style="font-size:1.05rem; font-weight:700; color:white; margin-top:0.1rem;">${callerSpaceLabelString}</div>
-                        </div>
-                        <button style="background:var(--danger); color:white; border:none; font-weight:700; font-size:0.65rem; padding:0.4rem 0.8rem; border-radius:3px; cursor:pointer; text-transform:uppercase;" onclick="resolveStaffDeployment('${uniqueAlertId}', '${callerSpaceLabelString}')">Clear</button>
-                    </div>`;
-                dashboardAlarmGrid.insertAdjacentHTML('beforeend', dashboardCardHTML);
-            }
-        });
-
-        // Global Resolver Method: Clears task entries cleanly out of persistent feeds rows metrics
-        window.resolveStaffDeployment = function (uniqueId, callerSpaceLabelString) {
-            const navItem = document.getElementById(`nav-item-${uniqueId}`);
-            if (navItem) navItem.remove();
-
-            // 🟩 CLEAR CARD FROM DASHBOARD HUD GRID
-            const dashCard = document.getElementById(`dash-card-${uniqueId}`);
-            if (dashCard) dashCard.remove();
-            const dashboardAlarmGrid = document.getElementById('liveDashboardBlinkingAlarmsGridContainer');
-            const dashboardAlarmSectionWrapper = document.getElementById('activeWaiterPagingDashboardBannerZone');
-            if (dashboardAlarmGrid && !dashboardAlarmGrid.children.length) {
-                dashboardAlarmSectionWrapper.style.display = 'none';
-            }
-
-            const cardLog = document.getElementById(`card-log-${uniqueId}`);
-            if (cardLog) {
-                cardLog.style.borderLeftColor = 'var(--success)';
-                cardLog.style.background = 'rgba(16, 185, 129, 0.02)';
-                cardLog.innerHTML = `<strong>✅ RESOLVED:</strong> Staff deployed to ${callerSpaceLabelString}. Task logged clear.`;
-            }
-
-            // Turn off blinking warning animation from layout floor inventory grids
-            spacesActiveAlertStateMap.delete(callerSpaceLabelString);
-            compileFloorTileGridVisualLayout();
+        window.filterMenuCategory = function (category, element) {
+            currentActiveFilterMode = category;
+            document.querySelectorAll('.category-pill').forEach(pill => pill.classList.remove('active'));
+            element.classList.add('active');
+            renderMenuDisplayGrid();
         };
 
-        // =================================================================================
-        // 💬 CONDITIONAL PERFORMANCE RATING FEEDBACK INTERCEPTOR PIPELINE
-        // =================================================================================
-        socket.on('incoming_feedback', (review) => {
-            foodScores.push(review.food_rating);
-            serviceScores.push(review.service_rating);
-
-            // Update baseline KPIs metrics score readouts
-            if (document.getElementById('kpi-food-rating')) {
-                document.getElementById('kpi-food-rating').innerText = (foodScores.reduce((a, b) => a + b, 0) / foodScores.length).toFixed(1) + " / 5.0";
-            }
-            if (document.getElementById('kpi-service-rating')) {
-                document.getElementById('kpi-service-rating').innerText = (serviceScores.reduce((a, b) => a + b, 0) / serviceScores.length).toFixed(1) + " / 5.0";
-            }
-
-            const persistentNotificationBar = document.getElementById('statusBarNotificationFeed');
-            const fullDashboardAlertLayer = document.getElementById('fullDashboardAlertBannerZone');
-            const container = document.getElementById('feedbackContainer');
-
-            const calculatedAverageScore = (parseFloat(review.food_rating) + parseFloat(review.service_rating)) / 2;
-            const starStringRepresentation = '★'.repeat(Math.round(calculatedAverageScore)) + '☆'.repeat(5 - Math.round(calculatedAverageScore));
-
-            // A. ALL incoming scores stream directly into the top status notifications dropdown feed
-            if (persistentNotificationBar) {
-                const ratingNotificationHTML = `
-                    <div class="nav-notification-item" style="padding: 0.8rem; background: #121824; border-bottom: 1px solid var(--border); font-size: 0.8rem;">
-                        <span style="color: #FFD700; font-weight: bold;">${starStringRepresentation}</span> 
-                        <span style="color: var(--text-light); margin-left: 0.4rem;">Order #${review.order_id}: "${review.comments || 'No comment text'}"</span>
-                    </div>
-                `;
-                persistentNotificationBar.insertAdjacentHTML('afterbegin', ratingNotificationHTML);
-            }
-
-            // B. Also stream into the floor activities ticker historical tab data feed logs
-            if (container) {
-                if (foodScores.length === 1) container.innerHTML = '';
-                const warningClass = calculatedAverageScore <= 2 ? 'warning' : '';
-                container.innerHTML = `<div class="feedback-node-card ${warningClass}"><strong>Order Ref: #ORD-${review.order_id} (Score: ${calculatedAverageScore.toFixed(1)})</strong><p>"${review.comments || 'No comment summary text metrics.'}"</p></div>` + container.innerHTML;
-            }
-
-            // C. CRITICAL HANDLER: If average score is 2 stars or under, trigger full dashboard screen alert block
-            if (calculatedAverageScore <= 2 && fullDashboardAlertLayer) {
-                const criticalDashboardBannerHTML = `
-                    <div class="dashboard-critical-alarm" style="background: rgba(239, 68, 68, 0.1); border: 2px solid var(--danger); color: white; padding: 1.5rem; border-radius: 6px; margin-bottom: 2rem; box-shadow: 0 10px 30px rgba(239, 68, 68, 0.15); animation: pulseAlertGlow 2s infinite; display: flex; justify-content: space-between; align-items: center; gap: 1rem;">
-                        <div style="flex: 1;">
-                            <h2 style="color: var(--danger); font-size: 1.1rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.3rem;">⚠️ CRITICAL LOW PERFORMANCE EXCELLENCE ESCALATION</h2>
-                            <p style="font-size: 0.9rem; color: var(--text-light);">Customer submitted an experience review average score of <strong style="color: var(--danger);">${calculatedAverageScore.toFixed(1)} Stars</strong> on order transaction reference point ticket #ORD-${review.order_id}.</p>
-                            <p style="margin-top: 0.5rem; color: var(--text-muted); font-style: italic; background: #090D16; padding: 0.6rem; border-radius: 4px; font-size: 0.85rem; border: 1px solid var(--border);">"描述 Context: ${review.comments || 'No written analytical comment details text compiled.'}"</p>
-                        </div>
-                        <button style="background: var(--danger); color: white; border: none; font-weight: 700; font-size: 0.75rem; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; text-transform: uppercase;" onclick="this.parentElement.remove()">Dismiss Alert</button>
-                    </div>
-                `;
-                fullDashboardAlertLayer.insertAdjacentHTML('afterbegin', criticalDashboardBannerHTML);
-            }
-        });
-
-        // Platform runtime global arrays storage parameters allocations maps definitions variables
-        let ordersLog = [];
-        let totalRevenue = 0;
-        let foodScores = [];
-        let serviceScores = [];
-        let liveEnrolledChefsList = [];
-        let globalActiveVenueMode = "RESTAURANT"; // Tracking variable for white-label text shifts loops
-
-        // Inventory local cache parameters tracking models arrays loops metrics configurations
-        let totalConfiguredTablesCount = 10;
-        let totalConfiguredRoomsCount = 2;
-        let spacesActiveAlertStateMap = new Map(); // Tracks live caller flags to animate tiles interfaces
-
-        // Navigational tab switcher router routine method script
-        function switchSection(targetKey) {
-            document.querySelectorAll('.nav-links li').forEach(li => li.classList.remove('active'));
-            document.querySelectorAll('.panel-section').forEach(sec => sec.classList.remove('active'));
-
-            document.getElementById('section-' + targetKey).classList.add('active');
-            document.getElementById('activePanelTitle').innerText = targetKey.toUpperCase() + " MANAGEMENT CONSOLE";
-
-            const activeLi = document.getElementById('nav-' + targetKey);
-            if (activeLi) activeLi.classList.add('active');
-
-            // Fire updates automatically on active insight windows refreshes transitions
-            if (targetKey === 'dashboard') syncPopularityAnalytics();
-            if (targetKey === 'floor') compileFloorTileGridVisualLayout();
-            if (targetKey === 'chefs') syncAdminData();
-        }
-
-        // Helper Method: Handles enterprise white-label translation overrides across all text containers layers elements
-        function modifyWhiteLabelUIVariables(targetModeValueString) {
-            globalActiveVenueMode = targetModeValueString;
-
-            if (globalActiveVenueMode === 'HOTEL') {
-                document.getElementById('kpiOrdersLabel').innerText = "Total Suite Service Requests";
-                document.getElementById('kpiTablesLabel').innerText = "Total Operational Rooms";
-                document.getElementById('thLocationHeader').innerText = "Suite Room Identity Vector";
-                document.getElementById('lblInputTables').innerText = "Standard Living Rooms Count";
-                document.getElementById('lblInputRooms').innerText = "VIP Executive Suites Count";
-                document.getElementById('lblVisualLayoutHeading').innerText = "Live Hotel Space Inventory Grid (App Launcher QR Generation Matrix)";
-            } else {
-                document.getElementById('kpiOrdersLabel').innerText = "Total Monitored Orders";
-                document.getElementById('kpiTablesLabel').innerText = "Total Active Tables";
-                document.getElementById('thLocationHeader').innerText = "Location Identifier Node";
-                document.getElementById('lblInputTables').innerText = "Total Dining Tables Count";
-                document.getElementById('lblInputRooms').innerText = "Total VIP Rooms / Suites Count";
-                document.getElementById('lblVisualLayoutHeading').innerText = "Live Floor Visual Management Matrix (Scan Point Node Links)";
-            }
-            compileFloorTileGridVisualLayout();
-        }
-
-        // Commit Space Setup Method: Updates internal counts parameters and refreshes layouts grids structures elements lines
-        function commitSpaceInventorySettingsManual() {
-            totalConfiguredTablesCount = parseInt(document.getElementById('inputTotalTables').value) || 0;
-            totalConfiguredRoomsCount = parseInt(document.getElementById('inputTotalRooms').value) || 0;
-
-            alert(`🎉 Inventory Space Models Initialized! Configured ${totalConfiguredTablesCount} standard spaces and ${totalConfiguredRoomsCount} high-priority zones.`);
-            compileFloorTileGridVisualLayout();
-        }
-
-        // 🪑 NEW METHOD ENGINE: Generates print-ready app clip launcher vectors tiles arrays grids structures UI
-        function compileFloorTileGridVisualLayout() {
-            const matrixContainerGridNode = document.getElementById('floorLayoutVisualMatrixGrid');
-            matrixContainerGridNode.innerHTML = '';
-
-            let labelPrefixTables = globalActiveVenueMode === 'HOTEL' ? 'Room' : 'Table';
-            let labelPrefixRooms = globalActiveVenueMode === 'HOTEL' ? 'VIP Suite' : 'VIP Room';
-
-            // 1. Compile primary standard locations tile nodes loop indicators
-            for (let i = 1; i <= totalConfiguredTablesCount; i++) {
-                let locationKeyID = `${labelPrefixTables} ${i}`;
-                let itemAlertStateCSSClass = spacesActiveAlertStateMap.has(locationKeyID) ? 'status-alert' : '';
-                let buttonTitleLabelText = spacesActiveAlertStateMap.has(locationKeyID) ? '⚠️ Clear Alert' : '📥 Download QR';
-
-                // Format explicit launch urls mapping parameters contexts matching dynamic white-label profiles settings rules
-                let liveLauncherURLStringPath = `${window.location.origin}/customer/index.html?restaurant_id=${tenantId}&table=${i}&mode=${globalActiveVenueMode}`;
-
-                matrixContainerGridNode.innerHTML += `
-                    <div class="floor-tile-card ${itemAlertStateCSSClass}" id="tile-card-node-${i}">
-                        <h5>#${i}</h5>
-                        <p>${labelPrefixTables}</p>
-                        <button class="btn-qr-download" onclick="triggerQRDownloadPipeline('${liveLauncherURLStringPath}', '${locationKeyID}')">${buttonTitleLabelText}</button>
-                    </div>
-                `;
-            }
-
-            // 2. Compile secondary custom priority suites zone tiles entries loops indexes
-            for (let j = 1; j <= totalConfiguredRoomsCount; j++) {
-                let locationKeyID = `${labelPrefixRooms} ${j}`;
-                let itemAlertStateCSSClass = spacesActiveAlertStateMap.has(locationKeyID) ? 'status-alert' : '';
-                let buttonTitleLabelText = spacesActiveAlertStateMap.has(locationKeyID) ? '⚠️ Clear Alert' : '📥 Download QR';
-
-                let liveLauncherURLStringPath = `${window.location.origin}/customer/index.html?restaurant_id=${tenantId}&room=${j}&mode=${globalActiveVenueMode}`;
-
-                matrixContainerGridNode.innerHTML += `
-                    <div class="floor-tile-card ${itemAlertStateCSSClass}" style="background:rgba(139, 92, 246, 0.03); border-color:#4B358A;">
-                        <h5 style="color:var(--primary);">VIP #${j}</h5>
-                        <p style="color:var(--purple-accent);">${labelPrefixRooms}</p>
-                        <button class="btn-qr-download" style="color:var(--purple-accent);" onclick="triggerQRDownloadPipeline('${liveLauncherURLStringPath}', '${locationKeyID}')">${buttonTitleLabelText}</button>
-                    </div>
-                `;
-            }
-
-            document.getElementById('kpi-active-spaces').innerText = (totalConfiguredTablesCount + totalConfiguredRoomsCount);
-        }
-
-        // 📥 QR STICKER PIPELINE GENERATOR: Direct backend communication wrapper converting parameters text variables into download streams
-        function triggerQRDownloadPipeline(compiledTargetURLText, identificationLabelHeader) {
-            // Check condition: If an active call flag triggers alert state clicks, prioritize clearing alert panels indicators over downloads
-            if (spacesActiveAlertStateMap.has(identificationLabelHeader)) {
-                spacesActiveAlertStateMap.delete(identificationLabelHeader);
-                compileFloorTileGridVisualLayout();
-                return;
-            }
-
-            // Generate direct network link call routing parameters targets paths nodes scripts lines loops
-            let backendFetchAPIEndpointRoute = `/api/inventory/qr?url=${encodeURIComponent(compiledTargetURLText)}&label=${encodeURIComponent(identificationLabelHeader)}`;
-
-            // Redirect absolute browser view windows execution frame target location lines directly to pull down the dynamic file generation payload
-            window.open(backendFetchAPIEndpointRoute, '_blank');
-        }
-
-        function formatDateTimeToStandard(dateObjectOrString) {
-            const date = new Date(dateObjectOrString);
-            if (isNaN(date.getTime())) return "Just Now";
-            const day = String(date.getDate()).padStart(2, '0');
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const year = date.getFullYear();
-            let hours = date.getHours();
-            const minutes = String(date.getMinutes()).padStart(2, '0');
-            const ampm = hours >= 12 ? 'PM' : 'AM';
-            hours = hours % 12;
-            hours = hours ? hours : 12;
-            return `${day}/${month}/${year} at ${hours}:${minutes} ${ampm}`;
-        }
-
-        // 📊 ANALYTICS DATA AGGREGATION LOOP ENGINE METHOD: Hits backends statistical node endpoint to calculate model item order frequency
-        async function syncPopularityAnalytics() {
-            try {
-                const res = await fetch(`/api/analytics/popular?restaurant_id=${tenantId}`);
-                const data = await res.json();
-                const metricsBox = document.getElementById('popularityMetricsBox');
-
-                if (!data.length) {
-                    metricsBox.innerHTML = `<p style="color:var(--text-muted); font-size:0.85rem;">No historical database orders data records collected to compute frequency metrics yet.</p>`;
-                    return;
-                }
-
-                metricsBox.innerHTML = '';
-                data.forEach((dish, idx) => {
-                    metricsBox.innerHTML += `
-                        <div class="metric-row">
-                            <span><strong>#${idx + 1}</strong> &nbsp; ${dish.name}</span>
-                            <span style="background:rgba(197, 168, 128, 0.15); color:var(--primary); padding:0.2rem 0.6rem; border-radius:12px; font-size:0.8rem; font-weight:700;">Ordered ${dish.count} Times</span>
-                        </div>
-                    `;
+        window.toggleAllergenSetupModal = function (visible) {
+            const targetModalNode = document.getElementById('allergenProfilerNode');
+            if (!targetModalNode) return;
+            if (visible) {
+                targetModalNode.classList.add('active');
+                document.querySelectorAll('.allergen-chk').forEach(chk => {
+                    chk.checked = selectedAllergenTriggers.includes(chk.value);
                 });
-            } catch (e) { console.error("Analytics network aggregate channel pipeline processing fault error exception:", e); }
-        }
+            } else {
+                targetModalNode.classList.remove('active');
+            }
+        };
 
-        async function syncAdminData() {
+        window.applyAllergenSafetyProfilesFilters = function () {
+            let newlyCompiledAllergensRestrictionsList = [];
+            document.querySelectorAll('.allergen-chk').forEach(chk => {
+                if (chk.checked) newlyCompiledAllergensRestrictionsList.push(chk.value.toLowerCase().trim());
+            });
+            selectedAllergenTriggers = newlyCompiledAllergensRestrictionsList;
+            window.toggleAllergenSetupModal(false);
+            renderMenuDisplayGrid();
+        };
+
+        window.addToCartTray = function (itemName, unitPrice, dishId) {
+            cart.push({ name: itemName, price: unitPrice });
+            document.getElementById('cartSummaryBtn').innerText = `Send Order (${cart.length} Items Selected) ➔`;
+            let currentAddedQuantityCount = cart.filter(item => item.name === itemName).length;
+            const targetBtn = document.getElementById(`add-btn-${dishId}`);
+            if (targetBtn) targetBtn.innerText = `Add (${currentAddedQuantityCount}) +`;
+        };
+
+        window.toggleAssistantDrawer = function (visible) {
+            const drawer = document.getElementById('assistantDrawerNode');
+            if (!drawer) return;
+            if (visible) {
+                drawer.classList.add('active');
+                document.querySelectorAll('.quick-node-card').forEach(c => c.classList.remove('selected'));
+                selectedMultiBellOptionsCache = {};
+            } else {
+                drawer.classList.remove('active');
+            }
+        };
+
+        window.toggleQuickNeedListItem = function (elementId, contextLabelString) {
+            const cardAnchorNode = document.getElementById(elementId);
+            if (selectedMultiBellOptionsCache[elementId]) {
+                delete selectedMultiBellOptionsCache[elementId];
+                cardAnchorNode.classList.remove('selected');
+            } else {
+                selectedMultiBellOptionsCache[elementId] = contextLabelString;
+                cardAnchorNode.classList.add('selected');
+            }
+        };
+
+        window.dispatchQuickAssistanceRequest = function () {
+            let combinedSelectionsArray = Object.values(selectedMultiBellOptionsCache);
+            if (!combinedSelectionsArray.length) return alert("Please select an operational assistance checklist parameter.");
+            const userCustomTextInstructionNotes = document.getElementById('assistantRequestNotes').value.trim();
+            let text = combinedSelectionsArray.join(' + ');
+            if (userCustomTextInstructionNotes) text += ` (Note: "${userCustomTextInstructionNotes}")`;
+
+            socket.emit('call_waiter', {
+                restaurant_id: tenantId,
+                location_context: locationContext,
+                location_identifier: `${locationIdentifier} [${text}]`
+            });
+            window.toggleAssistantDrawer(false);
+        };
+
+        window.submitActiveOrder = function () {
+            if (!cart.length) return alert("Tray selections are clear. Please choose items first.");
+            let total = cart.reduce((sum, item) => sum + item.price, 0);
+            const globalKitchenCommentNote = document.getElementById('globalKitchenInstructionsNote').value.trim();
+            let idText = locationIdentifier;
+            if (globalKitchenCommentNote) idText += ` (Kitchen Note: "${globalKitchenCommentNote}")`;
+
+            socket.emit('place_order', { restaurant_id: tenantId, location_context: locationContext, location_identifier: idText, items: cart, total_price: total });
+            cart = [];
+            document.getElementById('cartSummaryBtn').innerText = 'Send Order (0 Items Selected)';
+            document.getElementById('trackerBanner').classList.add('active');
+            renderMenuDisplayGrid();
+        };
+
+        window.setRating = function (type, val) {
+            ratings[type] = val;
+            const stars = document.querySelectorAll(`#${type}Stars .star`);
+            stars.forEach((s, idx) => { s.classList.toggle('selected', idx < val); });
+        };
+
+        window.dispatchFeedbackMatrix = function () {
+            fetch('/api/feedback', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ restaurant_id: tenantId, order_id: currentActiveOrderId, food_rating: ratings.food, service_rating: ratings.service, comments: document.getElementById('feedbackComments').value, chef_id: assignedChefId })
+            }).then(() => {
+                document.getElementById('feedbackNode').classList.remove('active');
+            });
+        };
+
+        window.openVolumetric3DViewer = function (assetPath, name, price, dishId) {
+            document.getElementById('modalDishTitle').innerText = name;
+            document.getElementById('volumetricPreviewModal').style.display = 'flex';
+
+            if (currentLoadedMeshInstance) activeModelScene.remove(currentLoadedMeshInstance);
+
+            gltfLoader.load(assetPath, (gltf) => {
+                currentLoadedMeshInstance = gltf.scene;
+                const bBox = new THREE.Box3().setFromObject(currentLoadedMeshInstance);
+                const center = bBox.getCenter(new THREE.Vector3());
+                currentLoadedMeshInstance.position.x += (0) - center.x;
+                currentLoadedMeshInstance.position.y += (0) - center.y;
+                currentLoadedMeshInstance.position.z += (0) - center.z;
+                activeModelScene.add(currentLoadedMeshInstance);
+            });
+        };
+
+        window.closeVolumetric3DViewer = function () {
+            document.getElementById('volumetricPreviewModal').style.display = 'none';
+            if (currentLoadedMeshInstance) {
+                activeModelScene.remove(currentLoadedMeshInstance);
+                currentLoadedMeshInstance = null;
+            }
+        };
+
+
+
+        async function initializeApp() {
             try {
-                // Fetch out raw chefs profiles array data structures safely from network ports
-                const chefRes = await fetch('/api/chefs?restaurant_id=' + tenantId);
+                applyWhiteLabelBrandLabels();
+                socket.emit('join_workspace', { restaurantId: tenantId });
+                initMasterSharedWebGLContext();
 
-                // 🟩 FIXED: Verifies response status code properties before attempting to write memory maps
-                if (chefRes.ok) {
-                    const parsedChefsPayload = await chefRes.json();
-                    // Fallback to empty array if the server returns an object instead of a roster list array
-                    liveEnrolledChefsList = Array.isArray(parsedChefsPayload) ? parsedChefsPayload : [];
-                } else {
-                    liveEnrolledChefsList = [];
-                }
-
-                // 🟩 FIXED: Fetches and cleanly parses the dishes payload array to prevent initialization crashes
                 const dishRes = await fetch('/api/dishes?restaurant_id=' + tenantId);
-                const dishes = dishRes.ok ? await dishRes.json() : [];
+                const rawData = await dishRes.json();
 
-                const menuBody = document.getElementById('menuTableBody');
+                rawDatabaseDishesCache = rawData.map((dish) => {
+                    let discountRate = parseInt(dish.specialties) || 0;
+                    let isPromoItem = dish.is_promo === 1 ? 1 : 0;
+                    let assignedAllergensList = dish.allergens && dish.allergens !== 'none' ? dish.allergens.split(',') : [];
+                    let displayPrice = dish.price;
+                    let strikeThroughPriceHTML = "";
 
-                if (menuBody) {
-                    menuBody.innerHTML = dishes.length ? '' : '<tr><td colspan="6" style="text-align:center; color:var(--text-muted);">No volumetric assets cataloged yet inside SQL tables rows reference points.</td></tr>';
-                    dishes.forEach(d => {
-                        let dietBadgeClass = d.dietary_type === 'non-veg' ? 'nv-type' : (d.dietary_type === 'egg' ? 'e-type' : 'v-type');
-                        let dietBadgeLabel = d.dietary_type === 'non-veg' ? 'NON-VEG' : (d.dietary_type === 'egg' ? 'EGG' : 'VEG');
+                    if (discountRate > 0) {
+                        displayPrice = dish.price * (1 - (discountRate / 100));
+                        strikeThroughPriceHTML = `<span style="text-decoration: line-through; color: var(--text-muted); font-size: 0.8rem; margin-left: 0.4rem;">₹${dish.price.toFixed(2)}</span>`;
+                    }
 
-                        let discountRateValue = parseInt(d.offer_percentage) || 0;
+                    return {
+                        id: dish.id,
+                        name: dish.name,
+                        price: displayPrice,
+                        original_price_label: strikeThroughPriceHTML,
+                        is_promo: isPromoItem,
+                        dietary_classification: dish.dietary_type || 'veg',
+                        allergens_array: assignedAllergensList,
+                        graphic_3d_asset: dish.image_url || ''
+                    };
+                });
 
-                        let isHighlighted = d.is_promo === 1;
-                        let highlightBtnLabel = isHighlighted ? '⭐ Featured' : 'Feature';
-                        let highlightClassMod = isHighlighted ? 'featured-true' : '';
+                renderPromotionalShowcaseCarousel();
+                renderMenuDisplayGrid();
+                executeMasterRenderTickLoop();
 
-                        menuBody.innerHTML += `
-                            <tr id="dish-row-${d.id}">
-                                <td>#${d.id}</td>
-                                <td><strong>${d.name}</strong></td>
-                                <td>₹${d.price.toFixed(2)}</td>
-                                <td><span class="mini-diet-badge ${dietBadgeClass}">${dietBadgeLabel}</span></td>
-                                <td style="color:var(--success); font-weight:700;">${discountRateValue > 0 ? `${discountRateValue}% OFF` : 'None'}</td>
-                                <td style="text-align: right;">
-                                    <!-- 🌟 HIGHLIGHT SLIDER OVERRIDE TRIGGER BUTTON: Changes is_promo state rows values parameters instantly -->
-                                    <button class="btn-inline-highlight ${highlightClassMod}" onclick="toggleDishHighlightDirect(${d.id}, ${d.is_promo})">${highlightBtnLabel}</button>
-                                    <button class="btn-inline-offer" onclick="promptOfferPercentage(${d.id})">Offer %</button>
-                                    <button class="btn-inline-delete" onclick="adminDeleteDishCard(${d.id})">Remove</button>
-                                </td>
-                            </tr>`;
-                    });
-                }
-
-                const chefBody = document.getElementById('chefsTableBody');
-                if (chefBody) {
-                    chefBody.innerHTML = liveEnrolledChefsList.length ? '' : '<tr><td colspan="6" style="text-align:center; color:var(--text-muted);">No profile structures registered yet inside line cook tables rosters rows.</td></tr>';
-                    liveEnrolledChefsList.forEach(c => {
-                        // Safe fallback links if image pathways parameters are missing
-                        const verifiedAvatarUrlString = c.photo_url ? c.photo_url : 'https://img.icons8.com/color/100/chef-hat.png';
-                        const renderedImageMarkupHTML = `<img src="${verifiedAvatarUrlString}" style="width:35px; height:35px; border-radius:50%; object-fit:cover; border:1px solid var(--border); display: inline-block; vertical-align: middle;">`;
-
-                        chefBody.innerHTML += `
-                            <tr id="chef-row-${c.id}">
-                                <td>#${c.id}</td>
-                                <td style="text-align:center; padding: 0.5rem 0;">${renderedImageMarkupHTML}</td>
-                                <td><strong>${c.name || 'Anonymous Cook'}</strong></td>
-                                <td>${c.specialties || c.specialty || 'General Lines Cook'}</td>
-                                <td>${c.experience || 'Entry-Level Profile'}</td>
-                                <td style="text-align: right;">
-                                    <button class="btn-inline-delete" onclick="adminDeleteChefProfile(${c.id})">Purge Profile</button>
-                                </td>
-                            </tr>`;
-                    });
-                }
-                syncPopularityAnalytics();
-                compileFloorTileGridVisualLayout();
             } catch (err) { console.error(err); }
         }
 
-        async function toggleDishHighlightDirect(dishId, currentHighlightState) {
-            let targetStateChange = currentHighlightState === 1 ? 0 : 1;
-            try {
-                const res = await fetch(`/api/dishes/toggle-highlight?id=${dishId}&is_promo=${targetStateChange}&restaurant_id=${tenantId}`, { method: 'POST' });
-                const data = await res.json();
-                if (data.success) { await syncAdminData(); }
-            } catch (e) { alert("Network Sync Error."); }
+        function applyWhiteLabelBrandLabels() {
+            // 🟩 FIXED ISSUE 7 & 8: Safely binds table coordinates and dynamically pulls local business identities
+            document.getElementById('locationDisplay').innerText = `${locationContext} SERVICE POINT: ${locationIdentifier}`;
+
+            // Extract the custom authenticated tenant brand name currently stored inside device local storage bounds
+            const customBusinessBrandNameString = localStorage.getItem('mesa3d_tenant_name') || "Mesa 3D Smart Dining Terminal";
+            document.getElementById('restaurantName').innerText = customBusinessBrandNameString;
+
+            if (venueClassificationMode === 'HOTEL') {
+                document.getElementById('systemHeader').innerText = "🛋️ In-Room Volumetric Interactive Concierge Deck";
+                document.getElementById('globalKitchenInstructionsNote').placeholder = "🏨 Add specific room delivery instructions or suite preference notes here...";
+            } else if (venueClassificationMode === 'CAFE') {
+                document.getElementById('systemHeader').innerText = "☕ Smart Lounge Bar Counter Directory Terminal";
+                document.getElementById('globalKitchenInstructionsNote').placeholder = "🥐 Add barista notes or brewing preferences here...";
+            } else {
+                document.getElementById('systemHeader').innerText = "🍽️ Premium Interactive SaaS Dining Directory";
+                document.getElementById('globalKitchenInstructionsNote').placeholder = "🍳 Add general kitchen preparation or custom chef instruction notes here...";
+            }
         }
 
-        async function promptOfferPercentage(dishId) {
-            let userInput = prompt("Enter custom discount percentage for this dish (e.g., 10, 20, 50). Enter 0 to cancel:", "10");
-            if (userInput === null) return;
-            let percentage = parseInt(userInput) || 0;
-            let targetPromoToggle = percentage > 0 ? 1 : 0;
+        function renderMenuDisplayGrid() {
+            const grid = document.getElementById('masterMenuGrid');
+            grid.innerHTML = '';
 
-            try {
-                const res = await fetch(`/api/dishes/toggle-offer?id=${dishId}&is_promo=${targetPromoToggle}&percentage=${percentage}&restaurant_id=${tenantId}`, { method: 'POST' });
-                if ((await res.json()).success) { await syncAdminData(); }
-            } catch (e) { alert("Network Mutation Error."); }
+            let outputTargetList = rawDatabaseDishesCache.filter(dish => {
+                if (currentActiveFilterMode === 'all') return true;
+                if (currentActiveFilterMode === 'veg') return dish.dietary_classification === 'veg';
+                if (currentActiveFilterMode === 'promo') return dish.is_promo === 1;
+                return true;
+            });
+
+            outputTargetList.forEach(dish => {
+                let containsTriggeredAllergen = dish.allergens_array.some(key => selectedAllergenTriggers.includes(key.toLowerCase().trim()));
+                let criticalCardWarningCSSClass = containsTriggeredAllergen ? 'allergen-warning' : '';
+                let technicalAllergenBadgesHTML = dish.allergens_array.map(alg => `<span class="allergen-pill-badge">Contains ${alg.toUpperCase().trim()}</span>`).join('');
+                let classificationCSSSelector = dish.dietary_classification;
+                let currentAddedQuantityCount = cart.filter(item => item.name === dish.name).length;
+                let addBtnLabelStringText = currentAddedQuantityCount > 0 ? `Add (${currentAddedQuantityCount}) +` : 'Add +';
+
+                grid.innerHTML += `
+                    <div class="dish-card ${criticalCardWarningCSSClass}">
+                        <div class="dish-main-row" style="align-items: center; gap: 1rem;">
+                            <div style="flex: 1;">
+                                <div class="diet-indicator ${classificationCSSSelector}"></div>
+                                <h3 class="dish-title">${dish.name}</h3>
+                                <p class="dish-price">₹${dish.price} ${dish.original_price_label || ''}</p>
+                                <div class="allergen-alert-strip">${technicalAllergenBadgesHTML}</div>
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 0.6rem; min-width: 120px; align-items: flex-end;">
+                                <button class="btn-add-tray" id="add-btn-${dish.id}" onclick="addToCartTray('${dish.name.replace(/'/g, "\\'")}', ${dish.price}, ${dish.id})">${addBtnLabelStringText}</button>
+                                <button class="btn-add-tray" style="background: transparent; color: var(--primary); border: 1px solid var(--primary); font-size: 0.75rem; padding: 0.35rem 0.7rem;" onclick="openVolumetric3DViewer('${dish.graphic_3d_asset}', '${dish.name.replace(/'/g, "\\'")}', ${dish.price}, ${dish.id})">🔍 View 3D Model</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
         }
 
-        // 🟩 BATCH BUILDER STATE VARIABLES
-        let locallyStagedDishesBatchCache = [];
+        function renderPromotionalShowcaseCarousel() {
+            const container = document.getElementById('highlightsSliderContainer');
+            if (!container) return;
 
-        window.stageDishLocallyForBatchProcessing = function () {
-            const nameField = document.getElementById('menuName').value.trim();
-            const priceField = document.getElementById('menuPrice').value.trim();
-            const modelFileNode = document.getElementById('dish3DFile');
+            const promoItems = rawDatabaseDishesCache.filter(d => d.is_promo === 1);
 
-            if (!nameField || !priceField || !modelFileNode.files.length) {
-                alert("⚠️ Validation Failure: Please supply a Title Name, Unit Price, and valid 3D file.");
+            if (!promoItems.length) {
+                container.classList.remove('has-items');
+                container.innerHTML = '';
                 return;
             }
 
-            // DUPLICATE RECORD INTERCEPTOR
-            const isDuplicateLocally = locallyStagedDishesBatchCache.some(item => item.name.toLowerCase() === nameField.toLowerCase());
-            const tableRows = document.querySelectorAll('#menuTableBody tr');
-            let isDuplicateInDatabase = false;
-
-            tableRows.forEach(row => {
-                const titleNode = row.querySelector('td:nth-child(2)');
-                if (titleNode && titleNode.innerText.trim().toLowerCase() === nameField.toLowerCase()) {
-                    isDuplicateInDatabase = true;
-                }
-            });
-
-            if (isDuplicateLocally || isDuplicateInDatabase) {
-                alert(`❌ Duplicate Rejected: A dish named "${nameField}" already exists inside your active database index parameters.`);
-                return;
-            }
-
-            let packedAllergenStringTokens = [];
-            document.querySelectorAll('.menu-allergen-box').forEach(chk => {
-                if (chk.checked) packedAllergenStringTokens.push(chk.value);
-            });
-
-            locallyStagedDishesBatchCache.push({
-                name: nameField,
-                price: parseFloat(priceField),
-                offer_percentage: document.getElementById('menuOfferPercent').value || '0',
-                dietary_type: document.getElementById('menuDietType').value,
-                allergens: packedAllergenStringTokens.length ? packedAllergenStringTokens.join(',') : 'none',
-                binaryFileBlob: modelFileNode.files[0]
-            });
-
-            document.getElementById('menuName').value = '';
-            document.getElementById('menuPrice').value = '';
-            document.getElementById('menuOfferPercent').value = '0';
-            modelFileNode.value = '';
-            document.querySelectorAll('.menu-allergen-box').forEach(chk => chk.checked = false);
-
-            renderStagedDishesReviewLayoutList();
-        };
-
-        function renderStagedDishesReviewLayoutList() {
-            const wrapper = document.getElementById('stagedDishesWrapper');
-            const container = document.getElementById('stagedItemsList');
-            if (!locallyStagedDishesBatchCache.length) { wrapper.style.display = 'none'; return; }
-            wrapper.style.display = 'block'; container.innerHTML = '';
-            locallyStagedDishesBatchCache.forEach((dish, index) => {
-                container.innerHTML += `
-                    <li style="display:flex; justify-content:space-between; align-items:center; background: var(--card-dark); padding: 0.6rem 1rem; border-radius:4px; border:1px solid var(--border); font-size:0.85rem;">
-                        <span>📦 Staged Item #${index + 1}: <strong>${dish.name}</strong> - ₹${dish.price} <small style="color:var(--text-muted);">[File: ${dish.binaryFileBlob.name}]</small></span>
-                        <button type="button" style="background:transparent; border:none; color:var(--danger); font-weight:700; cursor:pointer;" onclick="removeSingleStagedDishNode(${index})">Remove</button>
-                    </li>`;
-            });
+            container.classList.add('has-items');
+            container.innerHTML = promoItems.map(dish => `
+        <div class="promo-card" style="margin-bottom: 0.8rem;">
+            <span class="promo-tag">✨ Featured</span>
+            <h3 style="font-size: 1rem; font-weight: 700; color: white;">${dish.name}</h3>
+            <p style="color: var(--primary); font-weight: 600; margin-top: 0.3rem;">
+                ₹${dish.price.toFixed(2)} ${dish.original_price_label || ''}
+            </p>
+            <button class="btn-add-tray" style="margin-top: 0.8rem;"
+                onclick="addToCartTray('${dish.name.replace(/'/g, "\\'")}', ${dish.price}, ${dish.id})">
+                Add to Order +
+            </button>
+        </div>
+    `).join('');
         }
 
-        window.removeSingleStagedDishNode = function (indexKey) {
-            locallyStagedDishesBatchCache.splice(indexKey, 1);
-            renderStagedDishesReviewLayoutList();
-        };
+        function initMasterSharedWebGLContext() {
+            const canvasElementNode = document.getElementById('masterThreeCanvas');
+            mainRenderer = new THREE.WebGLRenderer({ canvas: canvasElementNode, antialias: false, alpha: true, precision: "mediump" });
+            activeModelScene = new THREE.Scene();
 
-        window.commitStagedBatchToCloudDatabase = async function () {
-            if (!locallyStagedDishesBatchCache.length) return;
-            const totalBatchCount = locallyStagedDishesBatchCache.length;
-            for (let i = 0; i < locallyStagedDishesBatchCache.length; i++) {
-                const dish = locallyStagedDishesBatchCache[i];
-                const batchFormData = new FormData();
-                batchFormData.append('restaurant_id', parseInt(tenantId));
-                batchFormData.append('name', dish.name);
-                batchFormData.append('price', dish.price);
-                batchFormData.append('offer_percentage', dish.offer_percentage);
-                batchFormData.append('dietary_type', dish.dietary_type);
-                batchFormData.append('allergens', dish.allergens);
-                batchFormData.append('dish3DFile', dish.binaryFileBlob);
-                try {
-                    const response = await fetch('/api/dishes/add', { method: 'POST', body: batchFormData });
+            const ambLight = new THREE.AmbientLight('#ffffff', 1.8);
+            activeModelScene.add(ambLight);
 
-                    // 🟩 FIX: Verifies content packet type header metadata BEFORE executing parsing routines
-                    const responseContentTypeString = response.headers.get("content-type") || "";
+            const dirLight = new THREE.DirectionalLight('#ffffff', 2.2);
+            dirLight.position.set(3, 5, 3);
+            activeModelScene.add(dirLight);
 
-                    if (!responseContentTypeString.includes("application/json")) {
-                        const failureHTMLTextPayload = await response.text();
-                        throw new Error(`Server returned HTML instead of JSON. Ensure file is under 30MB. Details: ${failureHTMLTextPayload.substring(0, 100)}...`);
-                    }
+            mainCamera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+            mainCamera.position.set(0, 1.2, 3.2);
+            gltfLoader = new GLTFLoader();
 
-                    const data = await response.json();
-                    if (!data.success) throw new Error(data.error || "Staging rejected by server network ports.");
-                } catch (err) {
-                    alert(`❌ Batch Upload Stopped on item "${dish.name}": ` + err.message);
-                    return;
-                }
-            }
-            alert(`🎉 Success! All ${totalBatchCount} staged items written smoothly to database.`);
-            locallyStagedDishesBatchCache = []; renderStagedDishesReviewLayoutList(); await syncAdminData();
-        };
-
-        async function addDishCardManual() {
-            const nameField = document.getElementById('menuName').value.trim();
-            const priceField = document.getElementById('menuPrice').value.trim();
-            const modelFileNode = document.getElementById('dish3DFile');
-
-            if (!nameField || !priceField || !modelFileNode.files.length) {
-                alert("Validation Check Failure: Missing title names, pricing metrics or absolute .gltf/.glb files attachments components.");
-                return;
-            }
-
-            try {
-                let packedAllergenStringTokens = [];
-                document.querySelectorAll('.menu-allergen-box').forEach(chk => {
-                    if (chk.checked) packedAllergenStringTokens.push(chk.value);
-                });
-
-                const dishFormData = new FormData();
-                dishFormData.append('restaurant_id', parseInt(tenantId));
-                dishFormData.append('name', nameField);
-                dishFormData.append('price', parseFloat(priceField));
-                dishFormData.append('offer_percentage', document.getElementById('menuOfferPercent').value || '0');
-                dishFormData.append('dietary_type', document.getElementById('menuDietType').value);
-                dishFormData.append('allergens', packedAllergenStringTokens.length ? packedAllergenStringTokens.join(',') : 'none');
-                dishFormData.append('dish3DFile', modelFileNode.files[0]);
-
-                const response = await fetch('/api/dishes/add', { method: 'POST', body: dishFormData });
-                if ((await response.json()).success) {
-                    alert("🎉 3D Volumetric product model file ingest operations committed successfully inside relational tables catalog systems!");
-                    document.getElementById('menuForm').reset();
-                    await syncAdminData();
-                }
-            } catch (err) { alert("Ingestion pipeline network connection fault execution exception error."); }
+            bindGlobalDragInteractionListeners();
         }
 
-        async function adminDeleteDishCard(dishId) {
-            if (!confirm("Purge asset file card item matrix row completely?")) return;
-            try {
-                const res = await fetch(`/api/dishes/delete?id=${dishId}&restaurant_id=${tenantId}`, { method: 'POST' });
-                if ((await res.json()).success) await syncAdminData();
-            } catch (e) { alert("Network Connection Fault."); }
+        function bindGlobalDragInteractionListeners() {
+            const container = document.getElementById('canvasModalAnchorContainer');
+            const startDrag = (clientX, clientY) => { isUserDraggingModel = true; prevMousePositionX = clientX; prevMousePositionY = clientY; };
+            const moveDrag = (clientX, clientY) => {
+                if (!isUserDraggingModel || !currentLoadedMeshInstance) return;
+                modelRotationAngleY += (clientX - prevMousePositionX) * 0.008;
+                modelRotationAngleX += (clientY - prevMousePositionY) * 0.008;
+                prevMousePositionX = clientX; prevMousePositionY = clientY;
+            };
+
+            container.addEventListener('mousedown', (e) => startDrag(e.clientX, e.clientY));
+            container.addEventListener('touchstart', (e) => { if (e.touches.length === 1) startDrag(e.touches[0].clientX, e.touches[0].clientY); }, { passive: true });
+            window.addEventListener('mousemove', (e) => moveDrag(e.clientX, e.clientY));
+            window.addEventListener('touchmove', (e) => { if (e.touches.length === 1) moveDrag(e.touches[0].clientX, e.touches[0].clientY); }, { passive: true });
+            window.addEventListener('mouseup', () => { isUserDraggingModel = false; });
+            window.addEventListener('touchend', () => { isUserDraggingModel = false; });
         }
 
-        async function adminDeleteChefProfile(chefId) {
-            if (!confirm("Purge staff entity row index mapping context completely?")) return;
-            try {
-                const res = await fetch(`/api/chefs/delete?id=${chefId}&restaurant_id=${tenantId}`, { method: 'POST' });
-                if ((await res.json()).success) await syncAdminData();
-            } catch (e) { alert("Network Connection Fault."); }
-        }
+        function openVolumetric3DViewer(assetPath, name, price, dishId) {
+            document.getElementById('modalDishTitle').innerText = name;
+            document.getElementById('volumetricPreviewModal').style.display = 'flex';
 
-        window.addChefProfile = async function (e) {
-            if (e) e.preventDefault();
+            if (currentLoadedMeshInstance) activeModelScene.remove(currentLoadedMeshInstance);
 
-            const nameField = document.getElementById('chefName').value.trim();
-            const specialtyField = document.getElementById('chefSpecialty').value.trim();
-            const expField = document.getElementById('chefExp').value.trim();
-            const chefPhotoFieldNode = document.getElementById('chefPhotoFile');
-
-            if (!nameField || !specialtyField || !expField || !chefPhotoFieldNode.files.length) {
-                alert("⚠️ Validation Failure: Please complete all profile fields and attach an avatar image.");
-                return false;
-            }
-
-            try {
-                const multipartFormBuilder = new FormData();
-                multipartFormBuilder.append('restaurant_id', parseInt(tenantId));
-                multipartFormBuilder.append('name', nameField);
-                multipartFormBuilder.append('specialties', specialtyField);
-                multipartFormBuilder.append('experience', expField);
-                multipartFormBuilder.append('chefPhotoFile', chefPhotoFieldNode.files[0]);
-
-                const response = await fetch('/api/chefs/add', { method: 'POST', body: multipartFormBuilder });
-                const data = await response.json();
-
-                if (data.success) {
-                    alert("🎉 Success! New personnel profile written smoothly to operational rosters rows.");
-                    document.getElementById('chefForm').reset();
-                    await syncAdminData();
-                } else {
-                    alert("❌ Server Error: " + (data.error || "Profile registry rejected."));
-                }
-            } catch (err) {
-                alert("❌ Upload Ingestion Pipeline Error: Network connection stream interrupted.");
-            }
-            return false;
-        };
-
-        function adminPipelineOverride(orderId, targetStatus) {
-            let backupChefId = liveEnrolledChefsList.length ? liveEnrolledChefsList[0].id : 1;
-            socket.emit('update_order_status', { restaurant_id: parseInt(tenantId), order_id: parseInt(orderId), status: targetStatus, chef_id: backupChefId, prep_time: 12 });
-        }
-
-        // =================================================================================
-        //         REAL-TIME WEBSOCKET LISTENER NETWORK CHANNELS INTERCEPTORS
-        // =================================================================================
-        socket.on('new_order_alert', (order) => {
-            const index = ordersLog.findIndex(o => o.id === order.id);
-            if (index === -1) {
-                ordersLog.unshift(order);
-                totalRevenue += order.total_price;
-                renderLedger();
-                syncPopularityAnalytics();
-            }
-        });
-
-        socket.on('order_pipeline_update', (order) => {
-            const idx = ordersLog.findIndex(o => o.id === order.id);
-            if (idx !== -1) ordersLog[idx].status = order.status;
-            else ordersLog.push(order);
-            renderLedger();
-        });
-
-        socket.on('incoming_feedback', (review) => {
-            foodScores.push(review.food_rating);
-            serviceScores.push(review.service_rating);
-            document.getElementById('kpi-food-rating').innerText = (foodScores.reduce((a, b) => a + b, 0) / foodScores.length).toFixed(1) + " / 5.0";
-            document.getElementById('kpi-service-rating').innerText = (serviceScores.reduce((a, b) => a + b, 0) / serviceScores.length).toFixed(1) + " / 5.0";
-
-            const container = document.getElementById('feedbackContainer');
-            if (foodScores.length === 1) container.innerHTML = '';
-            const warningClass = (review.food_rating <= 2 || review.service_rating <= 2) ? 'warning' : '';
-            container.innerHTML = `<div class="feedback-node-card ${warningClass}"><strong>Order Ref: #ORD-${review.order_id}</strong><p>"${review.comments || 'No comment text lines elements written.'}"</p></div>` + container.innerHTML;
-        });
-
-        // 🚨 WEBSOCKET SERVICE BELL INTERCEPTOR: Automatically triggers visual tile alert matrices transformations
-        socket.on('waiter_alert', (alertPayload) => {
-            // Extract the location label coordinates context token tracking identifiers values (e.g., "Table 4")
-            let callerSpaceLabelString = alertPayload.location_identifier.split(' [')[0];
-
-            console.log(`[Paging Monitor Center] Incoming assistance flag received from spatial zone locator token: ${callerSpaceLabelString}`);
-
-            // Log active room or table context token inside dictionary memory maps triggers to execute animations routines
-            spacesActiveAlertStateMap.set(callerSpaceLabelString, true);
-
-            // Dynamically reload the floor visuals to force target cards tiles grids areas to blink alert lights indicators
-            compileFloorTileGridVisualLayout();
-
-            const container = document.getElementById('feedbackContainer');
-            if (container.innerHTML.includes('No logs recorded')) container.innerHTML = '';
-            container.innerHTML = `<div class="feedback-node-card" style="border-left-color:var(--danger); background:rgba(239,68,68,0.02);"><strong>🚨 PAGING RUNNER LOG ALERT:</strong> Assistance signal checked at ${callerSpaceLabelString} position coordinates grid point node area.</div>` + container.innerHTML;
-        });
-
-        function renderLedger() {
-            document.getElementById('kpi-orders-count').innerText = ordersLog.length;
-            document.getElementById('kpi-revenue').innerText = "₹" + totalRevenue.toFixed(2);
-            const tbody = document.getElementById('ledgerTableBody');
-            tbody.innerHTML = '';
-            ordersLog.forEach(o => {
-                tbody.innerHTML += `<tr><td>#${o.id}</td><td>${o.location_context}</td><td><strong>${o.location_identifier}</strong></td><td>₹${o.total_price.toFixed(2)}</td><td>${o.status}</td><td>${formatDateTimeToStandard(o.timestamp || new Date())}</td></tr>`;
-            });
-
-            const kitchenGridBox = document.getElementById('adminKitchenBoardGrid');
-            kitchenGridBox.innerHTML = '';
-            let activeCookingSlips = ordersLog.filter(o => o.status !== 'Served');
-            if (!activeCookingSlips.length) {
-                kitchenGridBox.innerHTML = `<p style="color:var(--text-muted); font-size:0.85rem; padding:1rem;">All active kitchen tickets lines production tracks clear at this timestamp checkpoint.</p>`;
-                return;
-            }
-            activeCookingSlips.forEach(order => {
-                kitchenGridBox.innerHTML += `<div class="admin-kitchen-card"><strong>Ticket #${order.id} [${order.location_identifier}]</strong><div class="admin-override-row"><button class="btn-override fire-btn" onclick="adminPipelineOverride(${order.id}, 'Cooking')">🔥 Cook</button><button class="btn-override ready-btn" onclick="adminPipelineOverride(${order.id}, 'Ready')">🛎️ Ready</button><button class="btn-override serve-btn" onclick="adminPipelineOverride(${order.id}, 'Served')">✅ Serve</button></div></div>`;
+            gltfLoader.load(assetPath, (gltf) => {
+                currentLoadedMeshInstance = gltf.scene;
+                const bBox = new THREE.Box3().setFromObject(currentLoadedMeshInstance);
+                const center = bBox.getCenter(new THREE.Vector3());
+                currentLoadedMeshInstance.position.x += (0) - center.x;
+                currentLoadedMeshInstance.position.y += (0) - center.y;
+                currentLoadedMeshInstance.position.z += (0) - center.z;
+                activeModelScene.add(currentLoadedMeshInstance);
             });
         }
 
-        // Initialize synchronization systems routines components upon asset window body tree structure load execution
-        window.onload = async function () {
-            // 🟩 FIXED: Enforces correct data parameter naming for real-time channel alignment
-            socket.emit('join_workspace', { restaurantId: tenantId });
-            await syncAdminData();
-        };
+        function closeVolumetric3DViewer() {
+            document.getElementById('volumetricPreviewModal').style.display = 'none';
+            if (currentLoadedMeshInstance) { activeModelScene.remove(currentLoadedMeshInstance); currentLoadedMeshInstance = null; }
+        }
+
+        function executeMasterRenderTickLoop() {
+            requestAnimationFrame(executeMasterRenderTickLoop);
+            const container = document.getElementById('canvasModalAnchorContainer');
+            if (!container || document.getElementById('volumetricPreviewModal').style.display === 'none') return;
+
+            const rectBounds = container.getBoundingClientRect();
+            mainRenderer.setSize(rectBounds.width, rectBounds.height, false);
+            mainRenderer.setScissor(0, 0, rectBounds.width, rectBounds.height);
+            mainRenderer.setViewport(0, 0, rectBounds.width, rectBounds.height);
+
+            if (currentLoadedMeshInstance) {
+                currentLoadedMeshInstance.rotation.y = modelRotationAngleY;
+                currentLoadedMeshInstance.rotation.x = modelRotationAngleX;
+                if (!isUserDraggingModel) modelRotationAngleY += 0.005;
+            }
+            mainRenderer.render(activeModelScene, mainCamera);
+        }
+
+        window.onload = () => { initializeApp(); };
     </script>
-    <script>
-        // 🟩 FIXED: Safe event listener wrap to ensure zero script crashes on page load execution
-        document.addEventListener('DOMContentLoaded', () => {
-            const profileDropdownButtonNode = document.querySelector('.navigation-dropdown-profile') || document.querySelector('.icon');
-            if (profileDropdownButtonNode) {
-                profileDropdownButtonNode.onclick = (e) => {
-                    if (e) e.stopPropagation();
-                    const trackingFeedContainerNode = document.getElementById('statusBarNotificationFeed');
-                    if (trackingFeedContainerNode) {
-                        const isCurrentlyHidden = trackingFeedContainerNode.style.display === 'none' || trackingFeedContainerNode.style.display === '';
-                        trackingFeedContainerNode.style.display = isCurrentlyHidden ? 'block' : 'none';
-                    }
-                };
-            }
-        });
-    </script>
-
 </body>
 
 </html>
