@@ -77,8 +77,9 @@ const storageDiskConfiguration = multer.diskStorage({
 const uploadProcessor = multer({
     storage: storageDiskConfiguration,
     limits: {
-        fileSize: 30 * 1024 * 1024, // 30MB Max Limit Allocation Latch to prevent pipeline overflow
-        fields: 10 // Drop heavy request headers processing overhead strings
+       fileSize: 100 * 1024 * 1024, // Expanded to 100MB margin to protect high-density complex 3D meshes
+        fields: 100,                 // Increased threshold limit to allow structural staging array strings data through
+        files: 1                     // Enforces exactly 1 file upload per network call block
     }
 });
 
@@ -542,3 +543,4 @@ server.listen(PORT, () => {
     console.log(` MESA 3D ENGINE CORE MODULE: Infrastructure listening effectively on web port: ${PORT}`);
     console.log(`=================================================================================`);
 });
+
