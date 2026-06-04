@@ -2,7 +2,7 @@
   "name": "Mesa 3D Digital Menu Engine",
   "short_name": "Mesa3D",
   "description": "Interactive 3D WebGL Hospitality Terminal",
-  "start_url": "/customer/index.html?restaurant_id=1&table=1",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#0B0F19",
   "theme_color": "#161B26",
