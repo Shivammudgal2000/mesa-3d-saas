@@ -618,9 +618,78 @@
         </footer>
     </div>
 
+    <!-- REPLACE THIS: -->
     <div class="overlay-canvas" id="assistantDrawerNode">...</div>
     <div class="overlay-canvas" id="allergenProfilerNode">...</div>
     <div class="overlay-canvas" id="feedbackNode">...</div>
+
+    <!-- WITH THIS: -->
+    <div class="overlay-canvas" id="assistantDrawerNode">
+        <div class="modal-container-box">
+            <span class="modal-close-cross" onclick="toggleAssistantDrawer(false)">✕</span>
+            <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.3rem;">🛎️ Need Assistance?</h3>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 0.5rem;">Select what you need:</p>
+            <div class="quick-grid-menu">
+                <div class="quick-node-card" id="qn-water"
+                    onclick="toggleQuickNeedListItem('qn-water', 'Water Refill')">💧<span>Water Refill</span></div>
+                <div class="quick-node-card" id="qn-waiter"
+                    onclick="toggleQuickNeedListItem('qn-waiter', 'Call Waiter')">🙋 <span>Call Waiter</span></div>
+                <div class="quick-node-card" id="qn-bill" onclick="toggleQuickNeedListItem('qn-bill', 'Request Bill')">
+                    🧾 <span>Request Bill</span></div>
+                <div class="quick-node-card" id="qn-cutlery"
+                    onclick="toggleQuickNeedListItem('qn-cutlery', 'Extra Cutlery')">🍴 <span>Extra Cutlery</span></div>
+            </div>
+            <textarea id="assistantRequestNotes" rows="2" placeholder="Any specific notes? (optional)"></textarea>
+            <button class="btn-checkout" style="margin-top: 1rem;" onclick="dispatchQuickAssistanceRequest()">Send
+                Request</button>
+        </div>
+    </div>
+
+    <div class="overlay-canvas" id="allergenProfilerNode">
+        <div class="modal-container-box">
+            <span class="modal-close-cross" onclick="toggleAllergenSetupModal(false)">✕</span>
+            <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.3rem;">🛡️ Allergy Filter</h3>
+            <p style="color: var(--text-muted); font-size: 0.85rem;">Select allergens to hide or flag dishes:</p>
+            <div class="allergy-grid-selection">
+                <label class="allergy-label-item"><input type="checkbox" class="allergen-chk" value="nuts"> 🥜 Peanuts /
+                    Nuts</label>
+                <label class="allergy-label-item"><input type="checkbox" class="allergen-chk" value="dairy"> 🥛 Dairy /
+                    Lactose</label>
+                <label class="allergy-label-item"><input type="checkbox" class="allergen-chk" value="gluten"> 🌾 Gluten
+                    / Wheat</label>
+                <label class="allergy-label-item"><input type="checkbox" class="allergen-chk" value="shellfish"> 🦀
+                    Shellfish</label>
+            </div>
+            <button class="btn-checkout" onclick="applyAllergenSafetyProfilesFilters()">Apply Filter</button>
+        </div>
+    </div>
+
+    <div class="overlay-canvas" id="feedbackNode">
+        <div class="modal-container-box">
+            <span class="modal-close-cross"
+                onclick="document.getElementById('feedbackNode').classList.remove('active')">✕</span>
+            <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem;">⭐ Rate Your Experience</h3>
+            <p style="color: var(--text-muted); font-size: 0.85rem;">Food Quality</p>
+            <div class="rating-stars" id="foodStars">
+                <span class="star" onclick="setRating('food', 1)">★</span>
+                <span class="star" onclick="setRating('food', 2)">★</span>
+                <span class="star" onclick="setRating('food', 3)">★</span>
+                <span class="star" onclick="setRating('food', 4)">★</span>
+                <span class="star" onclick="setRating('food', 5)">★</span>
+            </div>
+            <p style="color: var(--text-muted); font-size: 0.85rem;">Service Quality</p>
+            <div class="rating-stars" id="serviceStars">
+                <span class="star" onclick="setRating('service', 1)">★</span>
+                <span class="star" onclick="setRating('service', 2)">★</span>
+                <span class="star" onclick="setRating('service', 3)">★</span>
+                <span class="star" onclick="setRating('service', 4)">★</span>
+                <span class="star" onclick="setRating('service', 5)">★</span>
+            </div>
+            <textarea id="feedbackComments" rows="3" placeholder="Any comments? (optional)"></textarea>
+            <button class="btn-checkout" style="margin-top: 1rem;" onclick="dispatchFeedbackMatrix()">Submit
+                Feedback</button>
+        </div>
+    </div>
 
     <script type="module">
         import * as THREE from 'three';
@@ -797,88 +866,116 @@
             }
         };
 
+        // ✅ ADD THIS FUNCTION HERE — inside <script type="module">
+        function renderPromotionalShowcaseCarousel() {
+            const container = document.getElementById('highlightsSliderContainer');
+            if (!container) return;
+
+            const promoItems = rawDatabaseDishesCache.filter(d => d.is_promo === 1);
+
+            if (!promoItems.length) {
+                container.classList.remove('has-items');
+                container.innerHTML = '';
+                return;
+            }
+
+            container.classList.add('has-items');
+            container.innerHTML = promoItems.map(dish => `
+                <div class="promo-card" style="margin-bottom: 0.8rem;">
+                    <span class="promo-tag">✨ Featured</span>
+                    <h3 style="font-size: 1rem; font-weight: 700; color: white;">${dish.name}</h3>
+                    <p style="color: var(--primary); font-weight: 600; margin-top: 0.3rem;">
+                        ₹${dish.price.toFixed(2)} ${dish.original_price_label || ''}
+                    </p>
+                    <button class="btn-add-tray" style="margin-top: 0.8rem;"
+                        onclick="addToCartTray('${dish.name.replace(/'/g, "\\'")}', ${dish.price}, ${dish.id})">
+                        Add to Order +
+                    </button>
+                </div>
+            `).join('');
+        }
 
 
-        async function initializeApp() {
-            try {
-                applyWhiteLabelBrandLabels();
-                socket.emit('join_workspace', { restaurantId: tenantId });
-                initMasterSharedWebGLContext();
+            async function initializeApp() {
+                try {
+                    applyWhiteLabelBrandLabels();
+                    socket.emit('join_workspace', { restaurantId: tenantId });
+                    initMasterSharedWebGLContext();
 
-                const dishRes = await fetch('/api/dishes?restaurant_id=' + tenantId);
-                const rawData = await dishRes.json();
+                    const dishRes = await fetch('/api/dishes?restaurant_id=' + tenantId);
+                    const rawData = await dishRes.json();
 
-                rawDatabaseDishesCache = rawData.map((dish) => {
-                    let discountRate = parseInt(dish.specialties) || 0;
-                    let isPromoItem = dish.is_promo === 1 ? 1 : 0;
-                    let assignedAllergensList = dish.allergens && dish.allergens !== 'none' ? dish.allergens.split(',') : [];
-                    let displayPrice = dish.price;
-                    let strikeThroughPriceHTML = "";
+                    rawDatabaseDishesCache = rawData.map((dish) => {
+                        let discountRate = parseInt(dish.specialties) || 0;
+                        let isPromoItem = dish.is_promo === 1 ? 1 : 0;
+                        let assignedAllergensList = dish.allergens && dish.allergens !== 'none' ? dish.allergens.split(',') : [];
+                        let displayPrice = dish.price;
+                        let strikeThroughPriceHTML = "";
 
-                    if (discountRate > 0) {
-                        displayPrice = dish.price * (1 - (discountRate / 100));
-                        strikeThroughPriceHTML = `<span style="text-decoration: line-through; color: var(--text-muted); font-size: 0.8rem; margin-left: 0.4rem;">₹${dish.price.toFixed(2)}</span>`;
-                    }
+                        if (discountRate > 0) {
+                            displayPrice = dish.price * (1 - (discountRate / 100));
+                            strikeThroughPriceHTML = `<span style="text-decoration: line-through; color: var(--text-muted); font-size: 0.8rem; margin-left: 0.4rem;">₹${dish.price.toFixed(2)}</span>`;
+                        }
 
-                    return {
-                        id: dish.id,
-                        name: dish.name,
-                        price: displayPrice,
-                        original_price_label: strikeThroughPriceHTML,
-                        is_promo: isPromoItem,
-                        dietary_classification: dish.dietary_type || 'veg',
-                        allergens_array: assignedAllergensList,
-                        graphic_3d_asset: dish.image_url || ''
-                    };
+                        return {
+                            id: dish.id,
+                            name: dish.name,
+                            price: displayPrice,
+                            original_price_label: strikeThroughPriceHTML,
+                            is_promo: isPromoItem,
+                            dietary_classification: dish.dietary_type || 'veg',
+                            allergens_array: assignedAllergensList,
+                            graphic_3d_asset: dish.image_url || ''
+                        };
+                    });
+
+                    renderPromotionalShowcaseCarousel();
+                    renderMenuDisplayGrid();
+                    executeMasterRenderTickLoop();
+
+                } catch (err) { console.error(err); }
+            }
+
+            function applyWhiteLabelBrandLabels() {
+                // 🟩 FIXED ISSUE 7 & 8: Safely binds table coordinates and dynamically pulls local business identities
+                document.getElementById('locationDisplay').innerText = `${locationContext} SERVICE POINT: ${locationIdentifier}`;
+
+                // Extract the custom authenticated tenant brand name currently stored inside device local storage bounds
+                const customBusinessBrandNameString = localStorage.getItem('mesa3d_tenant_name') || "Mesa 3D Smart Dining Terminal";
+                document.getElementById('restaurantName').innerText = customBusinessBrandNameString;
+
+                if (venueClassificationMode === 'HOTEL') {
+                    document.getElementById('systemHeader').innerText = "🛋️ In-Room Volumetric Interactive Concierge Deck";
+                    document.getElementById('globalKitchenInstructionsNote').placeholder = "🏨 Add specific room delivery instructions or suite preference notes here...";
+                } else if (venueClassificationMode === 'CAFE') {
+                    document.getElementById('systemHeader').innerText = "☕ Smart Lounge Bar Counter Directory Terminal";
+                    document.getElementById('globalKitchenInstructionsNote').placeholder = "🥐 Add barista notes or brewing preferences here...";
+                } else {
+                    document.getElementById('systemHeader').innerText = "🍽️ Premium Interactive SaaS Dining Directory";
+                    document.getElementById('globalKitchenInstructionsNote').placeholder = "🍳 Add general kitchen preparation or custom chef instruction notes here...";
+                }
+            }
+
+            function renderMenuDisplayGrid() {
+                const grid = document.getElementById('masterMenuGrid');
+                grid.innerHTML = '';
+
+                let outputTargetList = rawDatabaseDishesCache.filter(dish => {
+                    if (currentActiveFilterMode === 'all') return true;
+                    if (currentActiveFilterMode === 'veg') return dish.dietary_classification === 'veg';
+                    if (currentActiveFilterMode === 'promo') return dish.is_promo === 1;
+                    return true;
                 });
 
-                renderPromotionalShowcaseCarousel();
-                renderMenuDisplayGrid();
-                executeMasterRenderTickLoop();
+                outputTargetList.forEach(dish => {
+                    let containsTriggeredAllergen = dish.allergens_array.some(key => selectedAllergenTriggers.includes(key.toLowerCase().trim()));
+                    let criticalCardWarningCSSClass = containsTriggeredAllergen ? 'allergen-warning' : '';
+                    let technicalAllergenBadgesHTML = dish.allergens_array.map(alg => `<span class="allergen-pill-badge">Contains ${alg.toUpperCase().trim()}</span>`).join('');
+                    let classificationCSSSelector = dish.dietary_classification;
+                    let currentAddedQuantityCount = cart.filter(item => item.name === dish.name).length;
+                    let addBtnLabelStringText = currentAddedQuantityCount > 0 ? `Add (${currentAddedQuantityCount}) +` : 'Add +';
 
-            } catch (err) { console.error(err); }
-        }
-
-        function applyWhiteLabelBrandLabels() {
-            // 🟩 FIXED ISSUE 7 & 8: Safely binds table coordinates and dynamically pulls local business identities
-            document.getElementById('locationDisplay').innerText = `${locationContext} SERVICE POINT: ${locationIdentifier}`;
-
-            // Extract the custom authenticated tenant brand name currently stored inside device local storage bounds
-            const customBusinessBrandNameString = localStorage.getItem('mesa3d_tenant_name') || "Mesa 3D Smart Dining Terminal";
-            document.getElementById('restaurantName').innerText = customBusinessBrandNameString;
-
-            if (venueClassificationMode === 'HOTEL') {
-                document.getElementById('systemHeader').innerText = "🛋️ In-Room Volumetric Interactive Concierge Deck";
-                document.getElementById('globalKitchenInstructionsNote').placeholder = "🏨 Add specific room delivery instructions or suite preference notes here...";
-            } else if (venueClassificationMode === 'CAFE') {
-                document.getElementById('systemHeader').innerText = "☕ Smart Lounge Bar Counter Directory Terminal";
-                document.getElementById('globalKitchenInstructionsNote').placeholder = "🥐 Add barista notes or brewing preferences here...";
-            } else {
-                document.getElementById('systemHeader').innerText = "🍽️ Premium Interactive SaaS Dining Directory";
-                document.getElementById('globalKitchenInstructionsNote').placeholder = "🍳 Add general kitchen preparation or custom chef instruction notes here...";
-            }
-        }
-
-        function renderMenuDisplayGrid() {
-            const grid = document.getElementById('masterMenuGrid');
-            grid.innerHTML = '';
-
-            let outputTargetList = rawDatabaseDishesCache.filter(dish => {
-                if (currentActiveFilterMode === 'all') return true;
-                if (currentActiveFilterMode === 'veg') return dish.dietary_classification === 'veg';
-                if (currentActiveFilterMode === 'promo') return dish.is_promo === 1;
-                return true;
-            });
-
-            outputTargetList.forEach(dish => {
-                let containsTriggeredAllergen = dish.allergens_array.some(key => selectedAllergenTriggers.includes(key.toLowerCase().trim()));
-                let criticalCardWarningCSSClass = containsTriggeredAllergen ? 'allergen-warning' : '';
-                let technicalAllergenBadgesHTML = dish.allergens_array.map(alg => `<span class="allergen-pill-badge">Contains ${alg.toUpperCase().trim()}</span>`).join('');
-                let classificationCSSSelector = dish.dietary_classification;
-                let currentAddedQuantityCount = cart.filter(item => item.name === dish.name).length;
-                let addBtnLabelStringText = currentAddedQuantityCount > 0 ? `Add (${currentAddedQuantityCount}) +` : 'Add +';
-
-                grid.innerHTML += `
+                    grid.innerHTML += `
                     <div class="dish-card ${criticalCardWarningCSSClass}">
                         <div class="dish-main-row" style="align-items: center; gap: 1rem;">
                             <div style="flex: 1;">
@@ -894,87 +991,89 @@
                         </div>
                     </div>
                 `;
-            });
-        }
-
-        function initMasterSharedWebGLContext() {
-            const canvasElementNode = document.getElementById('masterThreeCanvas');
-            mainRenderer = new THREE.WebGLRenderer({ canvas: canvasElementNode, antialias: false, alpha: true, precision: "mediump" });
-            activeModelScene = new THREE.Scene();
-
-            const ambLight = new THREE.AmbientLight('#ffffff', 1.8);
-            activeModelScene.add(ambLight);
-
-            const dirLight = new THREE.DirectionalLight('#ffffff', 2.2);
-            dirLight.position.set(3, 5, 3);
-            activeModelScene.add(dirLight);
-
-            mainCamera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
-            mainCamera.position.set(0, 1.2, 3.2);
-            gltfLoader = new GLTFLoader();
-
-            bindGlobalDragInteractionListeners();
-        }
-
-        function bindGlobalDragInteractionListeners() {
-            const container = document.getElementById('canvasModalAnchorContainer');
-            const startDrag = (clientX, clientY) => { isUserDraggingModel = true; prevMousePositionX = clientX; prevMousePositionY = clientY; };
-            const moveDrag = (clientX, clientY) => {
-                if (!isUserDraggingModel || !currentLoadedMeshInstance) return;
-                modelRotationAngleY += (clientX - prevMousePositionX) * 0.008;
-                modelRotationAngleX += (clientY - prevMousePositionY) * 0.008;
-                prevMousePositionX = clientX; prevMousePositionY = clientY;
-            };
-
-            container.addEventListener('mousedown', (e) => startDrag(e.clientX, e.clientY));
-            container.addEventListener('touchstart', (e) => { if (e.touches.length === 1) startDrag(e.touches[0].clientX, e.touches[0].clientY); }, { passive: true });
-            window.addEventListener('mousemove', (e) => moveDrag(e.clientX, e.clientY));
-            window.addEventListener('touchmove', (e) => { if (e.touches.length === 1) moveDrag(e.touches[0].clientX, e.touches[0].clientY); }, { passive: true });
-            window.addEventListener('mouseup', () => { isUserDraggingModel = false; });
-            window.addEventListener('touchend', () => { isUserDraggingModel = false; });
-        }
-
-        function openVolumetric3DViewer(assetPath, name, price, dishId) {
-            document.getElementById('modalDishTitle').innerText = name;
-            document.getElementById('volumetricPreviewModal').style.display = 'flex';
-
-            if (currentLoadedMeshInstance) activeModelScene.remove(currentLoadedMeshInstance);
-
-            gltfLoader.load(assetPath, (gltf) => {
-                currentLoadedMeshInstance = gltf.scene;
-                const bBox = new THREE.Box3().setFromObject(currentLoadedMeshInstance);
-                const center = bBox.getCenter(new THREE.Vector3());
-                currentLoadedMeshInstance.position.x += (0) - center.x;
-                currentLoadedMeshInstance.position.y += (0) - center.y;
-                currentLoadedMeshInstance.position.z += (0) - center.z;
-                activeModelScene.add(currentLoadedMeshInstance);
-            });
-        }
-
-        function closeVolumetric3DViewer() {
-            document.getElementById('volumetricPreviewModal').style.display = 'none';
-            if (currentLoadedMeshInstance) { activeModelScene.remove(currentLoadedMeshInstance); currentLoadedMeshInstance = null; }
-        }
-
-        function executeMasterRenderTickLoop() {
-            requestAnimationFrame(executeMasterRenderTickLoop);
-            const container = document.getElementById('canvasModalAnchorContainer');
-            if (!container || document.getElementById('volumetricPreviewModal').style.display === 'none') return;
-
-            const rectBounds = container.getBoundingClientRect();
-            mainRenderer.setSize(rectBounds.width, rectBounds.height, false);
-            mainRenderer.setScissor(0, 0, rectBounds.width, rectBounds.height);
-            mainRenderer.setViewport(0, 0, rectBounds.width, rectBounds.height);
-
-            if (currentLoadedMeshInstance) {
-                currentLoadedMeshInstance.rotation.y = modelRotationAngleY;
-                currentLoadedMeshInstance.rotation.x = modelRotationAngleX;
-                if (!isUserDraggingModel) modelRotationAngleY += 0.005;
+                });
             }
-            mainRenderer.render(activeModelScene, mainCamera);
-        }
 
-        window.onload = () => { initializeApp(); };
+
+
+            function initMasterSharedWebGLContext() {
+                const canvasElementNode = document.getElementById('masterThreeCanvas');
+                mainRenderer = new THREE.WebGLRenderer({ canvas: canvasElementNode, antialias: false, alpha: true, precision: "mediump" });
+                activeModelScene = new THREE.Scene();
+
+                const ambLight = new THREE.AmbientLight('#ffffff', 1.8);
+                activeModelScene.add(ambLight);
+
+                const dirLight = new THREE.DirectionalLight('#ffffff', 2.2);
+                dirLight.position.set(3, 5, 3);
+                activeModelScene.add(dirLight);
+
+                mainCamera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+                mainCamera.position.set(0, 1.2, 3.2);
+                gltfLoader = new GLTFLoader();
+
+                bindGlobalDragInteractionListeners();
+            }
+
+            function bindGlobalDragInteractionListeners() {
+                const container = document.getElementById('canvasModalAnchorContainer');
+                const startDrag = (clientX, clientY) => { isUserDraggingModel = true; prevMousePositionX = clientX; prevMousePositionY = clientY; };
+                const moveDrag = (clientX, clientY) => {
+                    if (!isUserDraggingModel || !currentLoadedMeshInstance) return;
+                    modelRotationAngleY += (clientX - prevMousePositionX) * 0.008;
+                    modelRotationAngleX += (clientY - prevMousePositionY) * 0.008;
+                    prevMousePositionX = clientX; prevMousePositionY = clientY;
+                };
+
+                container.addEventListener('mousedown', (e) => startDrag(e.clientX, e.clientY));
+                container.addEventListener('touchstart', (e) => { if (e.touches.length === 1) startDrag(e.touches[0].clientX, e.touches[0].clientY); }, { passive: true });
+                window.addEventListener('mousemove', (e) => moveDrag(e.clientX, e.clientY));
+                window.addEventListener('touchmove', (e) => { if (e.touches.length === 1) moveDrag(e.touches[0].clientX, e.touches[0].clientY); }, { passive: true });
+                window.addEventListener('mouseup', () => { isUserDraggingModel = false; });
+                window.addEventListener('touchend', () => { isUserDraggingModel = false; });
+            }
+
+            function openVolumetric3DViewer(assetPath, name, price, dishId) {
+                document.getElementById('modalDishTitle').innerText = name;
+                document.getElementById('volumetricPreviewModal').style.display = 'flex';
+
+                if (currentLoadedMeshInstance) activeModelScene.remove(currentLoadedMeshInstance);
+
+                gltfLoader.load(assetPath, (gltf) => {
+                    currentLoadedMeshInstance = gltf.scene;
+                    const bBox = new THREE.Box3().setFromObject(currentLoadedMeshInstance);
+                    const center = bBox.getCenter(new THREE.Vector3());
+                    currentLoadedMeshInstance.position.x += (0) - center.x;
+                    currentLoadedMeshInstance.position.y += (0) - center.y;
+                    currentLoadedMeshInstance.position.z += (0) - center.z;
+                    activeModelScene.add(currentLoadedMeshInstance);
+                });
+            }
+
+            function closeVolumetric3DViewer() {
+                document.getElementById('volumetricPreviewModal').style.display = 'none';
+                if (currentLoadedMeshInstance) { activeModelScene.remove(currentLoadedMeshInstance); currentLoadedMeshInstance = null; }
+            }
+
+            function executeMasterRenderTickLoop() {
+                requestAnimationFrame(executeMasterRenderTickLoop);
+                const container = document.getElementById('canvasModalAnchorContainer');
+                if (!container || document.getElementById('volumetricPreviewModal').style.display === 'none') return;
+
+                const rectBounds = container.getBoundingClientRect();
+                mainRenderer.setSize(rectBounds.width, rectBounds.height, false);
+                mainRenderer.setScissor(0, 0, rectBounds.width, rectBounds.height);
+                mainRenderer.setViewport(0, 0, rectBounds.width, rectBounds.height);
+
+                if (currentLoadedMeshInstance) {
+                    currentLoadedMeshInstance.rotation.y = modelRotationAngleY;
+                    currentLoadedMeshInstance.rotation.x = modelRotationAngleX;
+                    if (!isUserDraggingModel) modelRotationAngleY += 0.005;
+                }
+                mainRenderer.render(activeModelScene, mainCamera);
+            }
+
+            window.onload = () => { initializeApp(); };
     </script>
 </body>
 
