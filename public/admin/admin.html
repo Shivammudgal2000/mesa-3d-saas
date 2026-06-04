@@ -1178,7 +1178,7 @@
                         let dietBadgeClass = d.dietary_type === 'non-veg' ? 'nv-type' : (d.dietary_type === 'egg' ? 'e-type' : 'v-type');
                         let dietBadgeLabel = d.dietary_type === 'non-veg' ? 'NON-VEG' : (d.dietary_type === 'egg' ? 'EGG' : 'VEG');
 
-                        let discountRateValue = parseInt(d.specialties) || 0;
+                        let discountRateValue = parseInt(d.offer_percentage) || 0;
 
                         let isHighlighted = d.is_promo === 1;
                         let highlightBtnLabel = isHighlighted ? '⭐ Featured' : 'Feature';
