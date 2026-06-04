@@ -77,7 +77,7 @@ const storageDiskConfiguration = multer.diskStorage({
 const uploadProcessor = multer({
     storage: storageDiskConfiguration,
     limits: {
-       fileSize: 100 * 1024 * 1024, // Expanded to 100MB margin to protect high-density complex 3D meshes
+        fileSize: 100 * 1024 * 1024, // Expanded to 100MB margin to protect high-density complex 3D meshes
         fields: 100,                 // Increased threshold limit to allow structural staging array strings data through
         files: 1                     // Enforces exactly 1 file upload per network call block
     }
@@ -245,17 +245,14 @@ app.get('/api/chefs', async (req, res) => {
 app.post('/api/chefs/add', uploadProcessor.single('chefPhotoFile'), async (req, res) => {
     try {
         const { restaurant_id, name, specialties, experience } = req.body;
+        const rid = restaurant_id || 1;
 
-        let finalizedUploadedPhotoUrlPath = '/images/chefs/fallback-avatar.png'; // Establish generic layout icon string defaults
-        if (req.file) {
-            finalizedUploadedPhotoUrlPath = `/uploads/chefs/${req.file.filename}`; // Rewrite path mapping locator using verified disk storage names
-        }
-
-        console.log(`[Roster System] Enrolling staff cook: "${name}" with image folder reference path: ${finalizedUploadedPhotoUrlPath}`);
+        // Captures the local relative path string where Multer saved the file
+        const photoUrl = req.file ? `/uploads/chefs/${req.file.filename}` : null;
 
         await db.run(
             'INSERT INTO chefs (restaurant_id, name, specialties, experience, photo_url) VALUES (?, ?, ?, ?, ?)',
-            [restaurant_id || 1, name, specialties, experience, finalizedUploadedPhotoUrlPath]
+            [parseInt(rid), name, specialties, experience, photoUrl]
         );
         res.json({ success: true });
     } catch (err) {
@@ -543,4 +540,3 @@ server.listen(PORT, () => {
     console.log(` MESA 3D ENGINE CORE MODULE: Infrastructure listening effectively on web port: ${PORT}`);
     console.log(`=================================================================================`);
 });
-
