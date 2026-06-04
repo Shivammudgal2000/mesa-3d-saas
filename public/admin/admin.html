@@ -1183,14 +1183,17 @@
                 if (chefBody) {
                     chefBody.innerHTML = liveEnrolledChefsList.length ? '' : '<tr><td colspan="6" style="text-align:center; color:var(--text-muted);">No profile structures registered yet inside line cook tables rosters rows.</td></tr>';
                     liveEnrolledChefsList.forEach(c => {
-                        const renderedImageMarkupHTML = `<img src="${c.photo_url || 'https://img.icons8.com/color/100/chef-hat.png'}" style="width:35px; height:35px; border-radius:50%; object-fit:cover; border:1px solid var(--border);">`;
+                        // Safe fallback links if image pathways parameters are missing
+                        const verifiedAvatarUrlString = c.photo_url ? c.photo_url : 'https://img.icons8.com/color/100/chef-hat.png';
+                        const renderedImageMarkupHTML = `<img src="${verifiedAvatarUrlString}" style="width:35px; height:35px; border-radius:50%; object-fit:cover; border:1px solid var(--border); display: inline-block; vertical-align: middle;">`;
+                        
                         chefBody.innerHTML += `
                             <tr id="chef-row-${c.id}">
                                 <td>#${c.id}</td>
                                 <td style="text-align:center; padding: 0.5rem 0;">${renderedImageMarkupHTML}</td>
-                                <td><strong>${c.name}</strong></td>
-                                <td>${c.specialties || 'General Lines Cook'}</td>
-                                <td>${c.experience || 'Entry-Level'}</td>
+                                <td><strong>${c.name || 'Anonymous Cook'}</strong></td>
+                                <td>${c.specialties || c.specialty || 'General Lines Cook'}</td>
+                                <td>${c.experience || 'Entry-Level Profile'}</td>
                                 <td style="text-align: right;">
                                     <button class="btn-inline-delete" onclick="adminDeleteChefProfile(${c.id})">Purge Profile</button>
                                 </td>
