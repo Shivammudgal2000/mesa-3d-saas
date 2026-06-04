@@ -16,7 +16,7 @@
 
     <!-- Register the custom PWA application manifest configuration file links -->
     <link rel="manifest" href="/manifest.json">
-    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
     <style>
@@ -1519,9 +1519,28 @@
         }
 
         // Initialize synchronization systems routines components upon asset window body tree structure load execution
-        window.onload = syncAdminData;
+        window.onload = async function () {
+            // 🟩 FIXED: Enforces correct data parameter naming for real-time channel alignment
+            socket.emit('join_workspace', { restaurantId: tenantId });
+            await syncAdminData();
+        };
     </script>
-    <script>document.querySelector('.navigation-dropdown-profile').onclick = () => { const f = document.getElementById('statusBarNotificationFeed'); f.style.display = f.style.display === 'none' ? 'block' : 'none'; };</script>
+    <script>
+        // 🟩 FIXED: Safe event listener wrap to ensure zero script crashes on page load execution
+        document.addEventListener('DOMContentLoaded', () => {
+            const profileDropdownButtonNode = document.querySelector('.navigation-dropdown-profile') || document.querySelector('.icon');
+            if (profileDropdownButtonNode) {
+                profileDropdownButtonNode.onclick = (e) => {
+                    if (e) e.stopPropagation();
+                    const trackingFeedContainerNode = document.getElementById('statusBarNotificationFeed');
+                    if (trackingFeedContainerNode) {
+                        const isCurrentlyHidden = trackingFeedContainerNode.style.display === 'none' || trackingFeedContainerNode.style.display === '';
+                        trackingFeedContainerNode.style.display = isCurrentlyHidden ? 'block' : 'none';
+                    }
+                };
+            }
+        });
+    </script>
 
 </body>
 
