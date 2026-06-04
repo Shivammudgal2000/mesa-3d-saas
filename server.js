@@ -24,6 +24,7 @@ import path from 'path';                 // Core utility module to resolve syste
 import { fileURLToPath } from 'url';     // Helper framework to convert ECMA module URLs into valid local platform folder locations
 import multer from 'multer';             // Specialized middleware engine to intercept and parse multipart/form-data multi-stream uploads
 import QRCode from 'qrcode';             // Official production package tool to generate high-resolution matrix graphic QR streams
+import fs from 'fs';               // 🟩 FIX: Native file-system manager to verify and deploy server directory folders on boot
 
 // --- SYSTEM DIRECTORY STRUCTURAL RESOLUTIONS ---
 const __filename = fileURLToPath(import.meta.url); // Translate standard file module URLs into a string file route path
@@ -37,9 +38,21 @@ const io = new Server(server, {            // Initializing real-time WebSockets 
 });
 
 // --- GLOBAL LEVEL ROUTING CONTROLLERS MIDDLEWARE ---
-app.use(express.json());                   // Forces incoming JSON payloads to automatically parse into accessible request body maps
-app.use(express.urlencoded({ extended: true })); // Handles standard URL-encoded form submissions from classic browser input types
+app.use(express.json({ limit: '50mb' }));                  // Forces incoming JSON payloads to automatically parse into accessible request body maps
+app.use(express.urlencoded({ limit: '50mb', extended: true })); // Handles standard URL-encoded form submissions from classic browser input types
 app.use(express.static(path.join(__dirname, 'public'))); // Maps the 'public' folder root to expose client assets (manifest.json, sw.js, html, css, js)
+
+// 🟩 FIX: Fail-Safe Deployment Folder Builder
+const directoriesToCreate = [
+    path.join(__dirname, 'public/uploads/models3d'),
+    path.join(__dirname, 'public/uploads/chefs')
+];
+directoriesToCreate.forEach(dirPath => {
+    if (!fs.existsSync(dirPath)) {
+        fs.mkdirSync(dirPath, { recursive: true });
+        console.log(`[System Storage] Created missing production path: ${dirPath}`);
+    }
+});
 
 // --- CONFIGURING MULTER DYNAMIC DISK STORAGE SPECIFICATIONS ---
 const storageDiskConfiguration = multer.diskStorage({
