@@ -60,8 +60,14 @@ const storageDiskConfiguration = multer.diskStorage({
         cb(null, prefix + uniqueSuffix + path.extname(file.originalname));
     }
 });
-// Instantiating the functional multi-part binary file storage pipeline worker processor module
-const uploadProcessor = multer({ storage: storageDiskConfiguration });
+// I Ingests multipart chunks with stream compression limits configuration
+const uploadProcessor = multer({
+    storage: storageDiskConfiguration,
+    limits: {
+        fileSize: 30 * 1024 * 1024, // 30MB Max Limit Allocation Latch to prevent pipeline overflow
+        fields: 10 // Drop heavy request headers processing overhead strings
+    }
+});
 
 // Declare relational database connection token container point globally
 let db;
@@ -262,7 +268,10 @@ app.get('/api/analytics/popular', async (req, res) => {
     try {
         const rid = req.query.restaurant_id || 1;
         // Fetch out raw serialized items orders matrix strings data directly matching workspace profiles target identifiers
-        const rows = await db.all('SELECT items FROM orders WHERE restaurant_id = ?', [rid]);
+        const rows = await db.all(
+            "SELECT items FROM orders WHERE restaurant_id = ? AND DATE(timestamp) = DATE('now', 'localtime')",
+            [rid]
+        );
 
         const itemCountsContainerMap = {}; // Setup data map memory dictionary tracker allocation block
 
@@ -448,8 +457,18 @@ io.on('connection', (socket) => {
                 [rid, location_context, location_identifier, JSON.stringify(items), total_price]
             );
 
-            // Build real-time event notification message load payload data bundle package container tracking variables
-            const payload = { id: result.lastID, ...orderData, status: 'New', estimated_prep_time: 15 };
+            // Fetch absolute server localized generation timestamp parameters context
+            const serverDateInstance = new Date();
+
+            // 🟩 FIXED ISSUE 5: Enforces a clean calendar timeline check block packet
+            const payload = {
+                id: result.lastID,
+                ...orderData,
+                status: 'New',
+                estimated_prep_time: 15,
+                timestamp: serverDateInstance.toISOString() // Formats real system execution hour maps
+            };
+
 
             // 🟩 FIXED: Switched room target destination channel address identifier string cleanly
             io.to(`workspace_${rid}`).emit('new_order_alert', payload);
